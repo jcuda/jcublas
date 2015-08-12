@@ -9,9 +9,7 @@
         <relativePath>../../jcuda-common/JCudaParentPOM/pom.xml</relativePath>
     </parent>
 
-    <groupId>org.jcuda</groupId>
     <artifactId>jcublas</artifactId>
-    <version>0.7.0b-SNAPSHOT</version>
 
     <dependencies>
         <dependency>

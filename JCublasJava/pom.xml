@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.jcuda</groupId>
         <artifactId>jcuda-parent</artifactId>
-        <version>0.7.0b-SNAPSHOT</version>
+        <version>0.7.5</version>
         <relativePath>../../jcuda-common/JCudaParentPOM/pom.xml</relativePath>
     </parent>
 
@@ -44,6 +44,11 @@
                                     <file>${jcuda.libDir}/JCublas-${jcuda.os}-${jcuda.arch}.${jcuda.ext}</file>
                                     <type>${jcuda.ext}</type>
                                     <classifier>JCublas-nativeLibrary</classifier>
+                                </artifact>
+                                <artifact>
+                                    <file>${jcuda.libDir}/JCublas2-${jcuda.os}-${jcuda.arch}.${jcuda.ext}</file>
+                                    <type>${jcuda.ext}</type>
+                                    <classifier>JCublas2-nativeLibrary</classifier>
                                 </artifact>
                             </artifacts>
                         </configuration>

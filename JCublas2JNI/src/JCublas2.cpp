@@ -11508,6 +11508,131 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgemmNative(JNIEnv *env
     return jniResult;
 }
 
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgemmExNative(JNIEnv *env, jclass cls, jobject handle, jint transa, jint transb, jint m, jint n, jint k, jobject alpha, jobject A, jint Atype, jint lda, jobject B, jint Btype, jint ldb, jobject beta, jobject C, jint Ctype, jint ldc)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasSgemmEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // transa is primitive
+    // transb is primitive
+    // m is primitive
+    // n is primitive
+    // k is primitive
+    if (alpha == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'alpha' is null for cublasSgemmEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (A == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'A' is null for cublasSgemmEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // Atype is primitive
+    // lda is primitive
+    if (B == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'B' is null for cublasSgemmEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // Btype is primitive
+    // ldb is primitive
+    if (beta == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'beta' is null for cublasSgemmEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (C == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'C' is null for cublasSgemmEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // Ctype is primitive
+    // ldc is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasSgemmEx(handle=%p, transa=%d, transb=%d, m=%d, n=%d, k=%d, alpha=%p, A=%p, Atype=%d, lda=%d, B=%p, Btype=%d, ldb=%d, beta=%p, C=%p, Ctype=%d, ldc=%d)\n",
+        handle, transa, transb, m, n, k, alpha, A, Atype, lda, B, Btype, ldb, beta, C, Ctype, ldc);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    cublasOperation_t transa_native;
+    cublasOperation_t transb_native;
+    int m_native = 0;
+    int n_native = 0;
+    int k_native = 0;
+    float* alpha_native;
+    void* A_native;
+    cublasDataType_t Atype_native;
+    int lda_native = 0;
+    void* B_native;
+    cublasDataType_t Btype_native;
+    int ldb_native = 0;
+    float* beta_native;
+    void* C_native;
+    cublasDataType_t Ctype_native;
+    int ldc_native = 0;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    transa_native = (cublasOperation_t)transa;
+    transb_native = (cublasOperation_t)transb;
+    m_native = (int)m;
+    n_native = (int)n;
+    k_native = (int)k;
+    PointerData *alpha_pointerData = initPointerData(env, alpha);
+    if (alpha_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    alpha_native = (float*)alpha_pointerData->getPointer(env);
+    A_native = (void*)getPointer(env, A);
+    Atype_native = (cublasDataType_t)Atype;
+    lda_native = (int)lda;
+    B_native = (void*)getPointer(env, B);
+    Btype_native = (cublasDataType_t)Btype;
+    ldb_native = (int)ldb;
+    PointerData *beta_pointerData = initPointerData(env, beta);
+    if (beta_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    beta_native = (float*)beta_pointerData->getPointer(env);
+    C_native = (void*)getPointer(env, C);
+    Ctype_native = (cublasDataType_t)Ctype;
+    ldc_native = (int)ldc;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasSgemmEx(handle_native, transa_native, transb_native, m_native, n_native, k_native, alpha_native, A_native, Atype_native, lda_native, B_native, Btype_native, ldb_native, beta_native, C_native, Ctype_native, ldc_native);
+
+    // Write back native variable values
+    // handle is a native pointer object
+    // transa is primitive
+    // transb is primitive
+    // m is primitive
+    // n is primitive
+    // k is primitive
+    if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // A is a native pointer
+    // Atype is primitive
+    // lda is primitive
+    // B is a native pointer
+    // Btype is primitive
+    // ldb is primitive
+    if (!releasePointerData(env, beta_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // C is a native pointer
+    // Ctype is primitive
+    // ldc is primitive
+
+    // Return the result
+    jint jniResult;
+    jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
 JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsyrkNative(JNIEnv *env, jclass cls, jobject handle, jint uplo, jint trans, jint n, jint k, jobject alpha, jobject A, jint lda, jobject beta, jobject C, jint ldc)
 {
     // Null-checks for non-primitive arguments

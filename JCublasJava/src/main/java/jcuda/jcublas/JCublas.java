@@ -37,6 +37,17 @@ import jcuda.runtime.*;
  * <br />
  * Most comments are taken from the cublas.h header file.
  * <br />
+ * <b>Note:</b>: This class mimics the original CUBLAS API. 
+ * With CUDA 4.0, a new API for CUBLAS has been introduced.
+ * This is referred to as the "new CUBLAS API", and is 
+ * defined in the C header "cublas_v2.h". Consequently,
+ * the new CUBLAS API is offered via the {@link JCublas2} 
+ * class.<br>
+ * <br>
+ * New applications should generally use the new CUBLAS API.
+ * This class is only maintained for backward compatibility
+ * of existing applications. For more information, see
+ * http://docs.nvidia.com/cuda/cublas/#new-and-legacy-cublas-api 
  */
 public class JCublas
 {

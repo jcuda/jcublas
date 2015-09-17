@@ -35,7 +35,7 @@ import jcuda.runtime.cudaStream_t;
  * Java bindings for CUBLAS, the NVIDIA CUDA BLAS library.
  * <br />
  * This class contains the new CUBLAS API that was introduced
- * with CUDA 4.0<br />
+ * with CUDA 4.0, defined in the C header "cublas_v2.h".<br />
  * <br />
  * Most comments are taken from the CUBLAS header file.
  * <br />
@@ -3645,6 +3645,45 @@ public class JCublas2
         Pointer C,
         int ldc);
 
+    public static int cublasSgemmEx(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        int m, 
+        int n, 
+        int k, 
+        Pointer alpha, /** host or device pointer */
+        Pointer A, 
+        int Atype, 
+        int lda, 
+        Pointer B, 
+        int Btype, 
+        int ldb, 
+        Pointer beta, /** host or device pointer */
+        Pointer C, 
+        int Ctype, 
+        int ldc)
+    {
+        return checkResult(cublasSgemmExNative(handle, transa, transb, m, n, k, alpha, A, Atype, lda, B, Btype, ldb, beta, C, Ctype, ldc));
+    }
+    private static native int cublasSgemmExNative(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        int m, 
+        int n, 
+        int k, 
+        Pointer alpha, /** host or device pointer */
+        Pointer A, 
+        int Atype, 
+        int lda, 
+        Pointer B, 
+        int Btype, 
+        int ldb, 
+        Pointer beta, /** host or device pointer */
+        Pointer C, 
+        int Ctype, 
+        int ldc);
 
     public static int cublasSsyrk(
         cublasHandle handle,

@@ -1221,6 +1221,14 @@ extern "C" {
 
     /*
     * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasSgemmExNative
+    * Signature: (Ljcuda/jcublas/cublasHandle;IIIIILjcuda/Pointer;Ljcuda/Pointer;IILjcuda/Pointer;IILjcuda/Pointer;Ljcuda/Pointer;II)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgemmExNative
+        (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jint, jobject, jobject, jint, jint, jobject, jint, jint, jobject, jobject, jint, jint);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
     * Method:    cublasSsyrkNative
     * Signature: (Ljcuda/jcublas/cublasHandle;IIIILjcuda/Pointer;Ljcuda/Pointer;ILjcuda/Pointer;Ljcuda/Pointer;I)I
     */

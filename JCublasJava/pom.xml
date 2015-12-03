@@ -12,13 +12,13 @@
     <artifactId>jcublas</artifactId>
 
     <dependencies>
-    
+
         <dependency>
             <groupId>org.jcuda</groupId>
             <artifactId>jcuda</artifactId>
             <version>${project.version}</version>
         </dependency>
-        
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -43,8 +43,8 @@
         </dependency>
 
     </dependencies>
-    
-    
+
+
     <build>
         <plugins>
             <plugin>
@@ -68,7 +68,7 @@
                                     <type>${jcuda.ext}</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}/lib</outputDirectory>
-                                    <destFileName>JCublas-${jcuda.os}-${jcuda.arch}.${jcuda.ext}</destFileName>
+                                    <destFileName>${jcuda.prefix}JCublas-${jcuda.os}-${jcuda.arch}.${jcuda.ext}</destFileName>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>org.jcuda</groupId>
@@ -77,11 +77,11 @@
                                     <type>${jcuda.ext}</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}/lib</outputDirectory>
-                                    <destFileName>JCublas2-${jcuda.os}-${jcuda.arch}.${jcuda.ext}</destFileName>
+                                    <destFileName>${jcuda.prefix}JCublas2-${jcuda.os}-${jcuda.arch}.${jcuda.ext}</destFileName>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>
-                    </execution>                    
+                    </execution>
 
                 </executions>
             </plugin>

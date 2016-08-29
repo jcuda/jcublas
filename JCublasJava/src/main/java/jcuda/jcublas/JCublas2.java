@@ -29,6 +29,7 @@
 package jcuda.jcublas;
 
 import jcuda.*;
+import jcuda.runtime.JCuda;
 import jcuda.runtime.cudaStream_t;
 
 /**
@@ -74,7 +75,10 @@ public class JCublas2
     {
         if (!initialized)
         {
-            LibUtils.loadLibrary("JCublas2");
+            String libraryBaseName = "JCublas2-" + JCuda.getJCudaVersion();
+            String libraryName = 
+                LibUtils.createPlatformLibraryName(libraryBaseName);
+            LibUtils.loadLibrary(libraryName);
             initialized = true;
         }
     }

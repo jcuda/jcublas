@@ -1,1 +1,6 @@
-JCublasJava/target/
+/JCublasJava/target/
+/JCublasJava/.settings
+/JCublasJava/.project
+/JCublasJava/.classpath
+/target
+/nativeLibraries

@@ -27,11 +27,16 @@
  */
 package jcuda.jcublas;
 
+import jcuda.cudaDataType;
+
 /**
  * An enumerant to specify the data precision. It is used when the 
  * data reference does not carry the type itself (e.g void *)<br>
  * <br>
- * For example, it is used in the routine {@link JCublas#cublasSgemmEx}. 
+ * For example, it is used in the routine {@link JCublas2#cublasSgemmEx}.
+ * 
+ * @deprecated This class is replaced by {@link cudaDataType} and only
+ * kept for backward compatibility.
  */
 public class cublasDataType
 {

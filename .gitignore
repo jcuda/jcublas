@@ -4,3 +4,5 @@
 /JCublasJava/.classpath
 /target
 /nativeLibraries
+/.settings
+/.project

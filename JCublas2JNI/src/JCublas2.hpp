@@ -2,7 +2,7 @@
  * JCublas - Java bindings for CUBLAS, the NVIDIA CUDA BLAS library,
  * to be used with JCuda
  *
- * Copyright (c) 2010-2015 Marco Hutter - http://www.jcuda.org
+ * Copyright (c) 2010-2016 Marco Hutter - http://www.jcuda.org
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -66,6 +66,14 @@ extern "C" {
     */
     JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasGetVersionNative
         (JNIEnv *, jclass, jobject, jintArray);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasGetPropertyNative
+    * Signature: (I[I)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasGetPropertyNative
+        (JNIEnv *, jclass, jint, jintArray);
 
     /*
     * Class:     jcuda_jcublas_JCublas2
@@ -181,6 +189,14 @@ extern "C" {
 
     /*
     * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasNrm2ExNative
+    * Signature: (Ljcuda/jcublas/cublasHandle;ILjcuda/Pointer;IILjcuda/Pointer;II)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasNrm2ExNative
+        (JNIEnv *, jclass, jobject, jint, jobject, jint, jint, jobject, jint, jint);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
     * Method:    cublasSnrm2Native
     * Signature: (Ljcuda/jcublas/cublasHandle;ILjcuda/Pointer;ILjcuda/Pointer;)I
     */
@@ -210,6 +226,22 @@ extern "C" {
     */
     JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDznrm2Native
         (JNIEnv *, jclass, jobject, jint, jobject, jint, jobject);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasDotExNative
+    * Signature: (Ljcuda/jcublas/cublasHandle;ILjcuda/Pointer;IILjcuda/Pointer;IILjcuda/Pointer;II)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDotExNative
+        (JNIEnv *, jclass, jobject, jint, jobject, jint, jint, jobject, jint, jint, jobject, jint, jint);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasDotcExNative
+    * Signature: (Ljcuda/jcublas/cublasHandle;ILjcuda/Pointer;IILjcuda/Pointer;IILjcuda/Pointer;II)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDotcExNative
+        (JNIEnv *, jclass, jobject, jint, jobject, jint, jint, jobject, jint, jint, jobject, jint, jint);
 
     /*
     * Class:     jcuda_jcublas_JCublas2
@@ -261,6 +293,14 @@ extern "C" {
 
     /*
     * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasScalExNative
+    * Signature: (Ljcuda/jcublas/cublasHandle;ILjcuda/Pointer;ILjcuda/Pointer;III)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasScalExNative
+        (JNIEnv *, jclass, jobject, jint, jobject, jint, jobject, jint, jint, jint);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
     * Method:    cublasSscalNative
     * Signature: (Ljcuda/jcublas/cublasHandle;ILjcuda/Pointer;Ljcuda/Pointer;I)I
     */
@@ -306,6 +346,14 @@ extern "C" {
     */
     JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZdscalNative
         (JNIEnv *, jclass, jobject, jint, jobject, jobject, jint);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasAxpyExNative
+    * Signature: (Ljcuda/jcublas/cublasHandle;ILjcuda/Pointer;ILjcuda/Pointer;IILjcuda/Pointer;III)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasAxpyExNative
+        (JNIEnv *, jclass, jobject, jint, jobject, jint, jobject, jint, jint, jobject, jint, jint, jint);
 
     /*
     * Class:     jcuda_jcublas_JCublas2
@@ -1213,10 +1261,34 @@ extern "C" {
 
     /*
     * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasCgemm3mNative
+    * Signature: (Ljcuda/jcublas/cublasHandle;IIIIILjcuda/Pointer;Ljcuda/Pointer;ILjcuda/Pointer;ILjcuda/Pointer;Ljcuda/Pointer;I)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgemm3mNative
+        (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jint, jobject, jobject, jint, jobject, jint, jobject, jobject, jint);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasCgemm3mExNative
+    * Signature: (Ljcuda/jcublas/cublasHandle;IIIIILjcuda/Pointer;Ljcuda/Pointer;IILjcuda/Pointer;IILjcuda/Pointer;Ljcuda/Pointer;II)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgemm3mExNative
+        (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jint, jobject, jobject, jint, jint, jobject, jint, jint, jobject, jobject, jint, jint);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
     * Method:    cublasZgemmNative
     * Signature: (Ljcuda/jcublas/cublasHandle;IIIIILjcuda/Pointer;Ljcuda/Pointer;ILjcuda/Pointer;ILjcuda/Pointer;Ljcuda/Pointer;I)I
     */
     JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgemmNative
+        (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jint, jobject, jobject, jint, jobject, jint, jobject, jobject, jint);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasZgemm3mNative
+    * Signature: (Ljcuda/jcublas/cublasHandle;IIIIILjcuda/Pointer;Ljcuda/Pointer;ILjcuda/Pointer;ILjcuda/Pointer;Ljcuda/Pointer;I)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgemm3mNative
         (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jint, jobject, jobject, jint, jobject, jint, jobject, jobject, jint);
 
     /*
@@ -1226,6 +1298,30 @@ extern "C" {
     */
     JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgemmExNative
         (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jint, jobject, jobject, jint, jint, jobject, jint, jint, jobject, jobject, jint, jint);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasGemmExNative
+    * Signature: (Ljcuda/jcublas/cublasHandle;IIIIILjcuda/Pointer;Ljcuda/Pointer;IILjcuda/Pointer;IILjcuda/Pointer;Ljcuda/Pointer;IIII)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasGemmExNative
+        (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jint, jobject, jobject, jint, jint, jobject, jint, jint, jobject, jobject, jint, jint, jint, jint);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasCgemmExNative
+    * Signature: (Ljcuda/jcublas/cublasHandle;IIIIILjcuda/Pointer;Ljcuda/Pointer;IILjcuda/Pointer;IILjcuda/Pointer;Ljcuda/Pointer;II)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgemmExNative
+        (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jint, jobject, jobject, jint, jint, jobject, jint, jint, jobject, jobject, jint, jint);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasUint8gemmBiasNative
+    * Signature: (Ljcuda/jcublas/cublasHandle;IIIIII[BII[BII[BIIII)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasUint8gemmBiasNative
+        (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jint, jint, jbyteArray, jint, jint, jbyteArray, jint, jint, jbyteArray, jint, jint, jint, jint);
 
     /*
     * Class:     jcuda_jcublas_JCublas2
@@ -1261,6 +1357,22 @@ extern "C" {
 
     /*
     * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasCsyrkExNative
+    * Signature: (Ljcuda/jcublas/cublasHandle;IIIILjcuda/Pointer;Ljcuda/Pointer;IILjcuda/Pointer;Ljcuda/Pointer;II)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsyrkExNative
+        (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jobject, jobject, jint, jint, jobject, jobject, jint, jint);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasCsyrk3mExNative
+    * Signature: (Ljcuda/jcublas/cublasHandle;IIIILjcuda/Pointer;Ljcuda/Pointer;IILjcuda/Pointer;Ljcuda/Pointer;II)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsyrk3mExNative
+        (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jobject, jobject, jint, jint, jobject, jobject, jint, jint);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
     * Method:    cublasCherkNative
     * Signature: (Ljcuda/jcublas/cublasHandle;IIIILjcuda/Pointer;Ljcuda/Pointer;ILjcuda/Pointer;Ljcuda/Pointer;I)I
     */
@@ -1274,6 +1386,22 @@ extern "C" {
     */
     JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZherkNative
         (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jobject, jobject, jint, jobject, jobject, jint);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasCherkExNative
+    * Signature: (Ljcuda/jcublas/cublasHandle;IIIILjcuda/Pointer;Ljcuda/Pointer;IILjcuda/Pointer;Ljcuda/Pointer;II)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCherkExNative
+        (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jobject, jobject, jint, jint, jobject, jobject, jint, jint);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasCherk3mExNative
+    * Signature: (Ljcuda/jcublas/cublasHandle;IIIILjcuda/Pointer;Ljcuda/Pointer;IILjcuda/Pointer;Ljcuda/Pointer;II)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCherk3mExNative
+        (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jobject, jobject, jint, jint, jobject, jobject, jint, jint);
 
     /*
     * Class:     jcuda_jcublas_JCublas2
@@ -1514,6 +1642,38 @@ extern "C" {
     */
     JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgemmBatchedNative
         (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jint, jobject, jobject, jint, jobject, jint, jobject, jobject, jint, jint);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasSgemmStridedBatchedNative
+    * Signature: (Ljcuda/jcublas/cublasHandle;IIIIILjcuda/Pointer;Ljcuda/Pointer;IJLjcuda/Pointer;IJLjcuda/Pointer;Ljcuda/Pointer;IJI)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgemmStridedBatchedNative
+        (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jint, jobject, jobject, jint, jlong, jobject, jint, jlong, jobject, jobject, jint, jlong, jint);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasDgemmStridedBatchedNative
+    * Signature: (Ljcuda/jcublas/cublasHandle;IIIIILjcuda/Pointer;Ljcuda/Pointer;IJLjcuda/Pointer;IJLjcuda/Pointer;Ljcuda/Pointer;IJI)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgemmStridedBatchedNative
+        (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jint, jobject, jobject, jint, jlong, jobject, jint, jlong, jobject, jobject, jint, jlong, jint);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasCgemmStridedBatchedNative
+    * Signature: (Ljcuda/jcublas/cublasHandle;IIIIILjcuda/Pointer;Ljcuda/Pointer;IJLjcuda/Pointer;IJLjcuda/Pointer;Ljcuda/Pointer;IJI)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgemmStridedBatchedNative
+        (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jint, jobject, jobject, jint, jlong, jobject, jint, jlong, jobject, jobject, jint, jlong, jint);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasZgemmStridedBatchedNative
+    * Signature: (Ljcuda/jcublas/cublasHandle;IIIIILjcuda/Pointer;Ljcuda/Pointer;IJLjcuda/Pointer;IJLjcuda/Pointer;Ljcuda/Pointer;IJI)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgemmStridedBatchedNative
+        (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jint, jobject, jobject, jint, jlong, jobject, jint, jlong, jobject, jobject, jint, jlong, jint);
 
     /*
     * Class:     jcuda_jcublas_JCublas2

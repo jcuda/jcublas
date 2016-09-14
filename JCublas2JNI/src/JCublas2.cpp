@@ -473,10 +473,6 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasGetMatrixAsyncNative
 }
 
 
-
-
-
-
 /*
  * Set the log level
  *
@@ -488,112 +484,6 @@ JNIEXPORT void JNICALL Java_jcuda_jcublas_JCublas2_setLogLevelNative
   (JNIEnv *env, jclass cla, jint logLevel)
 {
     Logger::setLogLevel((LogLevel)logLevel);
-}
-
-
-
-/*
- * Prints the specified vector of single precision floating point elements
- *
- * Class:     jcuda_jcublas_JCublas2
- * Method:    printVector
- * Signature: (ILjcuda/Pointer;)V
- */
-JNIEXPORT void JNICALL Java_jcuda_jcublas_JCublas2_printVector
-  (JNIEnv *env, jclass cla, jint n, jobject x)
-{
-    float *deviceMemory = (float*)getPointer(env, x);
-    float *hostMemory = (float*)malloc(n * sizeof(float));
-    cublasGetVector(n, 4, deviceMemory, 1, hostMemory, 1);
-    LogLevel tempLogLevel = Logger::currentLogLevel;
-    Logger::setLogLevel(LOG_INFO);
-    for (int i=0; i<n; i++)
-    {
-        Logger::log(LOG_INFO, "%2.1f  ", hostMemory[i]);
-    }
-    Logger::log(LOG_INFO, "\n");
-    Logger::setLogLevel(tempLogLevel);
-    free(hostMemory);
-}
-
-
-/*
- * Prints the specified matrix of single precision floating point elements
- *
- * Class:     jcuda_jcublas_JCublas2
- * Method:    printMatrix
- * Signature: (ILjcuda/Pointer;I)V
- */
-JNIEXPORT void JNICALL Java_jcuda_jcublas_JCublas2_printMatrix
-  (JNIEnv *env, jclass cla, jint cols, jobject A, jint lda)
-{
-    float *deviceMemory = (float*)getPointer(env, A);
-    float *hostMemory = (float*)malloc(cols * lda * sizeof(float));
-    cublasGetMatrix(lda, cols, 4, deviceMemory, lda, hostMemory, lda);
-    LogLevel tempLogLevel = Logger::currentLogLevel;
-    Logger::setLogLevel(LOG_INFO);
-    for (int r=0; r<lda; r++)
-    {
-        for (int c=0; c<cols; c++)
-        {
-            Logger::log(LOG_INFO, "%2.1f  ", hostMemory[c * lda + r]);
-        }
-        Logger::log(LOG_INFO, "\n");
-    }
-    Logger::log(LOG_INFO, "\n");
-    Logger::setLogLevel(tempLogLevel);
-    free(hostMemory);
-}
-
-
-/**
- * Set the pointer to be the array elements that correspond to the given java
- * array. Returns true iff the array elements could be obtained, and the java
- * array had the expectedSize.
- *
- * Note that the array elements must later be released by calling
- * env->ReleaseFloatArrayElements(array, arrayElements, JNI_ABORT);
- */
-bool getArrayElements(JNIEnv *env, jfloatArray array, float* &arrayElements, int expectedSize)
-{
-    int size = env->GetArrayLength(array);
-    if (size != expectedSize)
-    {
-        Logger::log(LOG_ERROR, "Expected an array size of %d, but it has a size of %d\n", expectedSize, size);
-        return false;
-    }
-    arrayElements = env->GetFloatArrayElements(array, NULL);
-    if (arrayElements == NULL)
-    {
-        Logger::log(LOG_ERROR, "Out of memory while obtaining array elements\n");
-        return false;
-    }
-    return true;
-}
-
-/**
- * Set the pointer to be the array elements that correspond to the given java
- * array. Returns true iff the array elements could be obtained, and the java
- * array had the expectedSize.
- *
- * Note that the array elements must later be released by calling
- * env->ReleaseDoubleArrayElements(array, arrayElements, JNI_ABORT);
- */
-bool getDoubleArrayElements(JNIEnv *env, jdoubleArray array, double* &arrayElements, int expectedSize)
-{
-    int size = env->GetArrayLength(array);
-    if (size != expectedSize)
-    {
-        Logger::log(LOG_ERROR, "Expected an array size of %d, but it has a size of %d\n", expectedSize, size);
-        return false;
-    }
-    arrayElements = env->GetDoubleArrayElements(array, NULL);
-    if (arrayElements == NULL)
-    {
-        Logger::log(LOG_ERROR, "Out of memory while obtaining array elements\n");
-        return false;
-    }
-    return true;
 }
 
 
@@ -620,7 +510,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCreateNative(JNIEnv *en
     cublasHandle_t handle_native;
 
     // Obtain native variable values
-    // handle is initialized here
+    // handle is write-only
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCreate(&handle_native);
@@ -629,8 +519,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCreateNative(JNIEnv *en
     setNativePointerValue(env, handle, (jlong)handle_native);
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -657,11 +546,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDestroyNative(JNIEnv *e
     cublasStatus_t jniResult_native = cublasDestroy(handle_native);
 
     // Write back native variable values
-    // handle is destroyed here
+    // handle is read-only
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -685,22 +573,55 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasGetVersionNative(JNIEnv
 
     // Native variable declarations
     cublasHandle_t handle_native;
-    int version_native = 0;
+    int version_native;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
-    // version is set here
+    // version is write-only
 
     // Native function call
     cublasStatus_t jniResult_native = cublasGetVersion(handle_native, &version_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     if (!set(env, version, 0, (jint)version_native)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasGetPropertyNative(JNIEnv *env, jclass cls, jint type, jintArray value)
+{
+    // Null-checks for non-primitive arguments
+    // type is primitive
+    if (value == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'value' is null for cublasGetProperty");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasGetProperty(type=%d, value=%p)\n",
+        type, value);
+
+    // Native variable declarations
+    libraryPropertyType type_native;
+    int value_native;
+
+    // Obtain native variable values
+    type_native = (libraryPropertyType)type;
+    // value is write-only
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasGetProperty(type_native, &value_native);
+
+    // Write back native variable values
+    // type is primitive
+    if (!set(env, value, 0, (jint)value_native)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -720,25 +641,21 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSetStreamNative(JNIEnv 
 
     // Native variable declarations
     cublasHandle_t handle_native;
-    cudaStream_t streamId_native = NULL;
+    cudaStream_t streamId_native;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
-    if (streamId != NULL)
-    {
-        streamId_native = (cudaStream_t)getNativePointerValue(env, streamId);
-    }
+    streamId_native = (cudaStream_t)getNativePointerValue(env, streamId);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSetStream(handle_native, streamId_native);
 
     // Write back native variable values
-    // handle is a native pointer object
-    // streamId is a read-only native pointer
+    // handle is read-only
+    // streamId is read-only
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -762,22 +679,21 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasGetStreamNative(JNIEnv 
 
     // Native variable declarations
     cublasHandle_t handle_native;
-    cudaStream_t streamId_native = NULL;
+    cudaStream_t streamId_native;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
-    // streamId is initialized here
+    // streamId is write-only
 
     // Native function call
     cublasStatus_t jniResult_native = cublasGetStream(handle_native, &streamId_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     setNativePointerValue(env, streamId, (jlong)streamId_native);
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -805,18 +721,17 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasGetPointerModeNative(JN
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
-    // mode is set here
+    // mode is write-only
 
     // Native function call
     cublasStatus_t jniResult_native = cublasGetPointerMode(handle_native, &mode_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     if (!set(env, mode, 0, (jint)mode_native)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -846,12 +761,11 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSetPointerModeNative(JN
     cublasStatus_t jniResult_native = cublasSetPointerMode(handle_native, mode_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // mode is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -875,22 +789,21 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasGetAtomicsModeNative(JN
 
     // Native variable declarations
     cublasHandle_t handle_native;
-    cublasAtomicsMode_t* mode_native;
+    cublasAtomicsMode_t mode_native;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
-    mode_native = (cublasAtomicsMode_t*)getPointer(env, mode);
+    // mode is write-only
 
     // Native function call
-    cublasStatus_t jniResult_native = cublasGetAtomicsMode(handle_native, mode_native);
+    cublasStatus_t jniResult_native = cublasGetAtomicsMode(handle_native, &mode_native);
 
     // Write back native variable values
-    // handle is a native pointer object
-    // mode is a native pointer
+    // handle is read-only
+    if (!set(env, mode, 0, (jint)mode_native)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -920,15 +833,89 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSetAtomicsModeNative(JN
     cublasStatus_t jniResult_native = cublasSetAtomicsMode(handle_native, mode_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // mode is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasNrm2ExNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject x, jint xType, jint incx, jobject result, jint resultType, jint executionType)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasNrm2Ex");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // n is primitive
+    if (x == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'x' is null for cublasNrm2Ex");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // xType is primitive
+    // incx is primitive
+    if (result == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'result' is null for cublasNrm2Ex");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // resultType is primitive
+    // executionType is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasNrm2Ex(handle=%p, n=%d, x=%p, xType=%d, incx=%d, result=%p, resultType=%d, executionType=%d)\n",
+        handle, n, x, xType, incx, result, resultType, executionType);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    int n_native = 0;
+    void const * x_native = NULL;
+    cudaDataType xType_native;
+    int incx_native = 0;
+    void * result_native = NULL;
+    cudaDataType resultType_native;
+    cudaDataType executionType_native;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    n_native = (int)n;
+    x_native = (void const *)getPointer(env, x);
+    xType_native = (cudaDataType)xType;
+    incx_native = (int)incx;
+    PointerData *result_pointerData = initPointerData(env, result);
+    if (result_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    result_native = (void *)result_pointerData->getPointer(env);
+    resultType_native = (cudaDataType)resultType;
+    executionType_native = (cudaDataType)executionType;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasNrm2Ex(handle_native, n_native, x_native, xType_native, incx_native, result_native, resultType_native, executionType_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // n is primitive
+    // x is a native pointer
+    // xType is primitive
+    // incx is primitive
+    // If the PointerData is not backed by native memory, then this call has to block
+    if (!isPointerBackedByNativeMemory(env, result))
+    {
+        cudaDeviceSynchronize();
+    }
+    if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // resultType is primitive
+    // executionType is primitive
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
 
 JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSnrm2Native(JNIEnv *env, jclass cls, jobject handle, jint n, jobject x, jint incx, jobject result)
 {
@@ -958,31 +945,31 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSnrm2Native(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    float* x_native;
+    float const * x_native = NULL;
     int incx_native = 0;
-    float* result_native;
+    float * result_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (float*)getPointer(env, x);
+    x_native = (float const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *result_pointerData = initPointerData(env, result);
     if (result_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    result_native = (float*)result_pointerData->getPointer(env);
+    result_native = (float *)result_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSnrm2(handle_native, n_native, x_native, incx_native, result_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, result))
     {
         cudaDeviceSynchronize();
@@ -990,8 +977,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSnrm2Native(JNIEnv *env
     if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -1023,31 +1009,31 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDnrm2Native(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    double* x_native;
+    double const * x_native = NULL;
     int incx_native = 0;
-    double* result_native;
+    double * result_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (double*)getPointer(env, x);
+    x_native = (double const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *result_pointerData = initPointerData(env, result);
     if (result_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    result_native = (double*)result_pointerData->getPointer(env);
+    result_native = (double *)result_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDnrm2(handle_native, n_native, x_native, incx_native, result_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, result))
     {
         cudaDeviceSynchronize();
@@ -1055,8 +1041,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDnrm2Native(JNIEnv *env
     if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -1088,31 +1073,31 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasScnrm2Native(JNIEnv *en
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    cuComplex* x_native;
+    cuComplex const * x_native = NULL;
     int incx_native = 0;
-    float* result_native;
+    float * result_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (cuComplex*)getPointer(env, x);
+    x_native = (cuComplex const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *result_pointerData = initPointerData(env, result);
     if (result_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    result_native = (float*)result_pointerData->getPointer(env);
+    result_native = (float *)result_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasScnrm2(handle_native, n_native, x_native, incx_native, result_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, result))
     {
         cudaDeviceSynchronize();
@@ -1120,8 +1105,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasScnrm2Native(JNIEnv *en
     if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -1153,31 +1137,31 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDznrm2Native(JNIEnv *en
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex const * x_native = NULL;
     int incx_native = 0;
-    double* result_native;
+    double * result_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    x_native = (cuDoubleComplex const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *result_pointerData = initPointerData(env, result);
     if (result_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    result_native = (double*)result_pointerData->getPointer(env);
+    result_native = (double *)result_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDznrm2(handle_native, n_native, x_native, incx_native, result_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, result))
     {
         cudaDeviceSynchronize();
@@ -1185,8 +1169,171 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDznrm2Native(JNIEnv *en
     if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDotExNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject x, jint xType, jint incx, jobject y, jint yType, jint incy, jobject result, jint resultType, jint executionType)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasDotEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // n is primitive
+    if (x == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'x' is null for cublasDotEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // xType is primitive
+    // incx is primitive
+    if (y == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'y' is null for cublasDotEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // yType is primitive
+    // incy is primitive
+    if (result == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'result' is null for cublasDotEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // resultType is primitive
+    // executionType is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasDotEx(handle=%p, n=%d, x=%p, xType=%d, incx=%d, y=%p, yType=%d, incy=%d, result=%p, resultType=%d, executionType=%d)\n",
+        handle, n, x, xType, incx, y, yType, incy, result, resultType, executionType);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    int n_native = 0;
+    void const * x_native = NULL;
+    cudaDataType xType_native;
+    int incx_native = 0;
+    void const * y_native = NULL;
+    cudaDataType yType_native;
+    int incy_native = 0;
+    void * result_native = NULL;
+    cudaDataType resultType_native;
+    cudaDataType executionType_native;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    n_native = (int)n;
+    x_native = (void const *)getPointer(env, x);
+    xType_native = (cudaDataType)xType;
+    incx_native = (int)incx;
+    y_native = (void const *)getPointer(env, y);
+    yType_native = (cudaDataType)yType;
+    incy_native = (int)incy;
+    result_native = (void *)getPointer(env, result);
+    resultType_native = (cudaDataType)resultType;
+    executionType_native = (cudaDataType)executionType;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasDotEx(handle_native, n_native, x_native, xType_native, incx_native, y_native, yType_native, incy_native, result_native, resultType_native, executionType_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // n is primitive
+    // x is a native pointer
+    // xType is primitive
+    // incx is primitive
+    // y is a native pointer
+    // yType is primitive
+    // incy is primitive
+    // result is a native pointer
+    // resultType is primitive
+    // executionType is primitive
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDotcExNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject x, jint xType, jint incx, jobject y, jint yType, jint incy, jobject result, jint resultType, jint executionType)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasDotcEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // n is primitive
+    if (x == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'x' is null for cublasDotcEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // xType is primitive
+    // incx is primitive
+    if (y == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'y' is null for cublasDotcEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // yType is primitive
+    // incy is primitive
+    if (result == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'result' is null for cublasDotcEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // resultType is primitive
+    // executionType is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasDotcEx(handle=%p, n=%d, x=%p, xType=%d, incx=%d, y=%p, yType=%d, incy=%d, result=%p, resultType=%d, executionType=%d)\n",
+        handle, n, x, xType, incx, y, yType, incy, result, resultType, executionType);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    int n_native = 0;
+    void const * x_native = NULL;
+    cudaDataType xType_native;
+    int incx_native = 0;
+    void const * y_native = NULL;
+    cudaDataType yType_native;
+    int incy_native = 0;
+    void * result_native = NULL;
+    cudaDataType resultType_native;
+    cudaDataType executionType_native;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    n_native = (int)n;
+    x_native = (void const *)getPointer(env, x);
+    xType_native = (cudaDataType)xType;
+    incx_native = (int)incx;
+    y_native = (void const *)getPointer(env, y);
+    yType_native = (cudaDataType)yType;
+    incy_native = (int)incy;
+    result_native = (void *)getPointer(env, result);
+    resultType_native = (cudaDataType)resultType;
+    executionType_native = (cudaDataType)executionType;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasDotcEx(handle_native, n_native, x_native, xType_native, incx_native, y_native, yType_native, incy_native, result_native, resultType_native, executionType_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // n is primitive
+    // x is a native pointer
+    // xType is primitive
+    // incx is primitive
+    // y is a native pointer
+    // yType is primitive
+    // incy is primitive
+    // result is a native pointer
+    // resultType is primitive
+    // executionType is primitive
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -1224,37 +1371,37 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSdotNative(JNIEnv *env,
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    float* x_native;
+    float const * x_native = NULL;
     int incx_native = 0;
-    float* y_native;
+    float const * y_native = NULL;
     int incy_native = 0;
-    float* result_native;
+    float * result_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (float*)getPointer(env, x);
+    x_native = (float const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (float*)getPointer(env, y);
+    y_native = (float const *)getPointer(env, y);
     incy_native = (int)incy;
     PointerData *result_pointerData = initPointerData(env, result);
     if (result_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    result_native = (float*)result_pointerData->getPointer(env);
+    result_native = (float *)result_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSdot(handle_native, n_native, x_native, incx_native, y_native, incy_native, result_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
     // y is a native pointer
     // incy is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, result))
     {
         cudaDeviceSynchronize();
@@ -1262,8 +1409,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSdotNative(JNIEnv *env,
     if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -1301,37 +1447,37 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDdotNative(JNIEnv *env,
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    double* x_native;
+    double const * x_native = NULL;
     int incx_native = 0;
-    double* y_native;
+    double const * y_native = NULL;
     int incy_native = 0;
-    double* result_native;
+    double * result_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (double*)getPointer(env, x);
+    x_native = (double const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (double*)getPointer(env, y);
+    y_native = (double const *)getPointer(env, y);
     incy_native = (int)incy;
     PointerData *result_pointerData = initPointerData(env, result);
     if (result_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    result_native = (double*)result_pointerData->getPointer(env);
+    result_native = (double *)result_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDdot(handle_native, n_native, x_native, incx_native, y_native, incy_native, result_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
     // y is a native pointer
     // incy is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, result))
     {
         cudaDeviceSynchronize();
@@ -1339,8 +1485,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDdotNative(JNIEnv *env,
     if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -1378,37 +1523,37 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCdotuNative(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    cuComplex* x_native;
+    cuComplex const * x_native = NULL;
     int incx_native = 0;
-    cuComplex* y_native;
+    cuComplex const * y_native = NULL;
     int incy_native = 0;
-    cuComplex* result_native;
+    cuComplex * result_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (cuComplex*)getPointer(env, x);
+    x_native = (cuComplex const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (cuComplex*)getPointer(env, y);
+    y_native = (cuComplex const *)getPointer(env, y);
     incy_native = (int)incy;
     PointerData *result_pointerData = initPointerData(env, result);
     if (result_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    result_native = (cuComplex*)result_pointerData->getPointer(env);
+    result_native = (cuComplex *)result_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCdotu(handle_native, n_native, x_native, incx_native, y_native, incy_native, result_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
     // y is a native pointer
     // incy is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, result))
     {
         cudaDeviceSynchronize();
@@ -1416,8 +1561,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCdotuNative(JNIEnv *env
     if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -1455,37 +1599,37 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCdotcNative(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    cuComplex* x_native;
+    cuComplex const * x_native = NULL;
     int incx_native = 0;
-    cuComplex* y_native;
+    cuComplex const * y_native = NULL;
     int incy_native = 0;
-    cuComplex* result_native;
+    cuComplex * result_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (cuComplex*)getPointer(env, x);
+    x_native = (cuComplex const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (cuComplex*)getPointer(env, y);
+    y_native = (cuComplex const *)getPointer(env, y);
     incy_native = (int)incy;
     PointerData *result_pointerData = initPointerData(env, result);
     if (result_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    result_native = (cuComplex*)result_pointerData->getPointer(env);
+    result_native = (cuComplex *)result_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCdotc(handle_native, n_native, x_native, incx_native, y_native, incy_native, result_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
     // y is a native pointer
     // incy is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, result))
     {
         cudaDeviceSynchronize();
@@ -1493,8 +1637,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCdotcNative(JNIEnv *env
     if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -1532,37 +1675,37 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZdotuNative(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex const * x_native = NULL;
     int incx_native = 0;
-    cuDoubleComplex* y_native;
+    cuDoubleComplex const * y_native = NULL;
     int incy_native = 0;
-    cuDoubleComplex* result_native;
+    cuDoubleComplex * result_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    x_native = (cuDoubleComplex const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (cuDoubleComplex*)getPointer(env, y);
+    y_native = (cuDoubleComplex const *)getPointer(env, y);
     incy_native = (int)incy;
     PointerData *result_pointerData = initPointerData(env, result);
     if (result_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    result_native = (cuDoubleComplex*)result_pointerData->getPointer(env);
+    result_native = (cuDoubleComplex *)result_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZdotu(handle_native, n_native, x_native, incx_native, y_native, incy_native, result_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
     // y is a native pointer
     // incy is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, result))
     {
         cudaDeviceSynchronize();
@@ -1570,8 +1713,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZdotuNative(JNIEnv *env
     if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -1609,37 +1751,37 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZdotcNative(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex const * x_native = NULL;
     int incx_native = 0;
-    cuDoubleComplex* y_native;
+    cuDoubleComplex const * y_native = NULL;
     int incy_native = 0;
-    cuDoubleComplex* result_native;
+    cuDoubleComplex * result_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    x_native = (cuDoubleComplex const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (cuDoubleComplex*)getPointer(env, y);
+    y_native = (cuDoubleComplex const *)getPointer(env, y);
     incy_native = (int)incy;
     PointerData *result_pointerData = initPointerData(env, result);
     if (result_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    result_native = (cuDoubleComplex*)result_pointerData->getPointer(env);
+    result_native = (cuDoubleComplex *)result_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZdotc(handle_native, n_native, x_native, incx_native, y_native, incy_native, result_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
     // y is a native pointer
     // incy is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, result))
     {
         cudaDeviceSynchronize();
@@ -1647,8 +1789,78 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZdotcNative(JNIEnv *env
     if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasScalExNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject alpha, jint alphaType, jobject x, jint xType, jint incx, jint executionType)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasScalEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // n is primitive
+    if (alpha == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'alpha' is null for cublasScalEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // alphaType is primitive
+    if (x == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'x' is null for cublasScalEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // xType is primitive
+    // incx is primitive
+    // executionType is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasScalEx(handle=%p, n=%d, alpha=%p, alphaType=%d, x=%p, xType=%d, incx=%d, executionType=%d)\n",
+        handle, n, alpha, alphaType, x, xType, incx, executionType);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    int n_native = 0;
+    void const * alpha_native = NULL;
+    cudaDataType alphaType_native;
+    void * x_native = NULL;
+    cudaDataType xType_native;
+    int incx_native = 0;
+    cudaDataType executionType_native;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    n_native = (int)n;
+    PointerData *alpha_pointerData = initPointerData(env, alpha);
+    if (alpha_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    alpha_native = (void *)alpha_pointerData->getPointer(env);
+    alphaType_native = (cudaDataType)alphaType;
+    x_native = (void *)getPointer(env, x);
+    xType_native = (cudaDataType)xType;
+    incx_native = (int)incx;
+    executionType_native = (cudaDataType)executionType;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasScalEx(handle_native, n_native, alpha_native, alphaType_native, x_native, xType_native, incx_native, executionType_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // n is primitive
+    if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // alphaType is primitive
+    // x is a native pointer
+    // xType is primitive
+    // incx is primitive
+    // executionType is primitive
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -1680,8 +1892,8 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSscalNative(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    float* alpha_native;
-    float* x_native;
+    float const * alpha_native = NULL;
+    float * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -1692,23 +1904,22 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSscalNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    x_native = (float*)getPointer(env, x);
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    x_native = (float *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSscal(handle_native, n_native, alpha_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
     // x is a native pointer
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -1740,8 +1951,8 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDscalNative(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    double* alpha_native;
-    double* x_native;
+    double const * alpha_native = NULL;
+    double * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -1752,23 +1963,22 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDscalNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (double*)alpha_pointerData->getPointer(env);
-    x_native = (double*)getPointer(env, x);
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    x_native = (double *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDscal(handle_native, n_native, alpha_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
     // x is a native pointer
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -1800,8 +2010,8 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCscalNative(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    cuComplex* alpha_native;
-    cuComplex* x_native;
+    cuComplex const * alpha_native = NULL;
+    cuComplex * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -1812,23 +2022,22 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCscalNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    x_native = (cuComplex*)getPointer(env, x);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    x_native = (cuComplex *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCscal(handle_native, n_native, alpha_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
     // x is a native pointer
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -1860,8 +2069,8 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsscalNative(JNIEnv *en
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    float* alpha_native;
-    cuComplex* x_native;
+    float const * alpha_native = NULL;
+    cuComplex * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -1872,23 +2081,22 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsscalNative(JNIEnv *en
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    x_native = (cuComplex*)getPointer(env, x);
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    x_native = (cuComplex *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCsscal(handle_native, n_native, alpha_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
     // x is a native pointer
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -1920,8 +2128,8 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZscalNative(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    cuDoubleComplex* alpha_native;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -1932,23 +2140,22 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZscalNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    x_native = (cuDoubleComplex *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZscal(handle_native, n_native, alpha_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
     // x is a native pointer
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -1980,8 +2187,8 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZdscalNative(JNIEnv *en
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    double* alpha_native;
-    cuDoubleComplex* x_native;
+    double const * alpha_native = NULL;
+    cuDoubleComplex * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -1992,23 +2199,109 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZdscalNative(JNIEnv *en
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (double*)alpha_pointerData->getPointer(env);
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    x_native = (cuDoubleComplex *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZdscal(handle_native, n_native, alpha_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
     // x is a native pointer
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasAxpyExNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject alpha, jint alphaType, jobject x, jint xType, jint incx, jobject y, jint yType, jint incy, jint executiontype)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasAxpyEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // n is primitive
+    if (alpha == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'alpha' is null for cublasAxpyEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // alphaType is primitive
+    if (x == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'x' is null for cublasAxpyEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // xType is primitive
+    // incx is primitive
+    if (y == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'y' is null for cublasAxpyEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // yType is primitive
+    // incy is primitive
+    // executiontype is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasAxpyEx(handle=%p, n=%d, alpha=%p, alphaType=%d, x=%p, xType=%d, incx=%d, y=%p, yType=%d, incy=%d, executiontype=%d)\n",
+        handle, n, alpha, alphaType, x, xType, incx, y, yType, incy, executiontype);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    int n_native = 0;
+    void const * alpha_native = NULL;
+    cudaDataType alphaType_native;
+    void const * x_native = NULL;
+    cudaDataType xType_native;
+    int incx_native = 0;
+    void * y_native = NULL;
+    cudaDataType yType_native;
+    int incy_native = 0;
+    cudaDataType executiontype_native;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    n_native = (int)n;
+    PointerData *alpha_pointerData = initPointerData(env, alpha);
+    if (alpha_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    alpha_native = (void *)alpha_pointerData->getPointer(env);
+    alphaType_native = (cudaDataType)alphaType;
+    x_native = (void const *)getPointer(env, x);
+    xType_native = (cudaDataType)xType;
+    incx_native = (int)incx;
+    y_native = (void *)getPointer(env, y);
+    yType_native = (cudaDataType)yType;
+    incy_native = (int)incy;
+    executiontype_native = (cudaDataType)executiontype;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasAxpyEx(handle_native, n_native, alpha_native, alphaType_native, x_native, xType_native, incx_native, y_native, yType_native, incy_native, executiontype_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // n is primitive
+    if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // alphaType is primitive
+    // x is a native pointer
+    // xType is primitive
+    // incx is primitive
+    // y is a native pointer
+    // yType is primitive
+    // incy is primitive
+    // executiontype is primitive
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -2046,10 +2339,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSaxpyNative(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    float* alpha_native;
-    float* x_native;
+    float const * alpha_native = NULL;
+    float const * x_native = NULL;
     int incx_native = 0;
-    float* y_native;
+    float * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
@@ -2060,17 +2353,17 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSaxpyNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    x_native = (float*)getPointer(env, x);
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    x_native = (float const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (float*)getPointer(env, y);
+    y_native = (float *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSaxpy(handle_native, n_native, alpha_native, x_native, incx_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
     // x is a native pointer
@@ -2079,8 +2372,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSaxpyNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -2118,10 +2410,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDaxpyNative(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    double* alpha_native;
-    double* x_native;
+    double const * alpha_native = NULL;
+    double const * x_native = NULL;
     int incx_native = 0;
-    double* y_native;
+    double * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
@@ -2132,17 +2424,17 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDaxpyNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (double*)alpha_pointerData->getPointer(env);
-    x_native = (double*)getPointer(env, x);
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    x_native = (double const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (double*)getPointer(env, y);
+    y_native = (double *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDaxpy(handle_native, n_native, alpha_native, x_native, incx_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
     // x is a native pointer
@@ -2151,8 +2443,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDaxpyNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -2190,10 +2481,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCaxpyNative(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    cuComplex* alpha_native;
-    cuComplex* x_native;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * x_native = NULL;
     int incx_native = 0;
-    cuComplex* y_native;
+    cuComplex * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
@@ -2204,17 +2495,17 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCaxpyNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    x_native = (cuComplex*)getPointer(env, x);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    x_native = (cuComplex const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (cuComplex*)getPointer(env, y);
+    y_native = (cuComplex *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCaxpy(handle_native, n_native, alpha_native, x_native, incx_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
     // x is a native pointer
@@ -2223,8 +2514,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCaxpyNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -2262,10 +2552,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZaxpyNative(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    cuDoubleComplex* alpha_native;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * x_native = NULL;
     int incx_native = 0;
-    cuDoubleComplex* y_native;
+    cuDoubleComplex * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
@@ -2276,17 +2566,17 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZaxpyNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    x_native = (cuDoubleComplex const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (cuDoubleComplex*)getPointer(env, y);
+    y_native = (cuDoubleComplex *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZaxpy(handle_native, n_native, alpha_native, x_native, incx_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
     // x is a native pointer
@@ -2295,8 +2585,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZaxpyNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -2329,24 +2618,24 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasScopyNative(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    float* x_native;
+    float const * x_native = NULL;
     int incx_native = 0;
-    float* y_native;
+    float * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (float*)getPointer(env, x);
+    x_native = (float const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (float*)getPointer(env, y);
+    y_native = (float *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasScopy(handle_native, n_native, x_native, incx_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
@@ -2354,8 +2643,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasScopyNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -2388,24 +2676,24 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDcopyNative(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    double* x_native;
+    double const * x_native = NULL;
     int incx_native = 0;
-    double* y_native;
+    double * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (double*)getPointer(env, x);
+    x_native = (double const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (double*)getPointer(env, y);
+    y_native = (double *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDcopy(handle_native, n_native, x_native, incx_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
@@ -2413,8 +2701,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDcopyNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -2447,24 +2734,24 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCcopyNative(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    cuComplex* x_native;
+    cuComplex const * x_native = NULL;
     int incx_native = 0;
-    cuComplex* y_native;
+    cuComplex * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (cuComplex*)getPointer(env, x);
+    x_native = (cuComplex const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (cuComplex*)getPointer(env, y);
+    y_native = (cuComplex *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCcopy(handle_native, n_native, x_native, incx_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
@@ -2472,8 +2759,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCcopyNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -2506,24 +2792,24 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZcopyNative(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex const * x_native = NULL;
     int incx_native = 0;
-    cuDoubleComplex* y_native;
+    cuDoubleComplex * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    x_native = (cuDoubleComplex const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (cuDoubleComplex*)getPointer(env, y);
+    y_native = (cuDoubleComplex *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZcopy(handle_native, n_native, x_native, incx_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
@@ -2531,8 +2817,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZcopyNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -2565,24 +2850,24 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSswapNative(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    float* x_native;
+    float * x_native = NULL;
     int incx_native = 0;
-    float* y_native;
+    float * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (float*)getPointer(env, x);
+    x_native = (float *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (float*)getPointer(env, y);
+    y_native = (float *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSswap(handle_native, n_native, x_native, incx_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
@@ -2590,8 +2875,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSswapNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -2624,24 +2908,24 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDswapNative(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    double* x_native;
+    double * x_native = NULL;
     int incx_native = 0;
-    double* y_native;
+    double * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (double*)getPointer(env, x);
+    x_native = (double *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (double*)getPointer(env, y);
+    y_native = (double *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDswap(handle_native, n_native, x_native, incx_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
@@ -2649,8 +2933,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDswapNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -2683,24 +2966,24 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCswapNative(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    cuComplex* x_native;
+    cuComplex * x_native = NULL;
     int incx_native = 0;
-    cuComplex* y_native;
+    cuComplex * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (cuComplex*)getPointer(env, x);
+    x_native = (cuComplex *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (cuComplex*)getPointer(env, y);
+    y_native = (cuComplex *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCswap(handle_native, n_native, x_native, incx_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
@@ -2708,8 +2991,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCswapNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -2742,24 +3024,24 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZswapNative(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex * x_native = NULL;
     int incx_native = 0;
-    cuDoubleComplex* y_native;
+    cuDoubleComplex * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    x_native = (cuDoubleComplex *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (cuDoubleComplex*)getPointer(env, y);
+    y_native = (cuDoubleComplex *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZswap(handle_native, n_native, x_native, incx_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
@@ -2767,8 +3049,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZswapNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -2800,31 +3081,31 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasIsamaxNative(JNIEnv *en
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    float* x_native;
+    float const * x_native = NULL;
     int incx_native = 0;
-    int* result_native;
+    int * result_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (float*)getPointer(env, x);
+    x_native = (float const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *result_pointerData = initPointerData(env, result);
     if (result_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    result_native = (int*)result_pointerData->getPointer(env);
+    result_native = (int *)result_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasIsamax(handle_native, n_native, x_native, incx_native, result_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, result))
     {
         cudaDeviceSynchronize();
@@ -2832,8 +3113,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasIsamaxNative(JNIEnv *en
     if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -2865,31 +3145,31 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasIdamaxNative(JNIEnv *en
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    double* x_native;
+    double const * x_native = NULL;
     int incx_native = 0;
-    int* result_native;
+    int * result_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (double*)getPointer(env, x);
+    x_native = (double const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *result_pointerData = initPointerData(env, result);
     if (result_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    result_native = (int*)result_pointerData->getPointer(env);
+    result_native = (int *)result_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasIdamax(handle_native, n_native, x_native, incx_native, result_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, result))
     {
         cudaDeviceSynchronize();
@@ -2897,8 +3177,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasIdamaxNative(JNIEnv *en
     if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -2930,31 +3209,31 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasIcamaxNative(JNIEnv *en
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    cuComplex* x_native;
+    cuComplex const * x_native = NULL;
     int incx_native = 0;
-    int* result_native;
+    int * result_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (cuComplex*)getPointer(env, x);
+    x_native = (cuComplex const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *result_pointerData = initPointerData(env, result);
     if (result_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    result_native = (int*)result_pointerData->getPointer(env);
+    result_native = (int *)result_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasIcamax(handle_native, n_native, x_native, incx_native, result_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, result))
     {
         cudaDeviceSynchronize();
@@ -2962,8 +3241,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasIcamaxNative(JNIEnv *en
     if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -2995,31 +3273,31 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasIzamaxNative(JNIEnv *en
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex const * x_native = NULL;
     int incx_native = 0;
-    int* result_native;
+    int * result_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    x_native = (cuDoubleComplex const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *result_pointerData = initPointerData(env, result);
     if (result_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    result_native = (int*)result_pointerData->getPointer(env);
+    result_native = (int *)result_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasIzamax(handle_native, n_native, x_native, incx_native, result_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, result))
     {
         cudaDeviceSynchronize();
@@ -3027,8 +3305,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasIzamaxNative(JNIEnv *en
     if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -3060,31 +3337,31 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasIsaminNative(JNIEnv *en
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    float* x_native;
+    float const * x_native = NULL;
     int incx_native = 0;
-    int* result_native;
+    int * result_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (float*)getPointer(env, x);
+    x_native = (float const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *result_pointerData = initPointerData(env, result);
     if (result_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    result_native = (int*)result_pointerData->getPointer(env);
+    result_native = (int *)result_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasIsamin(handle_native, n_native, x_native, incx_native, result_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, result))
     {
         cudaDeviceSynchronize();
@@ -3092,8 +3369,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasIsaminNative(JNIEnv *en
     if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -3125,31 +3401,31 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasIdaminNative(JNIEnv *en
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    double* x_native;
+    double const * x_native = NULL;
     int incx_native = 0;
-    int* result_native;
+    int * result_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (double*)getPointer(env, x);
+    x_native = (double const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *result_pointerData = initPointerData(env, result);
     if (result_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    result_native = (int*)result_pointerData->getPointer(env);
+    result_native = (int *)result_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasIdamin(handle_native, n_native, x_native, incx_native, result_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, result))
     {
         cudaDeviceSynchronize();
@@ -3157,8 +3433,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasIdaminNative(JNIEnv *en
     if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -3190,31 +3465,31 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasIcaminNative(JNIEnv *en
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    cuComplex* x_native;
+    cuComplex const * x_native = NULL;
     int incx_native = 0;
-    int* result_native;
+    int * result_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (cuComplex*)getPointer(env, x);
+    x_native = (cuComplex const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *result_pointerData = initPointerData(env, result);
     if (result_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    result_native = (int*)result_pointerData->getPointer(env);
+    result_native = (int *)result_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasIcamin(handle_native, n_native, x_native, incx_native, result_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, result))
     {
         cudaDeviceSynchronize();
@@ -3222,8 +3497,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasIcaminNative(JNIEnv *en
     if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -3255,31 +3529,31 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasIzaminNative(JNIEnv *en
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex const * x_native = NULL;
     int incx_native = 0;
-    int* result_native;
+    int * result_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    x_native = (cuDoubleComplex const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *result_pointerData = initPointerData(env, result);
     if (result_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    result_native = (int*)result_pointerData->getPointer(env);
+    result_native = (int *)result_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasIzamin(handle_native, n_native, x_native, incx_native, result_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, result))
     {
         cudaDeviceSynchronize();
@@ -3287,8 +3561,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasIzaminNative(JNIEnv *en
     if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -3320,31 +3593,31 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSasumNative(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    float* x_native;
+    float const * x_native = NULL;
     int incx_native = 0;
-    float* result_native;
+    float * result_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (float*)getPointer(env, x);
+    x_native = (float const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *result_pointerData = initPointerData(env, result);
     if (result_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    result_native = (float*)result_pointerData->getPointer(env);
+    result_native = (float *)result_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSasum(handle_native, n_native, x_native, incx_native, result_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, result))
     {
         cudaDeviceSynchronize();
@@ -3352,8 +3625,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSasumNative(JNIEnv *env
     if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -3385,31 +3657,31 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDasumNative(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    double* x_native;
+    double const * x_native = NULL;
     int incx_native = 0;
-    double* result_native;
+    double * result_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (double*)getPointer(env, x);
+    x_native = (double const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *result_pointerData = initPointerData(env, result);
     if (result_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    result_native = (double*)result_pointerData->getPointer(env);
+    result_native = (double *)result_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDasum(handle_native, n_native, x_native, incx_native, result_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, result))
     {
         cudaDeviceSynchronize();
@@ -3417,8 +3689,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDasumNative(JNIEnv *env
     if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -3450,31 +3721,31 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasScasumNative(JNIEnv *en
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    cuComplex* x_native;
+    cuComplex const * x_native = NULL;
     int incx_native = 0;
-    float* result_native;
+    float * result_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (cuComplex*)getPointer(env, x);
+    x_native = (cuComplex const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *result_pointerData = initPointerData(env, result);
     if (result_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    result_native = (float*)result_pointerData->getPointer(env);
+    result_native = (float *)result_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasScasum(handle_native, n_native, x_native, incx_native, result_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, result))
     {
         cudaDeviceSynchronize();
@@ -3482,8 +3753,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasScasumNative(JNIEnv *en
     if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -3515,31 +3785,31 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDzasumNative(JNIEnv *en
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex const * x_native = NULL;
     int incx_native = 0;
-    double* result_native;
+    double * result_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    x_native = (cuDoubleComplex const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *result_pointerData = initPointerData(env, result);
     if (result_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    result_native = (double*)result_pointerData->getPointer(env);
+    result_native = (double *)result_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDzasum(handle_native, n_native, x_native, incx_native, result_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, result))
     {
         cudaDeviceSynchronize();
@@ -3547,8 +3817,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDzasumNative(JNIEnv *en
     if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -3591,50 +3860,50 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSrotNative(JNIEnv *env,
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    float* x_native;
+    float * x_native = NULL;
     int incx_native = 0;
-    float* y_native;
+    float * y_native = NULL;
     int incy_native = 0;
-    float* c_native;
-    float* s_native;
+    float const * c_native = NULL;
+    float const * s_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (float*)getPointer(env, x);
+    x_native = (float *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (float*)getPointer(env, y);
+    y_native = (float *)getPointer(env, y);
     incy_native = (int)incy;
     PointerData *c_pointerData = initPointerData(env, c);
     if (c_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    c_native = (float*)c_pointerData->getPointer(env);
+    c_native = (float *)c_pointerData->getPointer(env);
     PointerData *s_pointerData = initPointerData(env, s);
     if (s_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    s_native = (float*)s_pointerData->getPointer(env);
+    s_native = (float *)s_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSrot(handle_native, n_native, x_native, incx_native, y_native, incy_native, c_native, s_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
     // y is a native pointer
     // incy is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, c))
     {
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, c_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, s))
     {
         cudaDeviceSynchronize();
@@ -3642,8 +3911,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSrotNative(JNIEnv *env,
     if (!releasePointerData(env, s_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -3686,50 +3954,50 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDrotNative(JNIEnv *env,
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    double* x_native;
+    double * x_native = NULL;
     int incx_native = 0;
-    double* y_native;
+    double * y_native = NULL;
     int incy_native = 0;
-    double* c_native;
-    double* s_native;
+    double const * c_native = NULL;
+    double const * s_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (double*)getPointer(env, x);
+    x_native = (double *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (double*)getPointer(env, y);
+    y_native = (double *)getPointer(env, y);
     incy_native = (int)incy;
     PointerData *c_pointerData = initPointerData(env, c);
     if (c_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    c_native = (double*)c_pointerData->getPointer(env);
+    c_native = (double *)c_pointerData->getPointer(env);
     PointerData *s_pointerData = initPointerData(env, s);
     if (s_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    s_native = (double*)s_pointerData->getPointer(env);
+    s_native = (double *)s_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDrot(handle_native, n_native, x_native, incx_native, y_native, incy_native, c_native, s_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
     // y is a native pointer
     // incy is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, c))
     {
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, c_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, s))
     {
         cudaDeviceSynchronize();
@@ -3737,8 +4005,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDrotNative(JNIEnv *env,
     if (!releasePointerData(env, s_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -3781,50 +4048,50 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCrotNative(JNIEnv *env,
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    cuComplex* x_native;
+    cuComplex * x_native = NULL;
     int incx_native = 0;
-    cuComplex* y_native;
+    cuComplex * y_native = NULL;
     int incy_native = 0;
-    float* c_native;
-    cuComplex* s_native;
+    float const * c_native = NULL;
+    cuComplex const * s_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (cuComplex*)getPointer(env, x);
+    x_native = (cuComplex *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (cuComplex*)getPointer(env, y);
+    y_native = (cuComplex *)getPointer(env, y);
     incy_native = (int)incy;
     PointerData *c_pointerData = initPointerData(env, c);
     if (c_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    c_native = (float*)c_pointerData->getPointer(env);
+    c_native = (float *)c_pointerData->getPointer(env);
     PointerData *s_pointerData = initPointerData(env, s);
     if (s_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    s_native = (cuComplex*)s_pointerData->getPointer(env);
+    s_native = (cuComplex *)s_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCrot(handle_native, n_native, x_native, incx_native, y_native, incy_native, c_native, s_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
     // y is a native pointer
     // incy is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, c))
     {
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, c_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, s))
     {
         cudaDeviceSynchronize();
@@ -3832,8 +4099,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCrotNative(JNIEnv *env,
     if (!releasePointerData(env, s_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -3876,50 +4142,50 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsrotNative(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    cuComplex* x_native;
+    cuComplex * x_native = NULL;
     int incx_native = 0;
-    cuComplex* y_native;
+    cuComplex * y_native = NULL;
     int incy_native = 0;
-    float* c_native;
-    float* s_native;
+    float const * c_native = NULL;
+    float const * s_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (cuComplex*)getPointer(env, x);
+    x_native = (cuComplex *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (cuComplex*)getPointer(env, y);
+    y_native = (cuComplex *)getPointer(env, y);
     incy_native = (int)incy;
     PointerData *c_pointerData = initPointerData(env, c);
     if (c_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    c_native = (float*)c_pointerData->getPointer(env);
+    c_native = (float *)c_pointerData->getPointer(env);
     PointerData *s_pointerData = initPointerData(env, s);
     if (s_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    s_native = (float*)s_pointerData->getPointer(env);
+    s_native = (float *)s_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCsrot(handle_native, n_native, x_native, incx_native, y_native, incy_native, c_native, s_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
     // y is a native pointer
     // incy is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, c))
     {
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, c_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, s))
     {
         cudaDeviceSynchronize();
@@ -3927,8 +4193,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsrotNative(JNIEnv *env
     if (!releasePointerData(env, s_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -3971,50 +4236,50 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZrotNative(JNIEnv *env,
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex * x_native = NULL;
     int incx_native = 0;
-    cuDoubleComplex* y_native;
+    cuDoubleComplex * y_native = NULL;
     int incy_native = 0;
-    double* c_native;
-    cuDoubleComplex* s_native;
+    double const * c_native = NULL;
+    cuDoubleComplex const * s_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    x_native = (cuDoubleComplex *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (cuDoubleComplex*)getPointer(env, y);
+    y_native = (cuDoubleComplex *)getPointer(env, y);
     incy_native = (int)incy;
     PointerData *c_pointerData = initPointerData(env, c);
     if (c_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    c_native = (double*)c_pointerData->getPointer(env);
+    c_native = (double *)c_pointerData->getPointer(env);
     PointerData *s_pointerData = initPointerData(env, s);
     if (s_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    s_native = (cuDoubleComplex*)s_pointerData->getPointer(env);
+    s_native = (cuDoubleComplex *)s_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZrot(handle_native, n_native, x_native, incx_native, y_native, incy_native, c_native, s_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
     // y is a native pointer
     // incy is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, c))
     {
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, c_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, s))
     {
         cudaDeviceSynchronize();
@@ -4022,8 +4287,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZrotNative(JNIEnv *env,
     if (!releasePointerData(env, s_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -4066,50 +4330,50 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZdrotNative(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex * x_native = NULL;
     int incx_native = 0;
-    cuDoubleComplex* y_native;
+    cuDoubleComplex * y_native = NULL;
     int incy_native = 0;
-    double* c_native;
-    double* s_native;
+    double const * c_native = NULL;
+    double const * s_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    x_native = (cuDoubleComplex *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (cuDoubleComplex*)getPointer(env, y);
+    y_native = (cuDoubleComplex *)getPointer(env, y);
     incy_native = (int)incy;
     PointerData *c_pointerData = initPointerData(env, c);
     if (c_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    c_native = (double*)c_pointerData->getPointer(env);
+    c_native = (double *)c_pointerData->getPointer(env);
     PointerData *s_pointerData = initPointerData(env, s);
     if (s_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    s_native = (double*)s_pointerData->getPointer(env);
+    s_native = (double *)s_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZdrot(handle_native, n_native, x_native, incx_native, y_native, incy_native, c_native, s_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
     // y is a native pointer
     // incy is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, c))
     {
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, c_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, s))
     {
         cudaDeviceSynchronize();
@@ -4117,8 +4381,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZdrotNative(JNIEnv *env
     if (!releasePointerData(env, s_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -4157,10 +4420,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSrotgNative(JNIEnv *env
 
     // Native variable declarations
     cublasHandle_t handle_native;
-    float* a_native;
-    float* b_native;
-    float* c_native;
-    float* s_native;
+    float * a_native = NULL;
+    float * b_native = NULL;
+    float * c_native = NULL;
+    float * s_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
@@ -4169,50 +4432,50 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSrotgNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    a_native = (float*)a_pointerData->getPointer(env);
+    a_native = (float *)a_pointerData->getPointer(env);
     PointerData *b_pointerData = initPointerData(env, b);
     if (b_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    b_native = (float*)b_pointerData->getPointer(env);
+    b_native = (float *)b_pointerData->getPointer(env);
     PointerData *c_pointerData = initPointerData(env, c);
     if (c_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    c_native = (float*)c_pointerData->getPointer(env);
+    c_native = (float *)c_pointerData->getPointer(env);
     PointerData *s_pointerData = initPointerData(env, s);
     if (s_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    s_native = (float*)s_pointerData->getPointer(env);
+    s_native = (float *)s_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSrotg(handle_native, a_native, b_native, c_native, s_native);
 
     // Write back native variable values
-    // handle is a native pointer object
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // handle is read-only
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, a))
     {
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, a_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, b))
     {
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, b_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, c))
     {
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, c_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, s))
     {
         cudaDeviceSynchronize();
@@ -4220,8 +4483,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSrotgNative(JNIEnv *env
     if (!releasePointerData(env, s_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -4260,10 +4522,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDrotgNative(JNIEnv *env
 
     // Native variable declarations
     cublasHandle_t handle_native;
-    double* a_native;
-    double* b_native;
-    double* c_native;
-    double* s_native;
+    double * a_native = NULL;
+    double * b_native = NULL;
+    double * c_native = NULL;
+    double * s_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
@@ -4272,50 +4534,50 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDrotgNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    a_native = (double*)a_pointerData->getPointer(env);
+    a_native = (double *)a_pointerData->getPointer(env);
     PointerData *b_pointerData = initPointerData(env, b);
     if (b_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    b_native = (double*)b_pointerData->getPointer(env);
+    b_native = (double *)b_pointerData->getPointer(env);
     PointerData *c_pointerData = initPointerData(env, c);
     if (c_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    c_native = (double*)c_pointerData->getPointer(env);
+    c_native = (double *)c_pointerData->getPointer(env);
     PointerData *s_pointerData = initPointerData(env, s);
     if (s_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    s_native = (double*)s_pointerData->getPointer(env);
+    s_native = (double *)s_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDrotg(handle_native, a_native, b_native, c_native, s_native);
 
     // Write back native variable values
-    // handle is a native pointer object
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // handle is read-only
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, a))
     {
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, a_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, b))
     {
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, b_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, c))
     {
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, c_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, s))
     {
         cudaDeviceSynchronize();
@@ -4323,8 +4585,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDrotgNative(JNIEnv *env
     if (!releasePointerData(env, s_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -4363,10 +4624,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCrotgNative(JNIEnv *env
 
     // Native variable declarations
     cublasHandle_t handle_native;
-    cuComplex* a_native;
-    cuComplex* b_native;
-    float* c_native;
-    cuComplex* s_native;
+    cuComplex * a_native = NULL;
+    cuComplex * b_native = NULL;
+    float * c_native = NULL;
+    cuComplex * s_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
@@ -4375,50 +4636,50 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCrotgNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    a_native = (cuComplex*)a_pointerData->getPointer(env);
+    a_native = (cuComplex *)a_pointerData->getPointer(env);
     PointerData *b_pointerData = initPointerData(env, b);
     if (b_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    b_native = (cuComplex*)b_pointerData->getPointer(env);
+    b_native = (cuComplex *)b_pointerData->getPointer(env);
     PointerData *c_pointerData = initPointerData(env, c);
     if (c_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    c_native = (float*)c_pointerData->getPointer(env);
+    c_native = (float *)c_pointerData->getPointer(env);
     PointerData *s_pointerData = initPointerData(env, s);
     if (s_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    s_native = (cuComplex*)s_pointerData->getPointer(env);
+    s_native = (cuComplex *)s_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCrotg(handle_native, a_native, b_native, c_native, s_native);
 
     // Write back native variable values
-    // handle is a native pointer object
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // handle is read-only
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, a))
     {
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, a_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, b))
     {
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, b_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, c))
     {
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, c_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, s))
     {
         cudaDeviceSynchronize();
@@ -4426,8 +4687,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCrotgNative(JNIEnv *env
     if (!releasePointerData(env, s_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -4466,10 +4726,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZrotgNative(JNIEnv *env
 
     // Native variable declarations
     cublasHandle_t handle_native;
-    cuDoubleComplex* a_native;
-    cuDoubleComplex* b_native;
-    double* c_native;
-    cuDoubleComplex* s_native;
+    cuDoubleComplex * a_native = NULL;
+    cuDoubleComplex * b_native = NULL;
+    double * c_native = NULL;
+    cuDoubleComplex * s_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
@@ -4478,50 +4738,50 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZrotgNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    a_native = (cuDoubleComplex*)a_pointerData->getPointer(env);
+    a_native = (cuDoubleComplex *)a_pointerData->getPointer(env);
     PointerData *b_pointerData = initPointerData(env, b);
     if (b_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    b_native = (cuDoubleComplex*)b_pointerData->getPointer(env);
+    b_native = (cuDoubleComplex *)b_pointerData->getPointer(env);
     PointerData *c_pointerData = initPointerData(env, c);
     if (c_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    c_native = (double*)c_pointerData->getPointer(env);
+    c_native = (double *)c_pointerData->getPointer(env);
     PointerData *s_pointerData = initPointerData(env, s);
     if (s_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    s_native = (cuDoubleComplex*)s_pointerData->getPointer(env);
+    s_native = (cuDoubleComplex *)s_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZrotg(handle_native, a_native, b_native, c_native, s_native);
 
     // Write back native variable values
-    // handle is a native pointer object
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // handle is read-only
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, a))
     {
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, a_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, b))
     {
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, b_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, c))
     {
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, c_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, s))
     {
         cudaDeviceSynchronize();
@@ -4529,8 +4789,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZrotgNative(JNIEnv *env
     if (!releasePointerData(env, s_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -4568,37 +4827,37 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSrotmNative(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    float* x_native;
+    float * x_native = NULL;
     int incx_native = 0;
-    float* y_native;
+    float * y_native = NULL;
     int incy_native = 0;
-    float* param_native;
+    float const * param_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (float*)getPointer(env, x);
+    x_native = (float *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (float*)getPointer(env, y);
+    y_native = (float *)getPointer(env, y);
     incy_native = (int)incy;
     PointerData *param_pointerData = initPointerData(env, param);
     if (param_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    param_native = (float*)param_pointerData->getPointer(env);
+    param_native = (float *)param_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSrotm(handle_native, n_native, x_native, incx_native, y_native, incy_native, param_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
     // y is a native pointer
     // incy is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, param))
     {
         cudaDeviceSynchronize();
@@ -4606,8 +4865,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSrotmNative(JNIEnv *env
     if (!releasePointerData(env, param_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -4645,37 +4903,37 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDrotmNative(JNIEnv *env
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    double* x_native;
+    double * x_native = NULL;
     int incx_native = 0;
-    double* y_native;
+    double * y_native = NULL;
     int incy_native = 0;
-    double* param_native;
+    double const * param_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    x_native = (double*)getPointer(env, x);
+    x_native = (double *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (double*)getPointer(env, y);
+    y_native = (double *)getPointer(env, y);
     incy_native = (int)incy;
     PointerData *param_pointerData = initPointerData(env, param);
     if (param_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    param_native = (double*)param_pointerData->getPointer(env);
+    param_native = (double *)param_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDrotm(handle_native, n_native, x_native, incx_native, y_native, incy_native, param_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // x is a native pointer
     // incx is primitive
     // y is a native pointer
     // incy is primitive
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, param))
     {
         cudaDeviceSynchronize();
@@ -4683,8 +4941,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDrotmNative(JNIEnv *env
     if (!releasePointerData(env, param_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -4728,11 +4985,11 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSrotmgNative(JNIEnv *en
 
     // Native variable declarations
     cublasHandle_t handle_native;
-    float* d1_native;
-    float* d2_native;
-    float* x1_native;
-    float* y1_native;
-    float* param_native;
+    float * d1_native = NULL;
+    float * d2_native = NULL;
+    float * x1_native = NULL;
+    float const * y1_native = NULL;
+    float * param_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
@@ -4741,62 +4998,62 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSrotmgNative(JNIEnv *en
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    d1_native = (float*)d1_pointerData->getPointer(env);
+    d1_native = (float *)d1_pointerData->getPointer(env);
     PointerData *d2_pointerData = initPointerData(env, d2);
     if (d2_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    d2_native = (float*)d2_pointerData->getPointer(env);
+    d2_native = (float *)d2_pointerData->getPointer(env);
     PointerData *x1_pointerData = initPointerData(env, x1);
     if (x1_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    x1_native = (float*)x1_pointerData->getPointer(env);
+    x1_native = (float *)x1_pointerData->getPointer(env);
     PointerData *y1_pointerData = initPointerData(env, y1);
     if (y1_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    y1_native = (float*)y1_pointerData->getPointer(env);
+    y1_native = (float *)y1_pointerData->getPointer(env);
     PointerData *param_pointerData = initPointerData(env, param);
     if (param_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    param_native = (float*)param_pointerData->getPointer(env);
+    param_native = (float *)param_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSrotmg(handle_native, d1_native, d2_native, x1_native, y1_native, param_native);
 
     // Write back native variable values
-    // handle is a native pointer object
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // handle is read-only
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, d1))
     {
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, d1_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, d2))
     {
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, d2_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, x1))
     {
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, x1_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, y1))
     {
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, y1_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, param))
     {
         cudaDeviceSynchronize();
@@ -4804,8 +5061,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSrotmgNative(JNIEnv *en
     if (!releasePointerData(env, param_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -4849,11 +5105,11 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDrotmgNative(JNIEnv *en
 
     // Native variable declarations
     cublasHandle_t handle_native;
-    double* d1_native;
-    double* d2_native;
-    double* x1_native;
-    double* y1_native;
-    double* param_native;
+    double * d1_native = NULL;
+    double * d2_native = NULL;
+    double * x1_native = NULL;
+    double const * y1_native = NULL;
+    double * param_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
@@ -4862,62 +5118,62 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDrotmgNative(JNIEnv *en
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    d1_native = (double*)d1_pointerData->getPointer(env);
+    d1_native = (double *)d1_pointerData->getPointer(env);
     PointerData *d2_pointerData = initPointerData(env, d2);
     if (d2_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    d2_native = (double*)d2_pointerData->getPointer(env);
+    d2_native = (double *)d2_pointerData->getPointer(env);
     PointerData *x1_pointerData = initPointerData(env, x1);
     if (x1_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    x1_native = (double*)x1_pointerData->getPointer(env);
+    x1_native = (double *)x1_pointerData->getPointer(env);
     PointerData *y1_pointerData = initPointerData(env, y1);
     if (y1_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    y1_native = (double*)y1_pointerData->getPointer(env);
+    y1_native = (double *)y1_pointerData->getPointer(env);
     PointerData *param_pointerData = initPointerData(env, param);
     if (param_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    param_native = (double*)param_pointerData->getPointer(env);
+    param_native = (double *)param_pointerData->getPointer(env);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDrotmg(handle_native, d1_native, d2_native, x1_native, y1_native, param_native);
 
     // Write back native variable values
-    // handle is a native pointer object
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // handle is read-only
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, d1))
     {
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, d1_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, d2))
     {
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, d2_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, x1))
     {
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, x1_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, y1))
     {
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, y1_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
-    // If the PointerData is not a backed by native memory, then this call has to block
+    // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, param))
     {
         cudaDeviceSynchronize();
@@ -4925,8 +5181,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDrotmgNative(JNIEnv *en
     if (!releasePointerData(env, param_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -4979,13 +5234,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgemvNative(JNIEnv *env
     cublasOperation_t trans_native;
     int m_native = 0;
     int n_native = 0;
-    float* alpha_native;
-    float* A_native;
+    float const * alpha_native = NULL;
+    float const * A_native = NULL;
     int lda_native = 0;
-    float* x_native;
+    float const * x_native = NULL;
     int incx_native = 0;
-    float* beta_native;
-    float* y_native;
+    float const * beta_native = NULL;
+    float * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
@@ -4998,25 +5253,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgemvNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    A_native = (float*)getPointer(env, A);
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    A_native = (float const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (float*)getPointer(env, x);
+    x_native = (float const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (float*)beta_pointerData->getPointer(env);
-    y_native = (float*)getPointer(env, y);
+    beta_native = (float *)beta_pointerData->getPointer(env);
+    y_native = (float *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSgemv(handle_native, trans_native, m_native, n_native, alpha_native, A_native, lda_native, x_native, incx_native, beta_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // trans is primitive
     // m is primitive
     // n is primitive
@@ -5030,8 +5285,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgemvNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -5084,13 +5338,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgemvNative(JNIEnv *env
     cublasOperation_t trans_native;
     int m_native = 0;
     int n_native = 0;
-    double* alpha_native;
-    double* A_native;
+    double const * alpha_native = NULL;
+    double const * A_native = NULL;
     int lda_native = 0;
-    double* x_native;
+    double const * x_native = NULL;
     int incx_native = 0;
-    double* beta_native;
-    double* y_native;
+    double const * beta_native = NULL;
+    double * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
@@ -5103,25 +5357,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgemvNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (double*)alpha_pointerData->getPointer(env);
-    A_native = (double*)getPointer(env, A);
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    A_native = (double const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (double*)getPointer(env, x);
+    x_native = (double const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (double*)beta_pointerData->getPointer(env);
-    y_native = (double*)getPointer(env, y);
+    beta_native = (double *)beta_pointerData->getPointer(env);
+    y_native = (double *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDgemv(handle_native, trans_native, m_native, n_native, alpha_native, A_native, lda_native, x_native, incx_native, beta_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // trans is primitive
     // m is primitive
     // n is primitive
@@ -5135,8 +5389,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgemvNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -5189,13 +5442,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgemvNative(JNIEnv *env
     cublasOperation_t trans_native;
     int m_native = 0;
     int n_native = 0;
-    cuComplex* alpha_native;
-    cuComplex* A_native;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * A_native = NULL;
     int lda_native = 0;
-    cuComplex* x_native;
+    cuComplex const * x_native = NULL;
     int incx_native = 0;
-    cuComplex* beta_native;
-    cuComplex* y_native;
+    cuComplex const * beta_native = NULL;
+    cuComplex * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
@@ -5208,25 +5461,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgemvNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuComplex*)getPointer(env, A);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (cuComplex*)getPointer(env, x);
+    x_native = (cuComplex const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuComplex*)beta_pointerData->getPointer(env);
-    y_native = (cuComplex*)getPointer(env, y);
+    beta_native = (cuComplex *)beta_pointerData->getPointer(env);
+    y_native = (cuComplex *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCgemv(handle_native, trans_native, m_native, n_native, alpha_native, A_native, lda_native, x_native, incx_native, beta_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // trans is primitive
     // m is primitive
     // n is primitive
@@ -5240,8 +5493,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgemvNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -5294,13 +5546,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgemvNative(JNIEnv *env
     cublasOperation_t trans_native;
     int m_native = 0;
     int n_native = 0;
-    cuDoubleComplex* alpha_native;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * A_native = NULL;
     int lda_native = 0;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex const * x_native = NULL;
     int incx_native = 0;
-    cuDoubleComplex* beta_native;
-    cuDoubleComplex* y_native;
+    cuDoubleComplex const * beta_native = NULL;
+    cuDoubleComplex * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
@@ -5313,25 +5565,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgemvNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuDoubleComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    x_native = (cuDoubleComplex const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuDoubleComplex*)beta_pointerData->getPointer(env);
-    y_native = (cuDoubleComplex*)getPointer(env, y);
+    beta_native = (cuDoubleComplex *)beta_pointerData->getPointer(env);
+    y_native = (cuDoubleComplex *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZgemv(handle_native, trans_native, m_native, n_native, alpha_native, A_native, lda_native, x_native, incx_native, beta_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // trans is primitive
     // m is primitive
     // n is primitive
@@ -5345,8 +5597,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgemvNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -5403,13 +5654,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgbmvNative(JNIEnv *env
     int n_native = 0;
     int kl_native = 0;
     int ku_native = 0;
-    float* alpha_native;
-    float* A_native;
+    float const * alpha_native = NULL;
+    float const * A_native = NULL;
     int lda_native = 0;
-    float* x_native;
+    float const * x_native = NULL;
     int incx_native = 0;
-    float* beta_native;
-    float* y_native;
+    float const * beta_native = NULL;
+    float * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
@@ -5424,25 +5675,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgbmvNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    A_native = (float*)getPointer(env, A);
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    A_native = (float const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (float*)getPointer(env, x);
+    x_native = (float const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (float*)beta_pointerData->getPointer(env);
-    y_native = (float*)getPointer(env, y);
+    beta_native = (float *)beta_pointerData->getPointer(env);
+    y_native = (float *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSgbmv(handle_native, trans_native, m_native, n_native, kl_native, ku_native, alpha_native, A_native, lda_native, x_native, incx_native, beta_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // trans is primitive
     // m is primitive
     // n is primitive
@@ -5458,8 +5709,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgbmvNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -5516,13 +5766,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgbmvNative(JNIEnv *env
     int n_native = 0;
     int kl_native = 0;
     int ku_native = 0;
-    double* alpha_native;
-    double* A_native;
+    double const * alpha_native = NULL;
+    double const * A_native = NULL;
     int lda_native = 0;
-    double* x_native;
+    double const * x_native = NULL;
     int incx_native = 0;
-    double* beta_native;
-    double* y_native;
+    double const * beta_native = NULL;
+    double * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
@@ -5537,25 +5787,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgbmvNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (double*)alpha_pointerData->getPointer(env);
-    A_native = (double*)getPointer(env, A);
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    A_native = (double const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (double*)getPointer(env, x);
+    x_native = (double const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (double*)beta_pointerData->getPointer(env);
-    y_native = (double*)getPointer(env, y);
+    beta_native = (double *)beta_pointerData->getPointer(env);
+    y_native = (double *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDgbmv(handle_native, trans_native, m_native, n_native, kl_native, ku_native, alpha_native, A_native, lda_native, x_native, incx_native, beta_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // trans is primitive
     // m is primitive
     // n is primitive
@@ -5571,8 +5821,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgbmvNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -5629,13 +5878,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgbmvNative(JNIEnv *env
     int n_native = 0;
     int kl_native = 0;
     int ku_native = 0;
-    cuComplex* alpha_native;
-    cuComplex* A_native;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * A_native = NULL;
     int lda_native = 0;
-    cuComplex* x_native;
+    cuComplex const * x_native = NULL;
     int incx_native = 0;
-    cuComplex* beta_native;
-    cuComplex* y_native;
+    cuComplex const * beta_native = NULL;
+    cuComplex * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
@@ -5650,25 +5899,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgbmvNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuComplex*)getPointer(env, A);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (cuComplex*)getPointer(env, x);
+    x_native = (cuComplex const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuComplex*)beta_pointerData->getPointer(env);
-    y_native = (cuComplex*)getPointer(env, y);
+    beta_native = (cuComplex *)beta_pointerData->getPointer(env);
+    y_native = (cuComplex *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCgbmv(handle_native, trans_native, m_native, n_native, kl_native, ku_native, alpha_native, A_native, lda_native, x_native, incx_native, beta_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // trans is primitive
     // m is primitive
     // n is primitive
@@ -5684,8 +5933,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgbmvNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -5742,13 +5990,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgbmvNative(JNIEnv *env
     int n_native = 0;
     int kl_native = 0;
     int ku_native = 0;
-    cuDoubleComplex* alpha_native;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * A_native = NULL;
     int lda_native = 0;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex const * x_native = NULL;
     int incx_native = 0;
-    cuDoubleComplex* beta_native;
-    cuDoubleComplex* y_native;
+    cuDoubleComplex const * beta_native = NULL;
+    cuDoubleComplex * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
@@ -5763,25 +6011,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgbmvNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuDoubleComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    x_native = (cuDoubleComplex const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuDoubleComplex*)beta_pointerData->getPointer(env);
-    y_native = (cuDoubleComplex*)getPointer(env, y);
+    beta_native = (cuDoubleComplex *)beta_pointerData->getPointer(env);
+    y_native = (cuDoubleComplex *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZgbmv(handle_native, trans_native, m_native, n_native, kl_native, ku_native, alpha_native, A_native, lda_native, x_native, incx_native, beta_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // trans is primitive
     // m is primitive
     // n is primitive
@@ -5797,8 +6045,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgbmvNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -5837,9 +6084,9 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStrmvNative(JNIEnv *env
     cublasOperation_t trans_native;
     cublasDiagType_t diag_native;
     int n_native = 0;
-    float* A_native;
+    float const * A_native = NULL;
     int lda_native = 0;
-    float* x_native;
+    float * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -5848,16 +6095,16 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStrmvNative(JNIEnv *env
     trans_native = (cublasOperation_t)trans;
     diag_native = (cublasDiagType_t)diag;
     n_native = (int)n;
-    A_native = (float*)getPointer(env, A);
+    A_native = (float const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (float*)getPointer(env, x);
+    x_native = (float *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasStrmv(handle_native, uplo_native, trans_native, diag_native, n_native, A_native, lda_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // diag is primitive
@@ -5868,8 +6115,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStrmvNative(JNIEnv *env
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -5908,9 +6154,9 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtrmvNative(JNIEnv *env
     cublasOperation_t trans_native;
     cublasDiagType_t diag_native;
     int n_native = 0;
-    double* A_native;
+    double const * A_native = NULL;
     int lda_native = 0;
-    double* x_native;
+    double * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -5919,16 +6165,16 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtrmvNative(JNIEnv *env
     trans_native = (cublasOperation_t)trans;
     diag_native = (cublasDiagType_t)diag;
     n_native = (int)n;
-    A_native = (double*)getPointer(env, A);
+    A_native = (double const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (double*)getPointer(env, x);
+    x_native = (double *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDtrmv(handle_native, uplo_native, trans_native, diag_native, n_native, A_native, lda_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // diag is primitive
@@ -5939,8 +6185,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtrmvNative(JNIEnv *env
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -5979,9 +6224,9 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtrmvNative(JNIEnv *env
     cublasOperation_t trans_native;
     cublasDiagType_t diag_native;
     int n_native = 0;
-    cuComplex* A_native;
+    cuComplex const * A_native = NULL;
     int lda_native = 0;
-    cuComplex* x_native;
+    cuComplex * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -5990,16 +6235,16 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtrmvNative(JNIEnv *env
     trans_native = (cublasOperation_t)trans;
     diag_native = (cublasDiagType_t)diag;
     n_native = (int)n;
-    A_native = (cuComplex*)getPointer(env, A);
+    A_native = (cuComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (cuComplex*)getPointer(env, x);
+    x_native = (cuComplex *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCtrmv(handle_native, uplo_native, trans_native, diag_native, n_native, A_native, lda_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // diag is primitive
@@ -6010,8 +6255,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtrmvNative(JNIEnv *env
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -6050,9 +6294,9 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtrmvNative(JNIEnv *env
     cublasOperation_t trans_native;
     cublasDiagType_t diag_native;
     int n_native = 0;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex const * A_native = NULL;
     int lda_native = 0;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -6061,16 +6305,16 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtrmvNative(JNIEnv *env
     trans_native = (cublasOperation_t)trans;
     diag_native = (cublasDiagType_t)diag;
     n_native = (int)n;
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    A_native = (cuDoubleComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    x_native = (cuDoubleComplex *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZtrmv(handle_native, uplo_native, trans_native, diag_native, n_native, A_native, lda_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // diag is primitive
@@ -6081,8 +6325,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtrmvNative(JNIEnv *env
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -6123,9 +6366,9 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStbmvNative(JNIEnv *env
     cublasDiagType_t diag_native;
     int n_native = 0;
     int k_native = 0;
-    float* A_native;
+    float const * A_native = NULL;
     int lda_native = 0;
-    float* x_native;
+    float * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -6135,16 +6378,16 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStbmvNative(JNIEnv *env
     diag_native = (cublasDiagType_t)diag;
     n_native = (int)n;
     k_native = (int)k;
-    A_native = (float*)getPointer(env, A);
+    A_native = (float const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (float*)getPointer(env, x);
+    x_native = (float *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasStbmv(handle_native, uplo_native, trans_native, diag_native, n_native, k_native, A_native, lda_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // diag is primitive
@@ -6156,8 +6399,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStbmvNative(JNIEnv *env
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -6198,9 +6440,9 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtbmvNative(JNIEnv *env
     cublasDiagType_t diag_native;
     int n_native = 0;
     int k_native = 0;
-    double* A_native;
+    double const * A_native = NULL;
     int lda_native = 0;
-    double* x_native;
+    double * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -6210,16 +6452,16 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtbmvNative(JNIEnv *env
     diag_native = (cublasDiagType_t)diag;
     n_native = (int)n;
     k_native = (int)k;
-    A_native = (double*)getPointer(env, A);
+    A_native = (double const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (double*)getPointer(env, x);
+    x_native = (double *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDtbmv(handle_native, uplo_native, trans_native, diag_native, n_native, k_native, A_native, lda_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // diag is primitive
@@ -6231,8 +6473,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtbmvNative(JNIEnv *env
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -6273,9 +6514,9 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtbmvNative(JNIEnv *env
     cublasDiagType_t diag_native;
     int n_native = 0;
     int k_native = 0;
-    cuComplex* A_native;
+    cuComplex const * A_native = NULL;
     int lda_native = 0;
-    cuComplex* x_native;
+    cuComplex * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -6285,16 +6526,16 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtbmvNative(JNIEnv *env
     diag_native = (cublasDiagType_t)diag;
     n_native = (int)n;
     k_native = (int)k;
-    A_native = (cuComplex*)getPointer(env, A);
+    A_native = (cuComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (cuComplex*)getPointer(env, x);
+    x_native = (cuComplex *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCtbmv(handle_native, uplo_native, trans_native, diag_native, n_native, k_native, A_native, lda_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // diag is primitive
@@ -6306,8 +6547,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtbmvNative(JNIEnv *env
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -6348,9 +6588,9 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtbmvNative(JNIEnv *env
     cublasDiagType_t diag_native;
     int n_native = 0;
     int k_native = 0;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex const * A_native = NULL;
     int lda_native = 0;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -6360,16 +6600,16 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtbmvNative(JNIEnv *env
     diag_native = (cublasDiagType_t)diag;
     n_native = (int)n;
     k_native = (int)k;
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    A_native = (cuDoubleComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    x_native = (cuDoubleComplex *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZtbmv(handle_native, uplo_native, trans_native, diag_native, n_native, k_native, A_native, lda_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // diag is primitive
@@ -6381,8 +6621,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtbmvNative(JNIEnv *env
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -6420,8 +6659,8 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStpmvNative(JNIEnv *env
     cublasOperation_t trans_native;
     cublasDiagType_t diag_native;
     int n_native = 0;
-    float* AP_native;
-    float* x_native;
+    float const * AP_native = NULL;
+    float * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -6430,15 +6669,15 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStpmvNative(JNIEnv *env
     trans_native = (cublasOperation_t)trans;
     diag_native = (cublasDiagType_t)diag;
     n_native = (int)n;
-    AP_native = (float*)getPointer(env, AP);
-    x_native = (float*)getPointer(env, x);
+    AP_native = (float const *)getPointer(env, AP);
+    x_native = (float *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasStpmv(handle_native, uplo_native, trans_native, diag_native, n_native, AP_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // diag is primitive
@@ -6448,8 +6687,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStpmvNative(JNIEnv *env
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -6487,8 +6725,8 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtpmvNative(JNIEnv *env
     cublasOperation_t trans_native;
     cublasDiagType_t diag_native;
     int n_native = 0;
-    double* AP_native;
-    double* x_native;
+    double const * AP_native = NULL;
+    double * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -6497,15 +6735,15 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtpmvNative(JNIEnv *env
     trans_native = (cublasOperation_t)trans;
     diag_native = (cublasDiagType_t)diag;
     n_native = (int)n;
-    AP_native = (double*)getPointer(env, AP);
-    x_native = (double*)getPointer(env, x);
+    AP_native = (double const *)getPointer(env, AP);
+    x_native = (double *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDtpmv(handle_native, uplo_native, trans_native, diag_native, n_native, AP_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // diag is primitive
@@ -6515,8 +6753,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtpmvNative(JNIEnv *env
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -6554,8 +6791,8 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtpmvNative(JNIEnv *env
     cublasOperation_t trans_native;
     cublasDiagType_t diag_native;
     int n_native = 0;
-    cuComplex* AP_native;
-    cuComplex* x_native;
+    cuComplex const * AP_native = NULL;
+    cuComplex * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -6564,15 +6801,15 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtpmvNative(JNIEnv *env
     trans_native = (cublasOperation_t)trans;
     diag_native = (cublasDiagType_t)diag;
     n_native = (int)n;
-    AP_native = (cuComplex*)getPointer(env, AP);
-    x_native = (cuComplex*)getPointer(env, x);
+    AP_native = (cuComplex const *)getPointer(env, AP);
+    x_native = (cuComplex *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCtpmv(handle_native, uplo_native, trans_native, diag_native, n_native, AP_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // diag is primitive
@@ -6582,8 +6819,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtpmvNative(JNIEnv *env
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -6621,8 +6857,8 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtpmvNative(JNIEnv *env
     cublasOperation_t trans_native;
     cublasDiagType_t diag_native;
     int n_native = 0;
-    cuDoubleComplex* AP_native;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex const * AP_native = NULL;
+    cuDoubleComplex * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -6631,15 +6867,15 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtpmvNative(JNIEnv *env
     trans_native = (cublasOperation_t)trans;
     diag_native = (cublasDiagType_t)diag;
     n_native = (int)n;
-    AP_native = (cuDoubleComplex*)getPointer(env, AP);
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    AP_native = (cuDoubleComplex const *)getPointer(env, AP);
+    x_native = (cuDoubleComplex *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZtpmv(handle_native, uplo_native, trans_native, diag_native, n_native, AP_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // diag is primitive
@@ -6649,8 +6885,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtpmvNative(JNIEnv *env
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -6689,9 +6924,9 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStrsvNative(JNIEnv *env
     cublasOperation_t trans_native;
     cublasDiagType_t diag_native;
     int n_native = 0;
-    float* A_native;
+    float const * A_native = NULL;
     int lda_native = 0;
-    float* x_native;
+    float * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -6700,16 +6935,16 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStrsvNative(JNIEnv *env
     trans_native = (cublasOperation_t)trans;
     diag_native = (cublasDiagType_t)diag;
     n_native = (int)n;
-    A_native = (float*)getPointer(env, A);
+    A_native = (float const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (float*)getPointer(env, x);
+    x_native = (float *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasStrsv(handle_native, uplo_native, trans_native, diag_native, n_native, A_native, lda_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // diag is primitive
@@ -6720,8 +6955,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStrsvNative(JNIEnv *env
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -6760,9 +6994,9 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtrsvNative(JNIEnv *env
     cublasOperation_t trans_native;
     cublasDiagType_t diag_native;
     int n_native = 0;
-    double* A_native;
+    double const * A_native = NULL;
     int lda_native = 0;
-    double* x_native;
+    double * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -6771,16 +7005,16 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtrsvNative(JNIEnv *env
     trans_native = (cublasOperation_t)trans;
     diag_native = (cublasDiagType_t)diag;
     n_native = (int)n;
-    A_native = (double*)getPointer(env, A);
+    A_native = (double const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (double*)getPointer(env, x);
+    x_native = (double *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDtrsv(handle_native, uplo_native, trans_native, diag_native, n_native, A_native, lda_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // diag is primitive
@@ -6791,8 +7025,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtrsvNative(JNIEnv *env
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -6831,9 +7064,9 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtrsvNative(JNIEnv *env
     cublasOperation_t trans_native;
     cublasDiagType_t diag_native;
     int n_native = 0;
-    cuComplex* A_native;
+    cuComplex const * A_native = NULL;
     int lda_native = 0;
-    cuComplex* x_native;
+    cuComplex * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -6842,16 +7075,16 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtrsvNative(JNIEnv *env
     trans_native = (cublasOperation_t)trans;
     diag_native = (cublasDiagType_t)diag;
     n_native = (int)n;
-    A_native = (cuComplex*)getPointer(env, A);
+    A_native = (cuComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (cuComplex*)getPointer(env, x);
+    x_native = (cuComplex *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCtrsv(handle_native, uplo_native, trans_native, diag_native, n_native, A_native, lda_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // diag is primitive
@@ -6862,8 +7095,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtrsvNative(JNIEnv *env
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -6902,9 +7134,9 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtrsvNative(JNIEnv *env
     cublasOperation_t trans_native;
     cublasDiagType_t diag_native;
     int n_native = 0;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex const * A_native = NULL;
     int lda_native = 0;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -6913,16 +7145,16 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtrsvNative(JNIEnv *env
     trans_native = (cublasOperation_t)trans;
     diag_native = (cublasDiagType_t)diag;
     n_native = (int)n;
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    A_native = (cuDoubleComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    x_native = (cuDoubleComplex *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZtrsv(handle_native, uplo_native, trans_native, diag_native, n_native, A_native, lda_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // diag is primitive
@@ -6933,8 +7165,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtrsvNative(JNIEnv *env
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -6972,8 +7203,8 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStpsvNative(JNIEnv *env
     cublasOperation_t trans_native;
     cublasDiagType_t diag_native;
     int n_native = 0;
-    float* AP_native;
-    float* x_native;
+    float const * AP_native = NULL;
+    float * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -6982,15 +7213,15 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStpsvNative(JNIEnv *env
     trans_native = (cublasOperation_t)trans;
     diag_native = (cublasDiagType_t)diag;
     n_native = (int)n;
-    AP_native = (float*)getPointer(env, AP);
-    x_native = (float*)getPointer(env, x);
+    AP_native = (float const *)getPointer(env, AP);
+    x_native = (float *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasStpsv(handle_native, uplo_native, trans_native, diag_native, n_native, AP_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // diag is primitive
@@ -7000,8 +7231,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStpsvNative(JNIEnv *env
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -7039,8 +7269,8 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtpsvNative(JNIEnv *env
     cublasOperation_t trans_native;
     cublasDiagType_t diag_native;
     int n_native = 0;
-    double* AP_native;
-    double* x_native;
+    double const * AP_native = NULL;
+    double * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -7049,15 +7279,15 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtpsvNative(JNIEnv *env
     trans_native = (cublasOperation_t)trans;
     diag_native = (cublasDiagType_t)diag;
     n_native = (int)n;
-    AP_native = (double*)getPointer(env, AP);
-    x_native = (double*)getPointer(env, x);
+    AP_native = (double const *)getPointer(env, AP);
+    x_native = (double *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDtpsv(handle_native, uplo_native, trans_native, diag_native, n_native, AP_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // diag is primitive
@@ -7067,8 +7297,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtpsvNative(JNIEnv *env
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -7106,8 +7335,8 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtpsvNative(JNIEnv *env
     cublasOperation_t trans_native;
     cublasDiagType_t diag_native;
     int n_native = 0;
-    cuComplex* AP_native;
-    cuComplex* x_native;
+    cuComplex const * AP_native = NULL;
+    cuComplex * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -7116,15 +7345,15 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtpsvNative(JNIEnv *env
     trans_native = (cublasOperation_t)trans;
     diag_native = (cublasDiagType_t)diag;
     n_native = (int)n;
-    AP_native = (cuComplex*)getPointer(env, AP);
-    x_native = (cuComplex*)getPointer(env, x);
+    AP_native = (cuComplex const *)getPointer(env, AP);
+    x_native = (cuComplex *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCtpsv(handle_native, uplo_native, trans_native, diag_native, n_native, AP_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // diag is primitive
@@ -7134,8 +7363,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtpsvNative(JNIEnv *env
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -7173,8 +7401,8 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtpsvNative(JNIEnv *env
     cublasOperation_t trans_native;
     cublasDiagType_t diag_native;
     int n_native = 0;
-    cuDoubleComplex* AP_native;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex const * AP_native = NULL;
+    cuDoubleComplex * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -7183,15 +7411,15 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtpsvNative(JNIEnv *env
     trans_native = (cublasOperation_t)trans;
     diag_native = (cublasDiagType_t)diag;
     n_native = (int)n;
-    AP_native = (cuDoubleComplex*)getPointer(env, AP);
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    AP_native = (cuDoubleComplex const *)getPointer(env, AP);
+    x_native = (cuDoubleComplex *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZtpsv(handle_native, uplo_native, trans_native, diag_native, n_native, AP_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // diag is primitive
@@ -7201,8 +7429,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtpsvNative(JNIEnv *env
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -7243,9 +7470,9 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStbsvNative(JNIEnv *env
     cublasDiagType_t diag_native;
     int n_native = 0;
     int k_native = 0;
-    float* A_native;
+    float const * A_native = NULL;
     int lda_native = 0;
-    float* x_native;
+    float * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -7255,16 +7482,16 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStbsvNative(JNIEnv *env
     diag_native = (cublasDiagType_t)diag;
     n_native = (int)n;
     k_native = (int)k;
-    A_native = (float*)getPointer(env, A);
+    A_native = (float const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (float*)getPointer(env, x);
+    x_native = (float *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasStbsv(handle_native, uplo_native, trans_native, diag_native, n_native, k_native, A_native, lda_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // diag is primitive
@@ -7276,8 +7503,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStbsvNative(JNIEnv *env
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -7318,9 +7544,9 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtbsvNative(JNIEnv *env
     cublasDiagType_t diag_native;
     int n_native = 0;
     int k_native = 0;
-    double* A_native;
+    double const * A_native = NULL;
     int lda_native = 0;
-    double* x_native;
+    double * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -7330,16 +7556,16 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtbsvNative(JNIEnv *env
     diag_native = (cublasDiagType_t)diag;
     n_native = (int)n;
     k_native = (int)k;
-    A_native = (double*)getPointer(env, A);
+    A_native = (double const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (double*)getPointer(env, x);
+    x_native = (double *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDtbsv(handle_native, uplo_native, trans_native, diag_native, n_native, k_native, A_native, lda_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // diag is primitive
@@ -7351,8 +7577,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtbsvNative(JNIEnv *env
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -7393,9 +7618,9 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtbsvNative(JNIEnv *env
     cublasDiagType_t diag_native;
     int n_native = 0;
     int k_native = 0;
-    cuComplex* A_native;
+    cuComplex const * A_native = NULL;
     int lda_native = 0;
-    cuComplex* x_native;
+    cuComplex * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -7405,16 +7630,16 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtbsvNative(JNIEnv *env
     diag_native = (cublasDiagType_t)diag;
     n_native = (int)n;
     k_native = (int)k;
-    A_native = (cuComplex*)getPointer(env, A);
+    A_native = (cuComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (cuComplex*)getPointer(env, x);
+    x_native = (cuComplex *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCtbsv(handle_native, uplo_native, trans_native, diag_native, n_native, k_native, A_native, lda_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // diag is primitive
@@ -7426,8 +7651,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtbsvNative(JNIEnv *env
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -7468,9 +7692,9 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtbsvNative(JNIEnv *env
     cublasDiagType_t diag_native;
     int n_native = 0;
     int k_native = 0;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex const * A_native = NULL;
     int lda_native = 0;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex * x_native = NULL;
     int incx_native = 0;
 
     // Obtain native variable values
@@ -7480,16 +7704,16 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtbsvNative(JNIEnv *env
     diag_native = (cublasDiagType_t)diag;
     n_native = (int)n;
     k_native = (int)k;
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    A_native = (cuDoubleComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    x_native = (cuDoubleComplex *)getPointer(env, x);
     incx_native = (int)incx;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZtbsv(handle_native, uplo_native, trans_native, diag_native, n_native, k_native, A_native, lda_native, x_native, incx_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // diag is primitive
@@ -7501,8 +7725,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtbsvNative(JNIEnv *env
     // incx is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -7553,13 +7776,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsymvNative(JNIEnv *env
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    float* alpha_native;
-    float* A_native;
+    float const * alpha_native = NULL;
+    float const * A_native = NULL;
     int lda_native = 0;
-    float* x_native;
+    float const * x_native = NULL;
     int incx_native = 0;
-    float* beta_native;
-    float* y_native;
+    float const * beta_native = NULL;
+    float * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
@@ -7571,25 +7794,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsymvNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    A_native = (float*)getPointer(env, A);
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    A_native = (float const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (float*)getPointer(env, x);
+    x_native = (float const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (float*)beta_pointerData->getPointer(env);
-    y_native = (float*)getPointer(env, y);
+    beta_native = (float *)beta_pointerData->getPointer(env);
+    y_native = (float *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSsymv(handle_native, uplo_native, n_native, alpha_native, A_native, lda_native, x_native, incx_native, beta_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -7602,8 +7825,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsymvNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -7654,13 +7876,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsymvNative(JNIEnv *env
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    double* alpha_native;
-    double* A_native;
+    double const * alpha_native = NULL;
+    double const * A_native = NULL;
     int lda_native = 0;
-    double* x_native;
+    double const * x_native = NULL;
     int incx_native = 0;
-    double* beta_native;
-    double* y_native;
+    double const * beta_native = NULL;
+    double * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
@@ -7672,25 +7894,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsymvNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (double*)alpha_pointerData->getPointer(env);
-    A_native = (double*)getPointer(env, A);
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    A_native = (double const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (double*)getPointer(env, x);
+    x_native = (double const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (double*)beta_pointerData->getPointer(env);
-    y_native = (double*)getPointer(env, y);
+    beta_native = (double *)beta_pointerData->getPointer(env);
+    y_native = (double *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDsymv(handle_native, uplo_native, n_native, alpha_native, A_native, lda_native, x_native, incx_native, beta_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -7703,8 +7925,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsymvNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -7755,13 +7976,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsymvNative(JNIEnv *env
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    cuComplex* alpha_native;
-    cuComplex* A_native;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * A_native = NULL;
     int lda_native = 0;
-    cuComplex* x_native;
+    cuComplex const * x_native = NULL;
     int incx_native = 0;
-    cuComplex* beta_native;
-    cuComplex* y_native;
+    cuComplex const * beta_native = NULL;
+    cuComplex * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
@@ -7773,25 +7994,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsymvNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuComplex*)getPointer(env, A);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (cuComplex*)getPointer(env, x);
+    x_native = (cuComplex const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuComplex*)beta_pointerData->getPointer(env);
-    y_native = (cuComplex*)getPointer(env, y);
+    beta_native = (cuComplex *)beta_pointerData->getPointer(env);
+    y_native = (cuComplex *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCsymv(handle_native, uplo_native, n_native, alpha_native, A_native, lda_native, x_native, incx_native, beta_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -7804,8 +8025,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsymvNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -7856,13 +8076,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZsymvNative(JNIEnv *env
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    cuDoubleComplex* alpha_native;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * A_native = NULL;
     int lda_native = 0;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex const * x_native = NULL;
     int incx_native = 0;
-    cuDoubleComplex* beta_native;
-    cuDoubleComplex* y_native;
+    cuDoubleComplex const * beta_native = NULL;
+    cuDoubleComplex * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
@@ -7874,25 +8094,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZsymvNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuDoubleComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    x_native = (cuDoubleComplex const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuDoubleComplex*)beta_pointerData->getPointer(env);
-    y_native = (cuDoubleComplex*)getPointer(env, y);
+    beta_native = (cuDoubleComplex *)beta_pointerData->getPointer(env);
+    y_native = (cuDoubleComplex *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZsymv(handle_native, uplo_native, n_native, alpha_native, A_native, lda_native, x_native, incx_native, beta_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -7905,8 +8125,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZsymvNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -7957,13 +8176,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasChemvNative(JNIEnv *env
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    cuComplex* alpha_native;
-    cuComplex* A_native;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * A_native = NULL;
     int lda_native = 0;
-    cuComplex* x_native;
+    cuComplex const * x_native = NULL;
     int incx_native = 0;
-    cuComplex* beta_native;
-    cuComplex* y_native;
+    cuComplex const * beta_native = NULL;
+    cuComplex * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
@@ -7975,25 +8194,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasChemvNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuComplex*)getPointer(env, A);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (cuComplex*)getPointer(env, x);
+    x_native = (cuComplex const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuComplex*)beta_pointerData->getPointer(env);
-    y_native = (cuComplex*)getPointer(env, y);
+    beta_native = (cuComplex *)beta_pointerData->getPointer(env);
+    y_native = (cuComplex *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasChemv(handle_native, uplo_native, n_native, alpha_native, A_native, lda_native, x_native, incx_native, beta_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -8006,8 +8225,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasChemvNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -8058,13 +8276,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZhemvNative(JNIEnv *env
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    cuDoubleComplex* alpha_native;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * A_native = NULL;
     int lda_native = 0;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex const * x_native = NULL;
     int incx_native = 0;
-    cuDoubleComplex* beta_native;
-    cuDoubleComplex* y_native;
+    cuDoubleComplex const * beta_native = NULL;
+    cuDoubleComplex * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
@@ -8076,25 +8294,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZhemvNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuDoubleComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    x_native = (cuDoubleComplex const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuDoubleComplex*)beta_pointerData->getPointer(env);
-    y_native = (cuDoubleComplex*)getPointer(env, y);
+    beta_native = (cuDoubleComplex *)beta_pointerData->getPointer(env);
+    y_native = (cuDoubleComplex *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZhemv(handle_native, uplo_native, n_native, alpha_native, A_native, lda_native, x_native, incx_native, beta_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -8107,8 +8325,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZhemvNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -8161,13 +8378,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsbmvNative(JNIEnv *env
     cublasFillMode_t uplo_native;
     int n_native = 0;
     int k_native = 0;
-    float* alpha_native;
-    float* A_native;
+    float const * alpha_native = NULL;
+    float const * A_native = NULL;
     int lda_native = 0;
-    float* x_native;
+    float const * x_native = NULL;
     int incx_native = 0;
-    float* beta_native;
-    float* y_native;
+    float const * beta_native = NULL;
+    float * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
@@ -8180,25 +8397,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsbmvNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    A_native = (float*)getPointer(env, A);
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    A_native = (float const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (float*)getPointer(env, x);
+    x_native = (float const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (float*)beta_pointerData->getPointer(env);
-    y_native = (float*)getPointer(env, y);
+    beta_native = (float *)beta_pointerData->getPointer(env);
+    y_native = (float *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSsbmv(handle_native, uplo_native, n_native, k_native, alpha_native, A_native, lda_native, x_native, incx_native, beta_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     // k is primitive
@@ -8212,8 +8429,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsbmvNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -8266,13 +8482,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsbmvNative(JNIEnv *env
     cublasFillMode_t uplo_native;
     int n_native = 0;
     int k_native = 0;
-    double* alpha_native;
-    double* A_native;
+    double const * alpha_native = NULL;
+    double const * A_native = NULL;
     int lda_native = 0;
-    double* x_native;
+    double const * x_native = NULL;
     int incx_native = 0;
-    double* beta_native;
-    double* y_native;
+    double const * beta_native = NULL;
+    double * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
@@ -8285,25 +8501,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsbmvNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (double*)alpha_pointerData->getPointer(env);
-    A_native = (double*)getPointer(env, A);
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    A_native = (double const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (double*)getPointer(env, x);
+    x_native = (double const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (double*)beta_pointerData->getPointer(env);
-    y_native = (double*)getPointer(env, y);
+    beta_native = (double *)beta_pointerData->getPointer(env);
+    y_native = (double *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDsbmv(handle_native, uplo_native, n_native, k_native, alpha_native, A_native, lda_native, x_native, incx_native, beta_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     // k is primitive
@@ -8317,8 +8533,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsbmvNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -8371,13 +8586,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasChbmvNative(JNIEnv *env
     cublasFillMode_t uplo_native;
     int n_native = 0;
     int k_native = 0;
-    cuComplex* alpha_native;
-    cuComplex* A_native;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * A_native = NULL;
     int lda_native = 0;
-    cuComplex* x_native;
+    cuComplex const * x_native = NULL;
     int incx_native = 0;
-    cuComplex* beta_native;
-    cuComplex* y_native;
+    cuComplex const * beta_native = NULL;
+    cuComplex * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
@@ -8390,25 +8605,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasChbmvNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuComplex*)getPointer(env, A);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (cuComplex*)getPointer(env, x);
+    x_native = (cuComplex const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuComplex*)beta_pointerData->getPointer(env);
-    y_native = (cuComplex*)getPointer(env, y);
+    beta_native = (cuComplex *)beta_pointerData->getPointer(env);
+    y_native = (cuComplex *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasChbmv(handle_native, uplo_native, n_native, k_native, alpha_native, A_native, lda_native, x_native, incx_native, beta_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     // k is primitive
@@ -8422,8 +8637,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasChbmvNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -8476,13 +8690,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZhbmvNative(JNIEnv *env
     cublasFillMode_t uplo_native;
     int n_native = 0;
     int k_native = 0;
-    cuDoubleComplex* alpha_native;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * A_native = NULL;
     int lda_native = 0;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex const * x_native = NULL;
     int incx_native = 0;
-    cuDoubleComplex* beta_native;
-    cuDoubleComplex* y_native;
+    cuDoubleComplex const * beta_native = NULL;
+    cuDoubleComplex * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
@@ -8495,25 +8709,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZhbmvNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuDoubleComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    x_native = (cuDoubleComplex const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuDoubleComplex*)beta_pointerData->getPointer(env);
-    y_native = (cuDoubleComplex*)getPointer(env, y);
+    beta_native = (cuDoubleComplex *)beta_pointerData->getPointer(env);
+    y_native = (cuDoubleComplex *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZhbmv(handle_native, uplo_native, n_native, k_native, alpha_native, A_native, lda_native, x_native, incx_native, beta_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     // k is primitive
@@ -8527,8 +8741,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZhbmvNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -8578,12 +8791,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSspmvNative(JNIEnv *env
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    float* alpha_native;
-    float* AP_native;
-    float* x_native;
+    float const * alpha_native = NULL;
+    float const * AP_native = NULL;
+    float const * x_native = NULL;
     int incx_native = 0;
-    float* beta_native;
-    float* y_native;
+    float const * beta_native = NULL;
+    float * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
@@ -8595,24 +8808,24 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSspmvNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    AP_native = (float*)getPointer(env, AP);
-    x_native = (float*)getPointer(env, x);
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    AP_native = (float const *)getPointer(env, AP);
+    x_native = (float const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (float*)beta_pointerData->getPointer(env);
-    y_native = (float*)getPointer(env, y);
+    beta_native = (float *)beta_pointerData->getPointer(env);
+    y_native = (float *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSspmv(handle_native, uplo_native, n_native, alpha_native, AP_native, x_native, incx_native, beta_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -8624,8 +8837,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSspmvNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -8675,12 +8887,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDspmvNative(JNIEnv *env
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    double* alpha_native;
-    double* AP_native;
-    double* x_native;
+    double const * alpha_native = NULL;
+    double const * AP_native = NULL;
+    double const * x_native = NULL;
     int incx_native = 0;
-    double* beta_native;
-    double* y_native;
+    double const * beta_native = NULL;
+    double * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
@@ -8692,24 +8904,24 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDspmvNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (double*)alpha_pointerData->getPointer(env);
-    AP_native = (double*)getPointer(env, AP);
-    x_native = (double*)getPointer(env, x);
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    AP_native = (double const *)getPointer(env, AP);
+    x_native = (double const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (double*)beta_pointerData->getPointer(env);
-    y_native = (double*)getPointer(env, y);
+    beta_native = (double *)beta_pointerData->getPointer(env);
+    y_native = (double *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDspmv(handle_native, uplo_native, n_native, alpha_native, AP_native, x_native, incx_native, beta_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -8721,8 +8933,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDspmvNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -8772,12 +8983,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasChpmvNative(JNIEnv *env
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    cuComplex* alpha_native;
-    cuComplex* AP_native;
-    cuComplex* x_native;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * AP_native = NULL;
+    cuComplex const * x_native = NULL;
     int incx_native = 0;
-    cuComplex* beta_native;
-    cuComplex* y_native;
+    cuComplex const * beta_native = NULL;
+    cuComplex * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
@@ -8789,24 +9000,24 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasChpmvNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    AP_native = (cuComplex*)getPointer(env, AP);
-    x_native = (cuComplex*)getPointer(env, x);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    AP_native = (cuComplex const *)getPointer(env, AP);
+    x_native = (cuComplex const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuComplex*)beta_pointerData->getPointer(env);
-    y_native = (cuComplex*)getPointer(env, y);
+    beta_native = (cuComplex *)beta_pointerData->getPointer(env);
+    y_native = (cuComplex *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasChpmv(handle_native, uplo_native, n_native, alpha_native, AP_native, x_native, incx_native, beta_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -8818,8 +9029,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasChpmvNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -8869,12 +9079,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZhpmvNative(JNIEnv *env
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    cuDoubleComplex* alpha_native;
-    cuDoubleComplex* AP_native;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * AP_native = NULL;
+    cuDoubleComplex const * x_native = NULL;
     int incx_native = 0;
-    cuDoubleComplex* beta_native;
-    cuDoubleComplex* y_native;
+    cuDoubleComplex const * beta_native = NULL;
+    cuDoubleComplex * y_native = NULL;
     int incy_native = 0;
 
     // Obtain native variable values
@@ -8886,24 +9096,24 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZhpmvNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    AP_native = (cuDoubleComplex*)getPointer(env, AP);
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    AP_native = (cuDoubleComplex const *)getPointer(env, AP);
+    x_native = (cuDoubleComplex const *)getPointer(env, x);
     incx_native = (int)incx;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuDoubleComplex*)beta_pointerData->getPointer(env);
-    y_native = (cuDoubleComplex*)getPointer(env, y);
+    beta_native = (cuDoubleComplex *)beta_pointerData->getPointer(env);
+    y_native = (cuDoubleComplex *)getPointer(env, y);
     incy_native = (int)incy;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZhpmv(handle_native, uplo_native, n_native, alpha_native, AP_native, x_native, incx_native, beta_native, y_native, incy_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -8915,8 +9125,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZhpmvNative(JNIEnv *env
     // incy is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -8962,12 +9171,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgerNative(JNIEnv *env,
     cublasHandle_t handle_native;
     int m_native = 0;
     int n_native = 0;
-    float* alpha_native;
-    float* x_native;
+    float const * alpha_native = NULL;
+    float const * x_native = NULL;
     int incx_native = 0;
-    float* y_native;
+    float const * y_native = NULL;
     int incy_native = 0;
-    float* A_native;
+    float * A_native = NULL;
     int lda_native = 0;
 
     // Obtain native variable values
@@ -8979,19 +9188,19 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgerNative(JNIEnv *env,
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    x_native = (float*)getPointer(env, x);
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    x_native = (float const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (float*)getPointer(env, y);
+    y_native = (float const *)getPointer(env, y);
     incy_native = (int)incy;
-    A_native = (float*)getPointer(env, A);
+    A_native = (float *)getPointer(env, A);
     lda_native = (int)lda;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSger(handle_native, m_native, n_native, alpha_native, x_native, incx_native, y_native, incy_native, A_native, lda_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // m is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -9003,8 +9212,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgerNative(JNIEnv *env,
     // lda is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -9050,12 +9258,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgerNative(JNIEnv *env,
     cublasHandle_t handle_native;
     int m_native = 0;
     int n_native = 0;
-    double* alpha_native;
-    double* x_native;
+    double const * alpha_native = NULL;
+    double const * x_native = NULL;
     int incx_native = 0;
-    double* y_native;
+    double const * y_native = NULL;
     int incy_native = 0;
-    double* A_native;
+    double * A_native = NULL;
     int lda_native = 0;
 
     // Obtain native variable values
@@ -9067,19 +9275,19 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgerNative(JNIEnv *env,
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (double*)alpha_pointerData->getPointer(env);
-    x_native = (double*)getPointer(env, x);
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    x_native = (double const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (double*)getPointer(env, y);
+    y_native = (double const *)getPointer(env, y);
     incy_native = (int)incy;
-    A_native = (double*)getPointer(env, A);
+    A_native = (double *)getPointer(env, A);
     lda_native = (int)lda;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDger(handle_native, m_native, n_native, alpha_native, x_native, incx_native, y_native, incy_native, A_native, lda_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // m is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -9091,8 +9299,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgerNative(JNIEnv *env,
     // lda is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -9138,12 +9345,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgeruNative(JNIEnv *env
     cublasHandle_t handle_native;
     int m_native = 0;
     int n_native = 0;
-    cuComplex* alpha_native;
-    cuComplex* x_native;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * x_native = NULL;
     int incx_native = 0;
-    cuComplex* y_native;
+    cuComplex const * y_native = NULL;
     int incy_native = 0;
-    cuComplex* A_native;
+    cuComplex * A_native = NULL;
     int lda_native = 0;
 
     // Obtain native variable values
@@ -9155,19 +9362,19 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgeruNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    x_native = (cuComplex*)getPointer(env, x);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    x_native = (cuComplex const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (cuComplex*)getPointer(env, y);
+    y_native = (cuComplex const *)getPointer(env, y);
     incy_native = (int)incy;
-    A_native = (cuComplex*)getPointer(env, A);
+    A_native = (cuComplex *)getPointer(env, A);
     lda_native = (int)lda;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCgeru(handle_native, m_native, n_native, alpha_native, x_native, incx_native, y_native, incy_native, A_native, lda_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // m is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -9179,8 +9386,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgeruNative(JNIEnv *env
     // lda is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -9226,12 +9432,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgercNative(JNIEnv *env
     cublasHandle_t handle_native;
     int m_native = 0;
     int n_native = 0;
-    cuComplex* alpha_native;
-    cuComplex* x_native;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * x_native = NULL;
     int incx_native = 0;
-    cuComplex* y_native;
+    cuComplex const * y_native = NULL;
     int incy_native = 0;
-    cuComplex* A_native;
+    cuComplex * A_native = NULL;
     int lda_native = 0;
 
     // Obtain native variable values
@@ -9243,19 +9449,19 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgercNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    x_native = (cuComplex*)getPointer(env, x);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    x_native = (cuComplex const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (cuComplex*)getPointer(env, y);
+    y_native = (cuComplex const *)getPointer(env, y);
     incy_native = (int)incy;
-    A_native = (cuComplex*)getPointer(env, A);
+    A_native = (cuComplex *)getPointer(env, A);
     lda_native = (int)lda;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCgerc(handle_native, m_native, n_native, alpha_native, x_native, incx_native, y_native, incy_native, A_native, lda_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // m is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -9267,8 +9473,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgercNative(JNIEnv *env
     // lda is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -9314,12 +9519,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgeruNative(JNIEnv *env
     cublasHandle_t handle_native;
     int m_native = 0;
     int n_native = 0;
-    cuDoubleComplex* alpha_native;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * x_native = NULL;
     int incx_native = 0;
-    cuDoubleComplex* y_native;
+    cuDoubleComplex const * y_native = NULL;
     int incy_native = 0;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex * A_native = NULL;
     int lda_native = 0;
 
     // Obtain native variable values
@@ -9331,19 +9536,19 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgeruNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    x_native = (cuDoubleComplex const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (cuDoubleComplex*)getPointer(env, y);
+    y_native = (cuDoubleComplex const *)getPointer(env, y);
     incy_native = (int)incy;
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    A_native = (cuDoubleComplex *)getPointer(env, A);
     lda_native = (int)lda;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZgeru(handle_native, m_native, n_native, alpha_native, x_native, incx_native, y_native, incy_native, A_native, lda_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // m is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -9355,8 +9560,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgeruNative(JNIEnv *env
     // lda is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -9402,12 +9606,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgercNative(JNIEnv *env
     cublasHandle_t handle_native;
     int m_native = 0;
     int n_native = 0;
-    cuDoubleComplex* alpha_native;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * x_native = NULL;
     int incx_native = 0;
-    cuDoubleComplex* y_native;
+    cuDoubleComplex const * y_native = NULL;
     int incy_native = 0;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex * A_native = NULL;
     int lda_native = 0;
 
     // Obtain native variable values
@@ -9419,19 +9623,19 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgercNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    x_native = (cuDoubleComplex const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (cuDoubleComplex*)getPointer(env, y);
+    y_native = (cuDoubleComplex const *)getPointer(env, y);
     incy_native = (int)incy;
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    A_native = (cuDoubleComplex *)getPointer(env, A);
     lda_native = (int)lda;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZgerc(handle_native, m_native, n_native, alpha_native, x_native, incx_native, y_native, incy_native, A_native, lda_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // m is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -9443,8 +9647,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgercNative(JNIEnv *env
     // lda is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -9484,10 +9687,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsyrNative(JNIEnv *env,
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    float* alpha_native;
-    float* x_native;
+    float const * alpha_native = NULL;
+    float const * x_native = NULL;
     int incx_native = 0;
-    float* A_native;
+    float * A_native = NULL;
     int lda_native = 0;
 
     // Obtain native variable values
@@ -9499,17 +9702,17 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsyrNative(JNIEnv *env,
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    x_native = (float*)getPointer(env, x);
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    x_native = (float const *)getPointer(env, x);
     incx_native = (int)incx;
-    A_native = (float*)getPointer(env, A);
+    A_native = (float *)getPointer(env, A);
     lda_native = (int)lda;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSsyr(handle_native, uplo_native, n_native, alpha_native, x_native, incx_native, A_native, lda_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -9519,8 +9722,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsyrNative(JNIEnv *env,
     // lda is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -9560,10 +9762,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsyrNative(JNIEnv *env,
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    double* alpha_native;
-    double* x_native;
+    double const * alpha_native = NULL;
+    double const * x_native = NULL;
     int incx_native = 0;
-    double* A_native;
+    double * A_native = NULL;
     int lda_native = 0;
 
     // Obtain native variable values
@@ -9575,17 +9777,17 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsyrNative(JNIEnv *env,
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (double*)alpha_pointerData->getPointer(env);
-    x_native = (double*)getPointer(env, x);
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    x_native = (double const *)getPointer(env, x);
     incx_native = (int)incx;
-    A_native = (double*)getPointer(env, A);
+    A_native = (double *)getPointer(env, A);
     lda_native = (int)lda;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDsyr(handle_native, uplo_native, n_native, alpha_native, x_native, incx_native, A_native, lda_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -9595,8 +9797,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsyrNative(JNIEnv *env,
     // lda is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -9636,10 +9837,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsyrNative(JNIEnv *env,
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    cuComplex* alpha_native;
-    cuComplex* x_native;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * x_native = NULL;
     int incx_native = 0;
-    cuComplex* A_native;
+    cuComplex * A_native = NULL;
     int lda_native = 0;
 
     // Obtain native variable values
@@ -9651,17 +9852,17 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsyrNative(JNIEnv *env,
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    x_native = (cuComplex*)getPointer(env, x);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    x_native = (cuComplex const *)getPointer(env, x);
     incx_native = (int)incx;
-    A_native = (cuComplex*)getPointer(env, A);
+    A_native = (cuComplex *)getPointer(env, A);
     lda_native = (int)lda;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCsyr(handle_native, uplo_native, n_native, alpha_native, x_native, incx_native, A_native, lda_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -9671,8 +9872,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsyrNative(JNIEnv *env,
     // lda is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -9712,10 +9912,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZsyrNative(JNIEnv *env,
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    cuDoubleComplex* alpha_native;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * x_native = NULL;
     int incx_native = 0;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex * A_native = NULL;
     int lda_native = 0;
 
     // Obtain native variable values
@@ -9727,17 +9927,17 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZsyrNative(JNIEnv *env,
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    x_native = (cuDoubleComplex const *)getPointer(env, x);
     incx_native = (int)incx;
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    A_native = (cuDoubleComplex *)getPointer(env, A);
     lda_native = (int)lda;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZsyr(handle_native, uplo_native, n_native, alpha_native, x_native, incx_native, A_native, lda_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -9747,8 +9947,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZsyrNative(JNIEnv *env,
     // lda is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -9788,10 +9987,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCherNative(JNIEnv *env,
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    float* alpha_native;
-    cuComplex* x_native;
+    float const * alpha_native = NULL;
+    cuComplex const * x_native = NULL;
     int incx_native = 0;
-    cuComplex* A_native;
+    cuComplex * A_native = NULL;
     int lda_native = 0;
 
     // Obtain native variable values
@@ -9803,17 +10002,17 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCherNative(JNIEnv *env,
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    x_native = (cuComplex*)getPointer(env, x);
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    x_native = (cuComplex const *)getPointer(env, x);
     incx_native = (int)incx;
-    A_native = (cuComplex*)getPointer(env, A);
+    A_native = (cuComplex *)getPointer(env, A);
     lda_native = (int)lda;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCher(handle_native, uplo_native, n_native, alpha_native, x_native, incx_native, A_native, lda_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -9823,8 +10022,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCherNative(JNIEnv *env,
     // lda is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -9864,10 +10062,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZherNative(JNIEnv *env,
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    double* alpha_native;
-    cuDoubleComplex* x_native;
+    double const * alpha_native = NULL;
+    cuDoubleComplex const * x_native = NULL;
     int incx_native = 0;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex * A_native = NULL;
     int lda_native = 0;
 
     // Obtain native variable values
@@ -9879,17 +10077,17 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZherNative(JNIEnv *env,
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (double*)alpha_pointerData->getPointer(env);
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    x_native = (cuDoubleComplex const *)getPointer(env, x);
     incx_native = (int)incx;
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    A_native = (cuDoubleComplex *)getPointer(env, A);
     lda_native = (int)lda;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZher(handle_native, uplo_native, n_native, alpha_native, x_native, incx_native, A_native, lda_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -9899,8 +10097,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZherNative(JNIEnv *env,
     // lda is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -9939,10 +10136,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsprNative(JNIEnv *env,
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    float* alpha_native;
-    float* x_native;
+    float const * alpha_native = NULL;
+    float const * x_native = NULL;
     int incx_native = 0;
-    float* AP_native;
+    float * AP_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
@@ -9953,16 +10150,16 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsprNative(JNIEnv *env,
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    x_native = (float*)getPointer(env, x);
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    x_native = (float const *)getPointer(env, x);
     incx_native = (int)incx;
-    AP_native = (float*)getPointer(env, AP);
+    AP_native = (float *)getPointer(env, AP);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSspr(handle_native, uplo_native, n_native, alpha_native, x_native, incx_native, AP_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -9971,8 +10168,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsprNative(JNIEnv *env,
     // AP is a native pointer
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -10011,10 +10207,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsprNative(JNIEnv *env,
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    double* alpha_native;
-    double* x_native;
+    double const * alpha_native = NULL;
+    double const * x_native = NULL;
     int incx_native = 0;
-    double* AP_native;
+    double * AP_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
@@ -10025,16 +10221,16 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsprNative(JNIEnv *env,
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (double*)alpha_pointerData->getPointer(env);
-    x_native = (double*)getPointer(env, x);
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    x_native = (double const *)getPointer(env, x);
     incx_native = (int)incx;
-    AP_native = (double*)getPointer(env, AP);
+    AP_native = (double *)getPointer(env, AP);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDspr(handle_native, uplo_native, n_native, alpha_native, x_native, incx_native, AP_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -10043,8 +10239,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsprNative(JNIEnv *env,
     // AP is a native pointer
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -10083,10 +10278,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasChprNative(JNIEnv *env,
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    float* alpha_native;
-    cuComplex* x_native;
+    float const * alpha_native = NULL;
+    cuComplex const * x_native = NULL;
     int incx_native = 0;
-    cuComplex* AP_native;
+    cuComplex * AP_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
@@ -10097,16 +10292,16 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasChprNative(JNIEnv *env,
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    x_native = (cuComplex*)getPointer(env, x);
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    x_native = (cuComplex const *)getPointer(env, x);
     incx_native = (int)incx;
-    AP_native = (cuComplex*)getPointer(env, AP);
+    AP_native = (cuComplex *)getPointer(env, AP);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasChpr(handle_native, uplo_native, n_native, alpha_native, x_native, incx_native, AP_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -10115,8 +10310,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasChprNative(JNIEnv *env,
     // AP is a native pointer
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -10155,10 +10349,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZhprNative(JNIEnv *env,
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    double* alpha_native;
-    cuDoubleComplex* x_native;
+    double const * alpha_native = NULL;
+    cuDoubleComplex const * x_native = NULL;
     int incx_native = 0;
-    cuDoubleComplex* AP_native;
+    cuDoubleComplex * AP_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
@@ -10169,16 +10363,16 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZhprNative(JNIEnv *env,
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (double*)alpha_pointerData->getPointer(env);
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    x_native = (cuDoubleComplex const *)getPointer(env, x);
     incx_native = (int)incx;
-    AP_native = (cuDoubleComplex*)getPointer(env, AP);
+    AP_native = (cuDoubleComplex *)getPointer(env, AP);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZhpr(handle_native, uplo_native, n_native, alpha_native, x_native, incx_native, AP_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -10187,8 +10381,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZhprNative(JNIEnv *env,
     // AP is a native pointer
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -10234,12 +10427,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsyr2Native(JNIEnv *env
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    float* alpha_native;
-    float* x_native;
+    float const * alpha_native = NULL;
+    float const * x_native = NULL;
     int incx_native = 0;
-    float* y_native;
+    float const * y_native = NULL;
     int incy_native = 0;
-    float* A_native;
+    float * A_native = NULL;
     int lda_native = 0;
 
     // Obtain native variable values
@@ -10251,19 +10444,19 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsyr2Native(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    x_native = (float*)getPointer(env, x);
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    x_native = (float const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (float*)getPointer(env, y);
+    y_native = (float const *)getPointer(env, y);
     incy_native = (int)incy;
-    A_native = (float*)getPointer(env, A);
+    A_native = (float *)getPointer(env, A);
     lda_native = (int)lda;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSsyr2(handle_native, uplo_native, n_native, alpha_native, x_native, incx_native, y_native, incy_native, A_native, lda_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -10275,8 +10468,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsyr2Native(JNIEnv *env
     // lda is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -10322,12 +10514,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsyr2Native(JNIEnv *env
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    double* alpha_native;
-    double* x_native;
+    double const * alpha_native = NULL;
+    double const * x_native = NULL;
     int incx_native = 0;
-    double* y_native;
+    double const * y_native = NULL;
     int incy_native = 0;
-    double* A_native;
+    double * A_native = NULL;
     int lda_native = 0;
 
     // Obtain native variable values
@@ -10339,19 +10531,19 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsyr2Native(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (double*)alpha_pointerData->getPointer(env);
-    x_native = (double*)getPointer(env, x);
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    x_native = (double const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (double*)getPointer(env, y);
+    y_native = (double const *)getPointer(env, y);
     incy_native = (int)incy;
-    A_native = (double*)getPointer(env, A);
+    A_native = (double *)getPointer(env, A);
     lda_native = (int)lda;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDsyr2(handle_native, uplo_native, n_native, alpha_native, x_native, incx_native, y_native, incy_native, A_native, lda_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -10363,8 +10555,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsyr2Native(JNIEnv *env
     // lda is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -10410,12 +10601,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsyr2Native(JNIEnv *env
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    cuComplex* alpha_native;
-    cuComplex* x_native;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * x_native = NULL;
     int incx_native = 0;
-    cuComplex* y_native;
+    cuComplex const * y_native = NULL;
     int incy_native = 0;
-    cuComplex* A_native;
+    cuComplex * A_native = NULL;
     int lda_native = 0;
 
     // Obtain native variable values
@@ -10427,19 +10618,19 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsyr2Native(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    x_native = (cuComplex*)getPointer(env, x);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    x_native = (cuComplex const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (cuComplex*)getPointer(env, y);
+    y_native = (cuComplex const *)getPointer(env, y);
     incy_native = (int)incy;
-    A_native = (cuComplex*)getPointer(env, A);
+    A_native = (cuComplex *)getPointer(env, A);
     lda_native = (int)lda;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCsyr2(handle_native, uplo_native, n_native, alpha_native, x_native, incx_native, y_native, incy_native, A_native, lda_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -10451,8 +10642,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsyr2Native(JNIEnv *env
     // lda is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -10498,12 +10688,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZsyr2Native(JNIEnv *env
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    cuDoubleComplex* alpha_native;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * x_native = NULL;
     int incx_native = 0;
-    cuDoubleComplex* y_native;
+    cuDoubleComplex const * y_native = NULL;
     int incy_native = 0;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex * A_native = NULL;
     int lda_native = 0;
 
     // Obtain native variable values
@@ -10515,19 +10705,19 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZsyr2Native(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    x_native = (cuDoubleComplex const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (cuDoubleComplex*)getPointer(env, y);
+    y_native = (cuDoubleComplex const *)getPointer(env, y);
     incy_native = (int)incy;
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    A_native = (cuDoubleComplex *)getPointer(env, A);
     lda_native = (int)lda;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZsyr2(handle_native, uplo_native, n_native, alpha_native, x_native, incx_native, y_native, incy_native, A_native, lda_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -10539,8 +10729,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZsyr2Native(JNIEnv *env
     // lda is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -10586,12 +10775,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCher2Native(JNIEnv *env
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    cuComplex* alpha_native;
-    cuComplex* x_native;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * x_native = NULL;
     int incx_native = 0;
-    cuComplex* y_native;
+    cuComplex const * y_native = NULL;
     int incy_native = 0;
-    cuComplex* A_native;
+    cuComplex * A_native = NULL;
     int lda_native = 0;
 
     // Obtain native variable values
@@ -10603,19 +10792,19 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCher2Native(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    x_native = (cuComplex*)getPointer(env, x);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    x_native = (cuComplex const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (cuComplex*)getPointer(env, y);
+    y_native = (cuComplex const *)getPointer(env, y);
     incy_native = (int)incy;
-    A_native = (cuComplex*)getPointer(env, A);
+    A_native = (cuComplex *)getPointer(env, A);
     lda_native = (int)lda;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCher2(handle_native, uplo_native, n_native, alpha_native, x_native, incx_native, y_native, incy_native, A_native, lda_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -10627,8 +10816,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCher2Native(JNIEnv *env
     // lda is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -10674,12 +10862,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZher2Native(JNIEnv *env
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    cuDoubleComplex* alpha_native;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * x_native = NULL;
     int incx_native = 0;
-    cuDoubleComplex* y_native;
+    cuDoubleComplex const * y_native = NULL;
     int incy_native = 0;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex * A_native = NULL;
     int lda_native = 0;
 
     // Obtain native variable values
@@ -10691,19 +10879,19 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZher2Native(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    x_native = (cuDoubleComplex const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (cuDoubleComplex*)getPointer(env, y);
+    y_native = (cuDoubleComplex const *)getPointer(env, y);
     incy_native = (int)incy;
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    A_native = (cuDoubleComplex *)getPointer(env, A);
     lda_native = (int)lda;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZher2(handle_native, uplo_native, n_native, alpha_native, x_native, incx_native, y_native, incy_native, A_native, lda_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -10715,8 +10903,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZher2Native(JNIEnv *env
     // lda is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -10761,12 +10948,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSspr2Native(JNIEnv *env
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    float* alpha_native;
-    float* x_native;
+    float const * alpha_native = NULL;
+    float const * x_native = NULL;
     int incx_native = 0;
-    float* y_native;
+    float const * y_native = NULL;
     int incy_native = 0;
-    float* AP_native;
+    float * AP_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
@@ -10777,18 +10964,18 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSspr2Native(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    x_native = (float*)getPointer(env, x);
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    x_native = (float const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (float*)getPointer(env, y);
+    y_native = (float const *)getPointer(env, y);
     incy_native = (int)incy;
-    AP_native = (float*)getPointer(env, AP);
+    AP_native = (float *)getPointer(env, AP);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSspr2(handle_native, uplo_native, n_native, alpha_native, x_native, incx_native, y_native, incy_native, AP_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -10799,8 +10986,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSspr2Native(JNIEnv *env
     // AP is a native pointer
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -10845,12 +11031,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDspr2Native(JNIEnv *env
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    double* alpha_native;
-    double* x_native;
+    double const * alpha_native = NULL;
+    double const * x_native = NULL;
     int incx_native = 0;
-    double* y_native;
+    double const * y_native = NULL;
     int incy_native = 0;
-    double* AP_native;
+    double * AP_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
@@ -10861,18 +11047,18 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDspr2Native(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (double*)alpha_pointerData->getPointer(env);
-    x_native = (double*)getPointer(env, x);
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    x_native = (double const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (double*)getPointer(env, y);
+    y_native = (double const *)getPointer(env, y);
     incy_native = (int)incy;
-    AP_native = (double*)getPointer(env, AP);
+    AP_native = (double *)getPointer(env, AP);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDspr2(handle_native, uplo_native, n_native, alpha_native, x_native, incx_native, y_native, incy_native, AP_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -10883,8 +11069,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDspr2Native(JNIEnv *env
     // AP is a native pointer
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -10929,12 +11114,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasChpr2Native(JNIEnv *env
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    cuComplex* alpha_native;
-    cuComplex* x_native;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * x_native = NULL;
     int incx_native = 0;
-    cuComplex* y_native;
+    cuComplex const * y_native = NULL;
     int incy_native = 0;
-    cuComplex* AP_native;
+    cuComplex * AP_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
@@ -10945,18 +11130,18 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasChpr2Native(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    x_native = (cuComplex*)getPointer(env, x);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    x_native = (cuComplex const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (cuComplex*)getPointer(env, y);
+    y_native = (cuComplex const *)getPointer(env, y);
     incy_native = (int)incy;
-    AP_native = (cuComplex*)getPointer(env, AP);
+    AP_native = (cuComplex *)getPointer(env, AP);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasChpr2(handle_native, uplo_native, n_native, alpha_native, x_native, incx_native, y_native, incy_native, AP_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -10967,8 +11152,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasChpr2Native(JNIEnv *env
     // AP is a native pointer
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -11013,12 +11197,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZhpr2Native(JNIEnv *env
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    cuDoubleComplex* alpha_native;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * x_native = NULL;
     int incx_native = 0;
-    cuDoubleComplex* y_native;
+    cuDoubleComplex const * y_native = NULL;
     int incy_native = 0;
-    cuDoubleComplex* AP_native;
+    cuDoubleComplex * AP_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
@@ -11029,18 +11213,18 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZhpr2Native(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    x_native = (cuDoubleComplex const *)getPointer(env, x);
     incx_native = (int)incx;
-    y_native = (cuDoubleComplex*)getPointer(env, y);
+    y_native = (cuDoubleComplex const *)getPointer(env, y);
     incy_native = (int)incy;
-    AP_native = (cuDoubleComplex*)getPointer(env, AP);
+    AP_native = (cuDoubleComplex *)getPointer(env, AP);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZhpr2(handle_native, uplo_native, n_native, alpha_native, x_native, incx_native, y_native, incy_native, AP_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
@@ -11051,8 +11235,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZhpr2Native(JNIEnv *env
     // AP is a native pointer
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -11109,13 +11292,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgemmNative(JNIEnv *env
     int m_native = 0;
     int n_native = 0;
     int k_native = 0;
-    float* alpha_native;
-    float* A_native;
+    float const * alpha_native = NULL;
+    float const * A_native = NULL;
     int lda_native = 0;
-    float* B_native;
+    float const * B_native = NULL;
     int ldb_native = 0;
-    float* beta_native;
-    float* C_native;
+    float const * beta_native = NULL;
+    float * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -11130,25 +11313,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgemmNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    A_native = (float*)getPointer(env, A);
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    A_native = (float const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (float*)getPointer(env, B);
+    B_native = (float const *)getPointer(env, B);
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (float*)beta_pointerData->getPointer(env);
-    C_native = (float*)getPointer(env, C);
+    beta_native = (float *)beta_pointerData->getPointer(env);
+    C_native = (float *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSgemm(handle_native, transa_native, transb_native, m_native, n_native, k_native, alpha_native, A_native, lda_native, B_native, ldb_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // transa is primitive
     // transb is primitive
     // m is primitive
@@ -11164,8 +11347,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgemmNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -11222,13 +11404,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgemmNative(JNIEnv *env
     int m_native = 0;
     int n_native = 0;
     int k_native = 0;
-    double* alpha_native;
-    double* A_native;
+    double const * alpha_native = NULL;
+    double const * A_native = NULL;
     int lda_native = 0;
-    double* B_native;
+    double const * B_native = NULL;
     int ldb_native = 0;
-    double* beta_native;
-    double* C_native;
+    double const * beta_native = NULL;
+    double * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -11243,25 +11425,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgemmNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (double*)alpha_pointerData->getPointer(env);
-    A_native = (double*)getPointer(env, A);
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    A_native = (double const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (double*)getPointer(env, B);
+    B_native = (double const *)getPointer(env, B);
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (double*)beta_pointerData->getPointer(env);
-    C_native = (double*)getPointer(env, C);
+    beta_native = (double *)beta_pointerData->getPointer(env);
+    C_native = (double *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDgemm(handle_native, transa_native, transb_native, m_native, n_native, k_native, alpha_native, A_native, lda_native, B_native, ldb_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // transa is primitive
     // transb is primitive
     // m is primitive
@@ -11277,8 +11459,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgemmNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -11335,13 +11516,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgemmNative(JNIEnv *env
     int m_native = 0;
     int n_native = 0;
     int k_native = 0;
-    cuComplex* alpha_native;
-    cuComplex* A_native;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * A_native = NULL;
     int lda_native = 0;
-    cuComplex* B_native;
+    cuComplex const * B_native = NULL;
     int ldb_native = 0;
-    cuComplex* beta_native;
-    cuComplex* C_native;
+    cuComplex const * beta_native = NULL;
+    cuComplex * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -11356,25 +11537,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgemmNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuComplex*)getPointer(env, A);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (cuComplex*)getPointer(env, B);
+    B_native = (cuComplex const *)getPointer(env, B);
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuComplex*)beta_pointerData->getPointer(env);
-    C_native = (cuComplex*)getPointer(env, C);
+    beta_native = (cuComplex *)beta_pointerData->getPointer(env);
+    C_native = (cuComplex *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCgemm(handle_native, transa_native, transb_native, m_native, n_native, k_native, alpha_native, A_native, lda_native, B_native, ldb_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // transa is primitive
     // transb is primitive
     // m is primitive
@@ -11390,8 +11571,243 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgemmNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgemm3mNative(JNIEnv *env, jclass cls, jobject handle, jint transa, jint transb, jint m, jint n, jint k, jobject alpha, jobject A, jint lda, jobject B, jint ldb, jobject beta, jobject C, jint ldc)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasCgemm3m");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // transa is primitive
+    // transb is primitive
+    // m is primitive
+    // n is primitive
+    // k is primitive
+    if (alpha == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'alpha' is null for cublasCgemm3m");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (A == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'A' is null for cublasCgemm3m");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // lda is primitive
+    if (B == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'B' is null for cublasCgemm3m");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // ldb is primitive
+    if (beta == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'beta' is null for cublasCgemm3m");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (C == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'C' is null for cublasCgemm3m");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // ldc is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasCgemm3m(handle=%p, transa=%d, transb=%d, m=%d, n=%d, k=%d, alpha=%p, A=%p, lda=%d, B=%p, ldb=%d, beta=%p, C=%p, ldc=%d)\n",
+        handle, transa, transb, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    cublasOperation_t transa_native;
+    cublasOperation_t transb_native;
+    int m_native = 0;
+    int n_native = 0;
+    int k_native = 0;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * A_native = NULL;
+    int lda_native = 0;
+    cuComplex const * B_native = NULL;
+    int ldb_native = 0;
+    cuComplex const * beta_native = NULL;
+    cuComplex * C_native = NULL;
+    int ldc_native = 0;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    transa_native = (cublasOperation_t)transa;
+    transb_native = (cublasOperation_t)transb;
+    m_native = (int)m;
+    n_native = (int)n;
+    k_native = (int)k;
+    PointerData *alpha_pointerData = initPointerData(env, alpha);
+    if (alpha_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuComplex const *)getPointer(env, A);
+    lda_native = (int)lda;
+    B_native = (cuComplex const *)getPointer(env, B);
+    ldb_native = (int)ldb;
+    PointerData *beta_pointerData = initPointerData(env, beta);
+    if (beta_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    beta_native = (cuComplex *)beta_pointerData->getPointer(env);
+    C_native = (cuComplex *)getPointer(env, C);
+    ldc_native = (int)ldc;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasCgemm3m(handle_native, transa_native, transb_native, m_native, n_native, k_native, alpha_native, A_native, lda_native, B_native, ldb_native, beta_native, C_native, ldc_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // transa is primitive
+    // transb is primitive
+    // m is primitive
+    // n is primitive
+    // k is primitive
+    if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // A is a native pointer
+    // lda is primitive
+    // B is a native pointer
+    // ldb is primitive
+    if (!releasePointerData(env, beta_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // C is a native pointer
+    // ldc is primitive
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgemm3mExNative(JNIEnv *env, jclass cls, jobject handle, jint transa, jint transb, jint m, jint n, jint k, jobject alpha, jobject A, jint Atype, jint lda, jobject B, jint Btype, jint ldb, jobject beta, jobject C, jint Ctype, jint ldc)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasCgemm3mEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // transa is primitive
+    // transb is primitive
+    // m is primitive
+    // n is primitive
+    // k is primitive
+    if (alpha == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'alpha' is null for cublasCgemm3mEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (A == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'A' is null for cublasCgemm3mEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // Atype is primitive
+    // lda is primitive
+    if (B == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'B' is null for cublasCgemm3mEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // Btype is primitive
+    // ldb is primitive
+    if (beta == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'beta' is null for cublasCgemm3mEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (C == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'C' is null for cublasCgemm3mEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // Ctype is primitive
+    // ldc is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasCgemm3mEx(handle=%p, transa=%d, transb=%d, m=%d, n=%d, k=%d, alpha=%p, A=%p, Atype=%d, lda=%d, B=%p, Btype=%d, ldb=%d, beta=%p, C=%p, Ctype=%d, ldc=%d)\n",
+        handle, transa, transb, m, n, k, alpha, A, Atype, lda, B, Btype, ldb, beta, C, Ctype, ldc);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    cublasOperation_t transa_native;
+    cublasOperation_t transb_native;
+    int m_native = 0;
+    int n_native = 0;
+    int k_native = 0;
+    cuComplex const * alpha_native = NULL;
+    void const * A_native = NULL;
+    cudaDataType Atype_native;
+    int lda_native = 0;
+    void const * B_native = NULL;
+    cudaDataType Btype_native;
+    int ldb_native = 0;
+    cuComplex const * beta_native = NULL;
+    void * C_native = NULL;
+    cudaDataType Ctype_native;
+    int ldc_native = 0;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    transa_native = (cublasOperation_t)transa;
+    transb_native = (cublasOperation_t)transb;
+    m_native = (int)m;
+    n_native = (int)n;
+    k_native = (int)k;
+    PointerData *alpha_pointerData = initPointerData(env, alpha);
+    if (alpha_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    A_native = (void const *)getPointer(env, A);
+    Atype_native = (cudaDataType)Atype;
+    lda_native = (int)lda;
+    B_native = (void const *)getPointer(env, B);
+    Btype_native = (cudaDataType)Btype;
+    ldb_native = (int)ldb;
+    PointerData *beta_pointerData = initPointerData(env, beta);
+    if (beta_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    beta_native = (cuComplex *)beta_pointerData->getPointer(env);
+    C_native = (void *)getPointer(env, C);
+    Ctype_native = (cudaDataType)Ctype;
+    ldc_native = (int)ldc;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasCgemm3mEx(handle_native, transa_native, transb_native, m_native, n_native, k_native, alpha_native, A_native, Atype_native, lda_native, B_native, Btype_native, ldb_native, beta_native, C_native, Ctype_native, ldc_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // transa is primitive
+    // transb is primitive
+    // m is primitive
+    // n is primitive
+    // k is primitive
+    if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // A is a native pointer
+    // Atype is primitive
+    // lda is primitive
+    // B is a native pointer
+    // Btype is primitive
+    // ldb is primitive
+    if (!releasePointerData(env, beta_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // C is a native pointer
+    // Ctype is primitive
+    // ldc is primitive
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -11448,13 +11864,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgemmNative(JNIEnv *env
     int m_native = 0;
     int n_native = 0;
     int k_native = 0;
-    cuDoubleComplex* alpha_native;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * A_native = NULL;
     int lda_native = 0;
-    cuDoubleComplex* B_native;
+    cuDoubleComplex const * B_native = NULL;
     int ldb_native = 0;
-    cuDoubleComplex* beta_native;
-    cuDoubleComplex* C_native;
+    cuDoubleComplex const * beta_native = NULL;
+    cuDoubleComplex * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -11469,25 +11885,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgemmNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuDoubleComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (cuDoubleComplex*)getPointer(env, B);
+    B_native = (cuDoubleComplex const *)getPointer(env, B);
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuDoubleComplex*)beta_pointerData->getPointer(env);
-    C_native = (cuDoubleComplex*)getPointer(env, C);
+    beta_native = (cuDoubleComplex *)beta_pointerData->getPointer(env);
+    C_native = (cuDoubleComplex *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZgemm(handle_native, transa_native, transb_native, m_native, n_native, k_native, alpha_native, A_native, lda_native, B_native, ldb_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // transa is primitive
     // transb is primitive
     // m is primitive
@@ -11503,8 +11919,119 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgemmNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgemm3mNative(JNIEnv *env, jclass cls, jobject handle, jint transa, jint transb, jint m, jint n, jint k, jobject alpha, jobject A, jint lda, jobject B, jint ldb, jobject beta, jobject C, jint ldc)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasZgemm3m");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // transa is primitive
+    // transb is primitive
+    // m is primitive
+    // n is primitive
+    // k is primitive
+    if (alpha == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'alpha' is null for cublasZgemm3m");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (A == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'A' is null for cublasZgemm3m");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // lda is primitive
+    if (B == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'B' is null for cublasZgemm3m");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // ldb is primitive
+    if (beta == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'beta' is null for cublasZgemm3m");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (C == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'C' is null for cublasZgemm3m");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // ldc is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasZgemm3m(handle=%p, transa=%d, transb=%d, m=%d, n=%d, k=%d, alpha=%p, A=%p, lda=%d, B=%p, ldb=%d, beta=%p, C=%p, ldc=%d)\n",
+        handle, transa, transb, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    cublasOperation_t transa_native;
+    cublasOperation_t transb_native;
+    int m_native = 0;
+    int n_native = 0;
+    int k_native = 0;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * A_native = NULL;
+    int lda_native = 0;
+    cuDoubleComplex const * B_native = NULL;
+    int ldb_native = 0;
+    cuDoubleComplex const * beta_native = NULL;
+    cuDoubleComplex * C_native = NULL;
+    int ldc_native = 0;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    transa_native = (cublasOperation_t)transa;
+    transb_native = (cublasOperation_t)transb;
+    m_native = (int)m;
+    n_native = (int)n;
+    k_native = (int)k;
+    PointerData *alpha_pointerData = initPointerData(env, alpha);
+    if (alpha_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuDoubleComplex const *)getPointer(env, A);
+    lda_native = (int)lda;
+    B_native = (cuDoubleComplex const *)getPointer(env, B);
+    ldb_native = (int)ldb;
+    PointerData *beta_pointerData = initPointerData(env, beta);
+    if (beta_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    beta_native = (cuDoubleComplex *)beta_pointerData->getPointer(env);
+    C_native = (cuDoubleComplex *)getPointer(env, C);
+    ldc_native = (int)ldc;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasZgemm3m(handle_native, transa_native, transb_native, m_native, n_native, k_native, alpha_native, A_native, lda_native, B_native, ldb_native, beta_native, C_native, ldc_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // transa is primitive
+    // transb is primitive
+    // m is primitive
+    // n is primitive
+    // k is primitive
+    if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // A is a native pointer
+    // lda is primitive
+    // B is a native pointer
+    // ldb is primitive
+    if (!releasePointerData(env, beta_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // C is a native pointer
+    // ldc is primitive
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -11564,16 +12091,16 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgemmExNative(JNIEnv *e
     int m_native = 0;
     int n_native = 0;
     int k_native = 0;
-    float* alpha_native;
-    void* A_native;
-    cublasDataType_t Atype_native;
+    float const * alpha_native = NULL;
+    void const * A_native = NULL;
+    cudaDataType Atype_native;
     int lda_native = 0;
-    void* B_native;
-    cublasDataType_t Btype_native;
+    void const * B_native = NULL;
+    cudaDataType Btype_native;
     int ldb_native = 0;
-    float* beta_native;
-    void* C_native;
-    cublasDataType_t Ctype_native;
+    float const * beta_native = NULL;
+    void * C_native = NULL;
+    cudaDataType Ctype_native;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -11588,28 +12115,28 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgemmExNative(JNIEnv *e
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    A_native = (void*)getPointer(env, A);
-    Atype_native = (cublasDataType_t)Atype;
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    A_native = (void const *)getPointer(env, A);
+    Atype_native = (cudaDataType)Atype;
     lda_native = (int)lda;
-    B_native = (void*)getPointer(env, B);
-    Btype_native = (cublasDataType_t)Btype;
+    B_native = (void const *)getPointer(env, B);
+    Btype_native = (cudaDataType)Btype;
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (float*)beta_pointerData->getPointer(env);
-    C_native = (void*)getPointer(env, C);
-    Ctype_native = (cublasDataType_t)Ctype;
+    beta_native = (float *)beta_pointerData->getPointer(env);
+    C_native = (void *)getPointer(env, C);
+    Ctype_native = (cudaDataType)Ctype;
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSgemmEx(handle_native, transa_native, transb_native, m_native, n_native, k_native, alpha_native, A_native, Atype_native, lda_native, B_native, Btype_native, ldb_native, beta_native, C_native, Ctype_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // transa is primitive
     // transb is primitive
     // m is primitive
@@ -11628,8 +12155,263 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgemmExNative(JNIEnv *e
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasGemmExNative(JNIEnv *env, jclass cls, jobject handle, jint transa, jint transb, jint m, jint n, jint k, jobject alpha, jobject A, jint Atype, jint lda, jobject B, jint Btype, jint ldb, jobject beta, jobject C, jint Ctype, jint ldc, jint computeType, jint algo)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasGemmEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // transa is primitive
+    // transb is primitive
+    // m is primitive
+    // n is primitive
+    // k is primitive
+    if (alpha == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'alpha' is null for cublasGemmEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (A == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'A' is null for cublasGemmEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // Atype is primitive
+    // lda is primitive
+    if (B == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'B' is null for cublasGemmEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // Btype is primitive
+    // ldb is primitive
+    if (beta == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'beta' is null for cublasGemmEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (C == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'C' is null for cublasGemmEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // Ctype is primitive
+    // ldc is primitive
+    // computeType is primitive
+    // algo is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasGemmEx(handle=%p, transa=%d, transb=%d, m=%d, n=%d, k=%d, alpha=%p, A=%p, Atype=%d, lda=%d, B=%p, Btype=%d, ldb=%d, beta=%p, C=%p, Ctype=%d, ldc=%d, computeType=%d, algo=%d)\n",
+        handle, transa, transb, m, n, k, alpha, A, Atype, lda, B, Btype, ldb, beta, C, Ctype, ldc, computeType, algo);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    cublasOperation_t transa_native;
+    cublasOperation_t transb_native;
+    int m_native = 0;
+    int n_native = 0;
+    int k_native = 0;
+    void const * alpha_native = NULL;
+    void const * A_native = NULL;
+    cudaDataType Atype_native;
+    int lda_native = 0;
+    void const * B_native = NULL;
+    cudaDataType Btype_native;
+    int ldb_native = 0;
+    void const * beta_native = NULL;
+    void * C_native = NULL;
+    cudaDataType Ctype_native;
+    int ldc_native = 0;
+    cudaDataType computeType_native;
+    cublasGemmAlgo_t algo_native;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    transa_native = (cublasOperation_t)transa;
+    transb_native = (cublasOperation_t)transb;
+    m_native = (int)m;
+    n_native = (int)n;
+    k_native = (int)k;
+    PointerData *alpha_pointerData = initPointerData(env, alpha);
+    if (alpha_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    alpha_native = (void *)alpha_pointerData->getPointer(env);
+    A_native = (void const *)getPointer(env, A);
+    Atype_native = (cudaDataType)Atype;
+    lda_native = (int)lda;
+    B_native = (void const *)getPointer(env, B);
+    Btype_native = (cudaDataType)Btype;
+    ldb_native = (int)ldb;
+    PointerData *beta_pointerData = initPointerData(env, beta);
+    if (beta_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    beta_native = (void *)beta_pointerData->getPointer(env);
+    C_native = (void *)getPointer(env, C);
+    Ctype_native = (cudaDataType)Ctype;
+    ldc_native = (int)ldc;
+    computeType_native = (cudaDataType)computeType;
+    algo_native = (cublasGemmAlgo_t)algo;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasGemmEx(handle_native, transa_native, transb_native, m_native, n_native, k_native, alpha_native, A_native, Atype_native, lda_native, B_native, Btype_native, ldb_native, beta_native, C_native, Ctype_native, ldc_native, computeType_native, algo_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // transa is primitive
+    // transb is primitive
+    // m is primitive
+    // n is primitive
+    // k is primitive
+    if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // A is a native pointer
+    // Atype is primitive
+    // lda is primitive
+    // B is a native pointer
+    // Btype is primitive
+    // ldb is primitive
+    if (!releasePointerData(env, beta_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // C is a native pointer
+    // Ctype is primitive
+    // ldc is primitive
+    // computeType is primitive
+    // algo is primitive
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgemmExNative(JNIEnv *env, jclass cls, jobject handle, jint transa, jint transb, jint m, jint n, jint k, jobject alpha, jobject A, jint Atype, jint lda, jobject B, jint Btype, jint ldb, jobject beta, jobject C, jint Ctype, jint ldc)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasCgemmEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // transa is primitive
+    // transb is primitive
+    // m is primitive
+    // n is primitive
+    // k is primitive
+    if (alpha == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'alpha' is null for cublasCgemmEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (A == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'A' is null for cublasCgemmEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // Atype is primitive
+    // lda is primitive
+    if (B == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'B' is null for cublasCgemmEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // Btype is primitive
+    // ldb is primitive
+    if (beta == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'beta' is null for cublasCgemmEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (C == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'C' is null for cublasCgemmEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // Ctype is primitive
+    // ldc is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasCgemmEx(handle=%p, transa=%d, transb=%d, m=%d, n=%d, k=%d, alpha=%p, A=%p, Atype=%d, lda=%d, B=%p, Btype=%d, ldb=%d, beta=%p, C=%p, Ctype=%d, ldc=%d)\n",
+        handle, transa, transb, m, n, k, alpha, A, Atype, lda, B, Btype, ldb, beta, C, Ctype, ldc);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    cublasOperation_t transa_native;
+    cublasOperation_t transb_native;
+    int m_native = 0;
+    int n_native = 0;
+    int k_native = 0;
+    cuComplex const * alpha_native = NULL;
+    void const * A_native = NULL;
+    cudaDataType Atype_native;
+    int lda_native = 0;
+    void const * B_native = NULL;
+    cudaDataType Btype_native;
+    int ldb_native = 0;
+    cuComplex const * beta_native = NULL;
+    void * C_native = NULL;
+    cudaDataType Ctype_native;
+    int ldc_native = 0;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    transa_native = (cublasOperation_t)transa;
+    transb_native = (cublasOperation_t)transb;
+    m_native = (int)m;
+    n_native = (int)n;
+    k_native = (int)k;
+    PointerData *alpha_pointerData = initPointerData(env, alpha);
+    if (alpha_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    A_native = (void const *)getPointer(env, A);
+    Atype_native = (cudaDataType)Atype;
+    lda_native = (int)lda;
+    B_native = (void const *)getPointer(env, B);
+    Btype_native = (cudaDataType)Btype;
+    ldb_native = (int)ldb;
+    PointerData *beta_pointerData = initPointerData(env, beta);
+    if (beta_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    beta_native = (cuComplex *)beta_pointerData->getPointer(env);
+    C_native = (void *)getPointer(env, C);
+    Ctype_native = (cudaDataType)Ctype;
+    ldc_native = (int)ldc;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasCgemmEx(handle_native, transa_native, transb_native, m_native, n_native, k_native, alpha_native, A_native, Atype_native, lda_native, B_native, Btype_native, ldb_native, beta_native, C_native, Ctype_native, ldc_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // transa is primitive
+    // transb is primitive
+    // m is primitive
+    // n is primitive
+    // k is primitive
+    if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // A is a native pointer
+    // Atype is primitive
+    // lda is primitive
+    // B is a native pointer
+    // Btype is primitive
+    // ldb is primitive
+    if (!releasePointerData(env, beta_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // C is a native pointer
+    // Ctype is primitive
+    // ldc is primitive
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -11678,11 +12460,11 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsyrkNative(JNIEnv *env
     cublasOperation_t trans_native;
     int n_native = 0;
     int k_native = 0;
-    float* alpha_native;
-    float* A_native;
+    float const * alpha_native = NULL;
+    float const * A_native = NULL;
     int lda_native = 0;
-    float* beta_native;
-    float* C_native;
+    float const * beta_native = NULL;
+    float * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -11696,23 +12478,23 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsyrkNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    A_native = (float*)getPointer(env, A);
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    A_native = (float const *)getPointer(env, A);
     lda_native = (int)lda;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (float*)beta_pointerData->getPointer(env);
-    C_native = (float*)getPointer(env, C);
+    beta_native = (float *)beta_pointerData->getPointer(env);
+    C_native = (float *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSsyrk(handle_native, uplo_native, trans_native, n_native, k_native, alpha_native, A_native, lda_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // n is primitive
@@ -11725,8 +12507,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsyrkNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -11775,11 +12556,11 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsyrkNative(JNIEnv *env
     cublasOperation_t trans_native;
     int n_native = 0;
     int k_native = 0;
-    double* alpha_native;
-    double* A_native;
+    double const * alpha_native = NULL;
+    double const * A_native = NULL;
     int lda_native = 0;
-    double* beta_native;
-    double* C_native;
+    double const * beta_native = NULL;
+    double * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -11793,23 +12574,23 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsyrkNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (double*)alpha_pointerData->getPointer(env);
-    A_native = (double*)getPointer(env, A);
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    A_native = (double const *)getPointer(env, A);
     lda_native = (int)lda;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (double*)beta_pointerData->getPointer(env);
-    C_native = (double*)getPointer(env, C);
+    beta_native = (double *)beta_pointerData->getPointer(env);
+    C_native = (double *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDsyrk(handle_native, uplo_native, trans_native, n_native, k_native, alpha_native, A_native, lda_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // n is primitive
@@ -11822,8 +12603,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsyrkNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -11872,11 +12652,11 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsyrkNative(JNIEnv *env
     cublasOperation_t trans_native;
     int n_native = 0;
     int k_native = 0;
-    cuComplex* alpha_native;
-    cuComplex* A_native;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * A_native = NULL;
     int lda_native = 0;
-    cuComplex* beta_native;
-    cuComplex* C_native;
+    cuComplex const * beta_native = NULL;
+    cuComplex * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -11890,23 +12670,23 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsyrkNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuComplex*)getPointer(env, A);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuComplex const *)getPointer(env, A);
     lda_native = (int)lda;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuComplex*)beta_pointerData->getPointer(env);
-    C_native = (cuComplex*)getPointer(env, C);
+    beta_native = (cuComplex *)beta_pointerData->getPointer(env);
+    C_native = (cuComplex *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCsyrk(handle_native, uplo_native, trans_native, n_native, k_native, alpha_native, A_native, lda_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // n is primitive
@@ -11919,8 +12699,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsyrkNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -11969,11 +12748,11 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZsyrkNative(JNIEnv *env
     cublasOperation_t trans_native;
     int n_native = 0;
     int k_native = 0;
-    cuDoubleComplex* alpha_native;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * A_native = NULL;
     int lda_native = 0;
-    cuDoubleComplex* beta_native;
-    cuDoubleComplex* C_native;
+    cuDoubleComplex const * beta_native = NULL;
+    cuDoubleComplex * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -11987,23 +12766,23 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZsyrkNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuDoubleComplex const *)getPointer(env, A);
     lda_native = (int)lda;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuDoubleComplex*)beta_pointerData->getPointer(env);
-    C_native = (cuDoubleComplex*)getPointer(env, C);
+    beta_native = (cuDoubleComplex *)beta_pointerData->getPointer(env);
+    C_native = (cuDoubleComplex *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZsyrk(handle_native, uplo_native, trans_native, n_native, k_native, alpha_native, A_native, lda_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // n is primitive
@@ -12016,8 +12795,215 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZsyrkNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsyrkExNative(JNIEnv *env, jclass cls, jobject handle, jint uplo, jint trans, jint n, jint k, jobject alpha, jobject A, jint Atype, jint lda, jobject beta, jobject C, jint Ctype, jint ldc)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasCsyrkEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // uplo is primitive
+    // trans is primitive
+    // n is primitive
+    // k is primitive
+    if (alpha == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'alpha' is null for cublasCsyrkEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (A == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'A' is null for cublasCsyrkEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // Atype is primitive
+    // lda is primitive
+    if (beta == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'beta' is null for cublasCsyrkEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (C == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'C' is null for cublasCsyrkEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // Ctype is primitive
+    // ldc is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasCsyrkEx(handle=%p, uplo=%d, trans=%d, n=%d, k=%d, alpha=%p, A=%p, Atype=%d, lda=%d, beta=%p, C=%p, Ctype=%d, ldc=%d)\n",
+        handle, uplo, trans, n, k, alpha, A, Atype, lda, beta, C, Ctype, ldc);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    cublasFillMode_t uplo_native;
+    cublasOperation_t trans_native;
+    int n_native = 0;
+    int k_native = 0;
+    cuComplex const * alpha_native = NULL;
+    void const * A_native = NULL;
+    cudaDataType Atype_native;
+    int lda_native = 0;
+    cuComplex const * beta_native = NULL;
+    void * C_native = NULL;
+    cudaDataType Ctype_native;
+    int ldc_native = 0;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    uplo_native = (cublasFillMode_t)uplo;
+    trans_native = (cublasOperation_t)trans;
+    n_native = (int)n;
+    k_native = (int)k;
+    PointerData *alpha_pointerData = initPointerData(env, alpha);
+    if (alpha_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    A_native = (void const *)getPointer(env, A);
+    Atype_native = (cudaDataType)Atype;
+    lda_native = (int)lda;
+    PointerData *beta_pointerData = initPointerData(env, beta);
+    if (beta_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    beta_native = (cuComplex *)beta_pointerData->getPointer(env);
+    C_native = (void *)getPointer(env, C);
+    Ctype_native = (cudaDataType)Ctype;
+    ldc_native = (int)ldc;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasCsyrkEx(handle_native, uplo_native, trans_native, n_native, k_native, alpha_native, A_native, Atype_native, lda_native, beta_native, C_native, Ctype_native, ldc_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // uplo is primitive
+    // trans is primitive
+    // n is primitive
+    // k is primitive
+    if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // A is a native pointer
+    // Atype is primitive
+    // lda is primitive
+    if (!releasePointerData(env, beta_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // C is a native pointer
+    // Ctype is primitive
+    // ldc is primitive
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsyrk3mExNative(JNIEnv *env, jclass cls, jobject handle, jint uplo, jint trans, jint n, jint k, jobject alpha, jobject A, jint Atype, jint lda, jobject beta, jobject C, jint Ctype, jint ldc)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasCsyrk3mEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // uplo is primitive
+    // trans is primitive
+    // n is primitive
+    // k is primitive
+    if (alpha == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'alpha' is null for cublasCsyrk3mEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (A == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'A' is null for cublasCsyrk3mEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // Atype is primitive
+    // lda is primitive
+    if (beta == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'beta' is null for cublasCsyrk3mEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (C == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'C' is null for cublasCsyrk3mEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // Ctype is primitive
+    // ldc is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasCsyrk3mEx(handle=%p, uplo=%d, trans=%d, n=%d, k=%d, alpha=%p, A=%p, Atype=%d, lda=%d, beta=%p, C=%p, Ctype=%d, ldc=%d)\n",
+        handle, uplo, trans, n, k, alpha, A, Atype, lda, beta, C, Ctype, ldc);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    cublasFillMode_t uplo_native;
+    cublasOperation_t trans_native;
+    int n_native = 0;
+    int k_native = 0;
+    cuComplex const * alpha_native = NULL;
+    void const * A_native = NULL;
+    cudaDataType Atype_native;
+    int lda_native = 0;
+    cuComplex const * beta_native = NULL;
+    void * C_native = NULL;
+    cudaDataType Ctype_native;
+    int ldc_native = 0;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    uplo_native = (cublasFillMode_t)uplo;
+    trans_native = (cublasOperation_t)trans;
+    n_native = (int)n;
+    k_native = (int)k;
+    PointerData *alpha_pointerData = initPointerData(env, alpha);
+    if (alpha_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    A_native = (void const *)getPointer(env, A);
+    Atype_native = (cudaDataType)Atype;
+    lda_native = (int)lda;
+    PointerData *beta_pointerData = initPointerData(env, beta);
+    if (beta_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    beta_native = (cuComplex *)beta_pointerData->getPointer(env);
+    C_native = (void *)getPointer(env, C);
+    Ctype_native = (cudaDataType)Ctype;
+    ldc_native = (int)ldc;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasCsyrk3mEx(handle_native, uplo_native, trans_native, n_native, k_native, alpha_native, A_native, Atype_native, lda_native, beta_native, C_native, Ctype_native, ldc_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // uplo is primitive
+    // trans is primitive
+    // n is primitive
+    // k is primitive
+    if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // A is a native pointer
+    // Atype is primitive
+    // lda is primitive
+    if (!releasePointerData(env, beta_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // C is a native pointer
+    // Ctype is primitive
+    // ldc is primitive
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -12066,11 +13052,11 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCherkNative(JNIEnv *env
     cublasOperation_t trans_native;
     int n_native = 0;
     int k_native = 0;
-    float* alpha_native;
-    cuComplex* A_native;
+    float const * alpha_native = NULL;
+    cuComplex const * A_native = NULL;
     int lda_native = 0;
-    float* beta_native;
-    cuComplex* C_native;
+    float const * beta_native = NULL;
+    cuComplex * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -12084,23 +13070,23 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCherkNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    A_native = (cuComplex*)getPointer(env, A);
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    A_native = (cuComplex const *)getPointer(env, A);
     lda_native = (int)lda;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (float*)beta_pointerData->getPointer(env);
-    C_native = (cuComplex*)getPointer(env, C);
+    beta_native = (float *)beta_pointerData->getPointer(env);
+    C_native = (cuComplex *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCherk(handle_native, uplo_native, trans_native, n_native, k_native, alpha_native, A_native, lda_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // n is primitive
@@ -12113,8 +13099,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCherkNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -12163,11 +13148,11 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZherkNative(JNIEnv *env
     cublasOperation_t trans_native;
     int n_native = 0;
     int k_native = 0;
-    double* alpha_native;
-    cuDoubleComplex* A_native;
+    double const * alpha_native = NULL;
+    cuDoubleComplex const * A_native = NULL;
     int lda_native = 0;
-    double* beta_native;
-    cuDoubleComplex* C_native;
+    double const * beta_native = NULL;
+    cuDoubleComplex * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -12181,23 +13166,23 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZherkNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (double*)alpha_pointerData->getPointer(env);
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    A_native = (cuDoubleComplex const *)getPointer(env, A);
     lda_native = (int)lda;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (double*)beta_pointerData->getPointer(env);
-    C_native = (cuDoubleComplex*)getPointer(env, C);
+    beta_native = (double *)beta_pointerData->getPointer(env);
+    C_native = (cuDoubleComplex *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZherk(handle_native, uplo_native, trans_native, n_native, k_native, alpha_native, A_native, lda_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // n is primitive
@@ -12210,8 +13195,215 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZherkNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCherkExNative(JNIEnv *env, jclass cls, jobject handle, jint uplo, jint trans, jint n, jint k, jobject alpha, jobject A, jint Atype, jint lda, jobject beta, jobject C, jint Ctype, jint ldc)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasCherkEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // uplo is primitive
+    // trans is primitive
+    // n is primitive
+    // k is primitive
+    if (alpha == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'alpha' is null for cublasCherkEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (A == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'A' is null for cublasCherkEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // Atype is primitive
+    // lda is primitive
+    if (beta == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'beta' is null for cublasCherkEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (C == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'C' is null for cublasCherkEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // Ctype is primitive
+    // ldc is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasCherkEx(handle=%p, uplo=%d, trans=%d, n=%d, k=%d, alpha=%p, A=%p, Atype=%d, lda=%d, beta=%p, C=%p, Ctype=%d, ldc=%d)\n",
+        handle, uplo, trans, n, k, alpha, A, Atype, lda, beta, C, Ctype, ldc);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    cublasFillMode_t uplo_native;
+    cublasOperation_t trans_native;
+    int n_native = 0;
+    int k_native = 0;
+    float const * alpha_native = NULL;
+    void const * A_native = NULL;
+    cudaDataType Atype_native;
+    int lda_native = 0;
+    float const * beta_native = NULL;
+    void * C_native = NULL;
+    cudaDataType Ctype_native;
+    int ldc_native = 0;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    uplo_native = (cublasFillMode_t)uplo;
+    trans_native = (cublasOperation_t)trans;
+    n_native = (int)n;
+    k_native = (int)k;
+    PointerData *alpha_pointerData = initPointerData(env, alpha);
+    if (alpha_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    A_native = (void const *)getPointer(env, A);
+    Atype_native = (cudaDataType)Atype;
+    lda_native = (int)lda;
+    PointerData *beta_pointerData = initPointerData(env, beta);
+    if (beta_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    beta_native = (float *)beta_pointerData->getPointer(env);
+    C_native = (void *)getPointer(env, C);
+    Ctype_native = (cudaDataType)Ctype;
+    ldc_native = (int)ldc;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasCherkEx(handle_native, uplo_native, trans_native, n_native, k_native, alpha_native, A_native, Atype_native, lda_native, beta_native, C_native, Ctype_native, ldc_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // uplo is primitive
+    // trans is primitive
+    // n is primitive
+    // k is primitive
+    if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // A is a native pointer
+    // Atype is primitive
+    // lda is primitive
+    if (!releasePointerData(env, beta_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // C is a native pointer
+    // Ctype is primitive
+    // ldc is primitive
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCherk3mExNative(JNIEnv *env, jclass cls, jobject handle, jint uplo, jint trans, jint n, jint k, jobject alpha, jobject A, jint Atype, jint lda, jobject beta, jobject C, jint Ctype, jint ldc)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasCherk3mEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // uplo is primitive
+    // trans is primitive
+    // n is primitive
+    // k is primitive
+    if (alpha == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'alpha' is null for cublasCherk3mEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (A == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'A' is null for cublasCherk3mEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // Atype is primitive
+    // lda is primitive
+    if (beta == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'beta' is null for cublasCherk3mEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (C == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'C' is null for cublasCherk3mEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // Ctype is primitive
+    // ldc is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasCherk3mEx(handle=%p, uplo=%d, trans=%d, n=%d, k=%d, alpha=%p, A=%p, Atype=%d, lda=%d, beta=%p, C=%p, Ctype=%d, ldc=%d)\n",
+        handle, uplo, trans, n, k, alpha, A, Atype, lda, beta, C, Ctype, ldc);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    cublasFillMode_t uplo_native;
+    cublasOperation_t trans_native;
+    int n_native = 0;
+    int k_native = 0;
+    float const * alpha_native = NULL;
+    void const * A_native = NULL;
+    cudaDataType Atype_native;
+    int lda_native = 0;
+    float const * beta_native = NULL;
+    void * C_native = NULL;
+    cudaDataType Ctype_native;
+    int ldc_native = 0;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    uplo_native = (cublasFillMode_t)uplo;
+    trans_native = (cublasOperation_t)trans;
+    n_native = (int)n;
+    k_native = (int)k;
+    PointerData *alpha_pointerData = initPointerData(env, alpha);
+    if (alpha_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    A_native = (void const *)getPointer(env, A);
+    Atype_native = (cudaDataType)Atype;
+    lda_native = (int)lda;
+    PointerData *beta_pointerData = initPointerData(env, beta);
+    if (beta_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    beta_native = (float *)beta_pointerData->getPointer(env);
+    C_native = (void *)getPointer(env, C);
+    Ctype_native = (cudaDataType)Ctype;
+    ldc_native = (int)ldc;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasCherk3mEx(handle_native, uplo_native, trans_native, n_native, k_native, alpha_native, A_native, Atype_native, lda_native, beta_native, C_native, Ctype_native, ldc_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // uplo is primitive
+    // trans is primitive
+    // n is primitive
+    // k is primitive
+    if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // A is a native pointer
+    // Atype is primitive
+    // lda is primitive
+    if (!releasePointerData(env, beta_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // C is a native pointer
+    // Ctype is primitive
+    // ldc is primitive
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -12266,13 +13458,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsyr2kNative(JNIEnv *en
     cublasOperation_t trans_native;
     int n_native = 0;
     int k_native = 0;
-    float* alpha_native;
-    float* A_native;
+    float const * alpha_native = NULL;
+    float const * A_native = NULL;
     int lda_native = 0;
-    float* B_native;
+    float const * B_native = NULL;
     int ldb_native = 0;
-    float* beta_native;
-    float* C_native;
+    float const * beta_native = NULL;
+    float * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -12286,25 +13478,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsyr2kNative(JNIEnv *en
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    A_native = (float*)getPointer(env, A);
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    A_native = (float const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (float*)getPointer(env, B);
+    B_native = (float const *)getPointer(env, B);
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (float*)beta_pointerData->getPointer(env);
-    C_native = (float*)getPointer(env, C);
+    beta_native = (float *)beta_pointerData->getPointer(env);
+    C_native = (float *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSsyr2k(handle_native, uplo_native, trans_native, n_native, k_native, alpha_native, A_native, lda_native, B_native, ldb_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // n is primitive
@@ -12319,8 +13511,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsyr2kNative(JNIEnv *en
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -12375,13 +13566,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsyr2kNative(JNIEnv *en
     cublasOperation_t trans_native;
     int n_native = 0;
     int k_native = 0;
-    double* alpha_native;
-    double* A_native;
+    double const * alpha_native = NULL;
+    double const * A_native = NULL;
     int lda_native = 0;
-    double* B_native;
+    double const * B_native = NULL;
     int ldb_native = 0;
-    double* beta_native;
-    double* C_native;
+    double const * beta_native = NULL;
+    double * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -12395,25 +13586,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsyr2kNative(JNIEnv *en
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (double*)alpha_pointerData->getPointer(env);
-    A_native = (double*)getPointer(env, A);
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    A_native = (double const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (double*)getPointer(env, B);
+    B_native = (double const *)getPointer(env, B);
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (double*)beta_pointerData->getPointer(env);
-    C_native = (double*)getPointer(env, C);
+    beta_native = (double *)beta_pointerData->getPointer(env);
+    C_native = (double *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDsyr2k(handle_native, uplo_native, trans_native, n_native, k_native, alpha_native, A_native, lda_native, B_native, ldb_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // n is primitive
@@ -12428,8 +13619,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsyr2kNative(JNIEnv *en
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -12484,13 +13674,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsyr2kNative(JNIEnv *en
     cublasOperation_t trans_native;
     int n_native = 0;
     int k_native = 0;
-    cuComplex* alpha_native;
-    cuComplex* A_native;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * A_native = NULL;
     int lda_native = 0;
-    cuComplex* B_native;
+    cuComplex const * B_native = NULL;
     int ldb_native = 0;
-    cuComplex* beta_native;
-    cuComplex* C_native;
+    cuComplex const * beta_native = NULL;
+    cuComplex * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -12504,25 +13694,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsyr2kNative(JNIEnv *en
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuComplex*)getPointer(env, A);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (cuComplex*)getPointer(env, B);
+    B_native = (cuComplex const *)getPointer(env, B);
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuComplex*)beta_pointerData->getPointer(env);
-    C_native = (cuComplex*)getPointer(env, C);
+    beta_native = (cuComplex *)beta_pointerData->getPointer(env);
+    C_native = (cuComplex *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCsyr2k(handle_native, uplo_native, trans_native, n_native, k_native, alpha_native, A_native, lda_native, B_native, ldb_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // n is primitive
@@ -12537,8 +13727,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsyr2kNative(JNIEnv *en
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -12593,13 +13782,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZsyr2kNative(JNIEnv *en
     cublasOperation_t trans_native;
     int n_native = 0;
     int k_native = 0;
-    cuDoubleComplex* alpha_native;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * A_native = NULL;
     int lda_native = 0;
-    cuDoubleComplex* B_native;
+    cuDoubleComplex const * B_native = NULL;
     int ldb_native = 0;
-    cuDoubleComplex* beta_native;
-    cuDoubleComplex* C_native;
+    cuDoubleComplex const * beta_native = NULL;
+    cuDoubleComplex * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -12613,25 +13802,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZsyr2kNative(JNIEnv *en
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuDoubleComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (cuDoubleComplex*)getPointer(env, B);
+    B_native = (cuDoubleComplex const *)getPointer(env, B);
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuDoubleComplex*)beta_pointerData->getPointer(env);
-    C_native = (cuDoubleComplex*)getPointer(env, C);
+    beta_native = (cuDoubleComplex *)beta_pointerData->getPointer(env);
+    C_native = (cuDoubleComplex *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZsyr2k(handle_native, uplo_native, trans_native, n_native, k_native, alpha_native, A_native, lda_native, B_native, ldb_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // n is primitive
@@ -12646,8 +13835,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZsyr2kNative(JNIEnv *en
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -12702,13 +13890,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCher2kNative(JNIEnv *en
     cublasOperation_t trans_native;
     int n_native = 0;
     int k_native = 0;
-    cuComplex* alpha_native;
-    cuComplex* A_native;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * A_native = NULL;
     int lda_native = 0;
-    cuComplex* B_native;
+    cuComplex const * B_native = NULL;
     int ldb_native = 0;
-    float* beta_native;
-    cuComplex* C_native;
+    float const * beta_native = NULL;
+    cuComplex * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -12722,25 +13910,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCher2kNative(JNIEnv *en
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuComplex*)getPointer(env, A);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (cuComplex*)getPointer(env, B);
+    B_native = (cuComplex const *)getPointer(env, B);
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (float*)beta_pointerData->getPointer(env);
-    C_native = (cuComplex*)getPointer(env, C);
+    beta_native = (float *)beta_pointerData->getPointer(env);
+    C_native = (cuComplex *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCher2k(handle_native, uplo_native, trans_native, n_native, k_native, alpha_native, A_native, lda_native, B_native, ldb_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // n is primitive
@@ -12755,8 +13943,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCher2kNative(JNIEnv *en
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -12811,13 +13998,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZher2kNative(JNIEnv *en
     cublasOperation_t trans_native;
     int n_native = 0;
     int k_native = 0;
-    cuDoubleComplex* alpha_native;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * A_native = NULL;
     int lda_native = 0;
-    cuDoubleComplex* B_native;
+    cuDoubleComplex const * B_native = NULL;
     int ldb_native = 0;
-    double* beta_native;
-    cuDoubleComplex* C_native;
+    double const * beta_native = NULL;
+    cuDoubleComplex * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -12831,25 +14018,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZher2kNative(JNIEnv *en
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuDoubleComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (cuDoubleComplex*)getPointer(env, B);
+    B_native = (cuDoubleComplex const *)getPointer(env, B);
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (double*)beta_pointerData->getPointer(env);
-    C_native = (cuDoubleComplex*)getPointer(env, C);
+    beta_native = (double *)beta_pointerData->getPointer(env);
+    C_native = (cuDoubleComplex *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZher2k(handle_native, uplo_native, trans_native, n_native, k_native, alpha_native, A_native, lda_native, B_native, ldb_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // n is primitive
@@ -12864,8 +14051,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZher2kNative(JNIEnv *en
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -12920,13 +14106,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsyrkxNative(JNIEnv *en
     cublasOperation_t trans_native;
     int n_native = 0;
     int k_native = 0;
-    float* alpha_native;
-    float* A_native;
+    float const * alpha_native = NULL;
+    float const * A_native = NULL;
     int lda_native = 0;
-    float* B_native;
+    float const * B_native = NULL;
     int ldb_native = 0;
-    float* beta_native;
-    float* C_native;
+    float const * beta_native = NULL;
+    float * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -12940,25 +14126,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsyrkxNative(JNIEnv *en
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    A_native = (float*)getPointer(env, A);
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    A_native = (float const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (float*)getPointer(env, B);
+    B_native = (float const *)getPointer(env, B);
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (float*)beta_pointerData->getPointer(env);
-    C_native = (float*)getPointer(env, C);
+    beta_native = (float *)beta_pointerData->getPointer(env);
+    C_native = (float *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSsyrkx(handle_native, uplo_native, trans_native, n_native, k_native, alpha_native, A_native, lda_native, B_native, ldb_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // n is primitive
@@ -12973,8 +14159,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsyrkxNative(JNIEnv *en
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -13029,13 +14214,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsyrkxNative(JNIEnv *en
     cublasOperation_t trans_native;
     int n_native = 0;
     int k_native = 0;
-    double* alpha_native;
-    double* A_native;
+    double const * alpha_native = NULL;
+    double const * A_native = NULL;
     int lda_native = 0;
-    double* B_native;
+    double const * B_native = NULL;
     int ldb_native = 0;
-    double* beta_native;
-    double* C_native;
+    double const * beta_native = NULL;
+    double * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -13049,25 +14234,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsyrkxNative(JNIEnv *en
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (double*)alpha_pointerData->getPointer(env);
-    A_native = (double*)getPointer(env, A);
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    A_native = (double const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (double*)getPointer(env, B);
+    B_native = (double const *)getPointer(env, B);
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (double*)beta_pointerData->getPointer(env);
-    C_native = (double*)getPointer(env, C);
+    beta_native = (double *)beta_pointerData->getPointer(env);
+    C_native = (double *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDsyrkx(handle_native, uplo_native, trans_native, n_native, k_native, alpha_native, A_native, lda_native, B_native, ldb_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // n is primitive
@@ -13082,8 +14267,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsyrkxNative(JNIEnv *en
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -13138,13 +14322,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsyrkxNative(JNIEnv *en
     cublasOperation_t trans_native;
     int n_native = 0;
     int k_native = 0;
-    cuComplex* alpha_native;
-    cuComplex* A_native;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * A_native = NULL;
     int lda_native = 0;
-    cuComplex* B_native;
+    cuComplex const * B_native = NULL;
     int ldb_native = 0;
-    cuComplex* beta_native;
-    cuComplex* C_native;
+    cuComplex const * beta_native = NULL;
+    cuComplex * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -13158,25 +14342,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsyrkxNative(JNIEnv *en
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuComplex*)getPointer(env, A);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (cuComplex*)getPointer(env, B);
+    B_native = (cuComplex const *)getPointer(env, B);
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuComplex*)beta_pointerData->getPointer(env);
-    C_native = (cuComplex*)getPointer(env, C);
+    beta_native = (cuComplex *)beta_pointerData->getPointer(env);
+    C_native = (cuComplex *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCsyrkx(handle_native, uplo_native, trans_native, n_native, k_native, alpha_native, A_native, lda_native, B_native, ldb_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // n is primitive
@@ -13191,8 +14375,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsyrkxNative(JNIEnv *en
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -13247,13 +14430,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZsyrkxNative(JNIEnv *en
     cublasOperation_t trans_native;
     int n_native = 0;
     int k_native = 0;
-    cuDoubleComplex* alpha_native;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * A_native = NULL;
     int lda_native = 0;
-    cuDoubleComplex* B_native;
+    cuDoubleComplex const * B_native = NULL;
     int ldb_native = 0;
-    cuDoubleComplex* beta_native;
-    cuDoubleComplex* C_native;
+    cuDoubleComplex const * beta_native = NULL;
+    cuDoubleComplex * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -13267,25 +14450,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZsyrkxNative(JNIEnv *en
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuDoubleComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (cuDoubleComplex*)getPointer(env, B);
+    B_native = (cuDoubleComplex const *)getPointer(env, B);
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuDoubleComplex*)beta_pointerData->getPointer(env);
-    C_native = (cuDoubleComplex*)getPointer(env, C);
+    beta_native = (cuDoubleComplex *)beta_pointerData->getPointer(env);
+    C_native = (cuDoubleComplex *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZsyrkx(handle_native, uplo_native, trans_native, n_native, k_native, alpha_native, A_native, lda_native, B_native, ldb_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // n is primitive
@@ -13300,8 +14483,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZsyrkxNative(JNIEnv *en
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -13356,13 +14538,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCherkxNative(JNIEnv *en
     cublasOperation_t trans_native;
     int n_native = 0;
     int k_native = 0;
-    cuComplex* alpha_native;
-    cuComplex* A_native;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * A_native = NULL;
     int lda_native = 0;
-    cuComplex* B_native;
+    cuComplex const * B_native = NULL;
     int ldb_native = 0;
-    float* beta_native;
-    cuComplex* C_native;
+    float const * beta_native = NULL;
+    cuComplex * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -13376,25 +14558,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCherkxNative(JNIEnv *en
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuComplex*)getPointer(env, A);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (cuComplex*)getPointer(env, B);
+    B_native = (cuComplex const *)getPointer(env, B);
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (float*)beta_pointerData->getPointer(env);
-    C_native = (cuComplex*)getPointer(env, C);
+    beta_native = (float *)beta_pointerData->getPointer(env);
+    C_native = (cuComplex *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCherkx(handle_native, uplo_native, trans_native, n_native, k_native, alpha_native, A_native, lda_native, B_native, ldb_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // n is primitive
@@ -13409,8 +14591,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCherkxNative(JNIEnv *en
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -13465,13 +14646,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZherkxNative(JNIEnv *en
     cublasOperation_t trans_native;
     int n_native = 0;
     int k_native = 0;
-    cuDoubleComplex* alpha_native;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * A_native = NULL;
     int lda_native = 0;
-    cuDoubleComplex* B_native;
+    cuDoubleComplex const * B_native = NULL;
     int ldb_native = 0;
-    double* beta_native;
-    cuDoubleComplex* C_native;
+    double const * beta_native = NULL;
+    cuDoubleComplex * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -13485,25 +14666,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZherkxNative(JNIEnv *en
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuDoubleComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (cuDoubleComplex*)getPointer(env, B);
+    B_native = (cuDoubleComplex const *)getPointer(env, B);
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (double*)beta_pointerData->getPointer(env);
-    C_native = (cuDoubleComplex*)getPointer(env, C);
+    beta_native = (double *)beta_pointerData->getPointer(env);
+    C_native = (cuDoubleComplex *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZherkx(handle_native, uplo_native, trans_native, n_native, k_native, alpha_native, A_native, lda_native, B_native, ldb_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // trans is primitive
     // n is primitive
@@ -13518,8 +14699,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZherkxNative(JNIEnv *en
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -13574,13 +14754,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsymmNative(JNIEnv *env
     cublasFillMode_t uplo_native;
     int m_native = 0;
     int n_native = 0;
-    float* alpha_native;
-    float* A_native;
+    float const * alpha_native = NULL;
+    float const * A_native = NULL;
     int lda_native = 0;
-    float* B_native;
+    float const * B_native = NULL;
     int ldb_native = 0;
-    float* beta_native;
-    float* C_native;
+    float const * beta_native = NULL;
+    float * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -13594,25 +14774,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsymmNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    A_native = (float*)getPointer(env, A);
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    A_native = (float const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (float*)getPointer(env, B);
+    B_native = (float const *)getPointer(env, B);
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (float*)beta_pointerData->getPointer(env);
-    C_native = (float*)getPointer(env, C);
+    beta_native = (float *)beta_pointerData->getPointer(env);
+    C_native = (float *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSsymm(handle_native, side_native, uplo_native, m_native, n_native, alpha_native, A_native, lda_native, B_native, ldb_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // side is primitive
     // uplo is primitive
     // m is primitive
@@ -13627,8 +14807,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSsymmNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -13683,13 +14862,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsymmNative(JNIEnv *env
     cublasFillMode_t uplo_native;
     int m_native = 0;
     int n_native = 0;
-    double* alpha_native;
-    double* A_native;
+    double const * alpha_native = NULL;
+    double const * A_native = NULL;
     int lda_native = 0;
-    double* B_native;
+    double const * B_native = NULL;
     int ldb_native = 0;
-    double* beta_native;
-    double* C_native;
+    double const * beta_native = NULL;
+    double * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -13703,25 +14882,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsymmNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (double*)alpha_pointerData->getPointer(env);
-    A_native = (double*)getPointer(env, A);
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    A_native = (double const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (double*)getPointer(env, B);
+    B_native = (double const *)getPointer(env, B);
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (double*)beta_pointerData->getPointer(env);
-    C_native = (double*)getPointer(env, C);
+    beta_native = (double *)beta_pointerData->getPointer(env);
+    C_native = (double *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDsymm(handle_native, side_native, uplo_native, m_native, n_native, alpha_native, A_native, lda_native, B_native, ldb_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // side is primitive
     // uplo is primitive
     // m is primitive
@@ -13736,8 +14915,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDsymmNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -13792,13 +14970,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsymmNative(JNIEnv *env
     cublasFillMode_t uplo_native;
     int m_native = 0;
     int n_native = 0;
-    cuComplex* alpha_native;
-    cuComplex* A_native;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * A_native = NULL;
     int lda_native = 0;
-    cuComplex* B_native;
+    cuComplex const * B_native = NULL;
     int ldb_native = 0;
-    cuComplex* beta_native;
-    cuComplex* C_native;
+    cuComplex const * beta_native = NULL;
+    cuComplex * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -13812,25 +14990,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsymmNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuComplex*)getPointer(env, A);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (cuComplex*)getPointer(env, B);
+    B_native = (cuComplex const *)getPointer(env, B);
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuComplex*)beta_pointerData->getPointer(env);
-    C_native = (cuComplex*)getPointer(env, C);
+    beta_native = (cuComplex *)beta_pointerData->getPointer(env);
+    C_native = (cuComplex *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCsymm(handle_native, side_native, uplo_native, m_native, n_native, alpha_native, A_native, lda_native, B_native, ldb_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // side is primitive
     // uplo is primitive
     // m is primitive
@@ -13845,8 +15023,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCsymmNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -13901,13 +15078,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZsymmNative(JNIEnv *env
     cublasFillMode_t uplo_native;
     int m_native = 0;
     int n_native = 0;
-    cuDoubleComplex* alpha_native;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * A_native = NULL;
     int lda_native = 0;
-    cuDoubleComplex* B_native;
+    cuDoubleComplex const * B_native = NULL;
     int ldb_native = 0;
-    cuDoubleComplex* beta_native;
-    cuDoubleComplex* C_native;
+    cuDoubleComplex const * beta_native = NULL;
+    cuDoubleComplex * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -13921,25 +15098,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZsymmNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuDoubleComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (cuDoubleComplex*)getPointer(env, B);
+    B_native = (cuDoubleComplex const *)getPointer(env, B);
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuDoubleComplex*)beta_pointerData->getPointer(env);
-    C_native = (cuDoubleComplex*)getPointer(env, C);
+    beta_native = (cuDoubleComplex *)beta_pointerData->getPointer(env);
+    C_native = (cuDoubleComplex *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZsymm(handle_native, side_native, uplo_native, m_native, n_native, alpha_native, A_native, lda_native, B_native, ldb_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // side is primitive
     // uplo is primitive
     // m is primitive
@@ -13954,8 +15131,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZsymmNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -14010,13 +15186,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasChemmNative(JNIEnv *env
     cublasFillMode_t uplo_native;
     int m_native = 0;
     int n_native = 0;
-    cuComplex* alpha_native;
-    cuComplex* A_native;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * A_native = NULL;
     int lda_native = 0;
-    cuComplex* B_native;
+    cuComplex const * B_native = NULL;
     int ldb_native = 0;
-    cuComplex* beta_native;
-    cuComplex* C_native;
+    cuComplex const * beta_native = NULL;
+    cuComplex * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -14030,25 +15206,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasChemmNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuComplex*)getPointer(env, A);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (cuComplex*)getPointer(env, B);
+    B_native = (cuComplex const *)getPointer(env, B);
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuComplex*)beta_pointerData->getPointer(env);
-    C_native = (cuComplex*)getPointer(env, C);
+    beta_native = (cuComplex *)beta_pointerData->getPointer(env);
+    C_native = (cuComplex *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasChemm(handle_native, side_native, uplo_native, m_native, n_native, alpha_native, A_native, lda_native, B_native, ldb_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // side is primitive
     // uplo is primitive
     // m is primitive
@@ -14063,8 +15239,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasChemmNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -14119,13 +15294,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZhemmNative(JNIEnv *env
     cublasFillMode_t uplo_native;
     int m_native = 0;
     int n_native = 0;
-    cuDoubleComplex* alpha_native;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * A_native = NULL;
     int lda_native = 0;
-    cuDoubleComplex* B_native;
+    cuDoubleComplex const * B_native = NULL;
     int ldb_native = 0;
-    cuDoubleComplex* beta_native;
-    cuDoubleComplex* C_native;
+    cuDoubleComplex const * beta_native = NULL;
+    cuDoubleComplex * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -14139,25 +15314,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZhemmNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuDoubleComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (cuDoubleComplex*)getPointer(env, B);
+    B_native = (cuDoubleComplex const *)getPointer(env, B);
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuDoubleComplex*)beta_pointerData->getPointer(env);
-    C_native = (cuDoubleComplex*)getPointer(env, C);
+    beta_native = (cuDoubleComplex *)beta_pointerData->getPointer(env);
+    C_native = (cuDoubleComplex *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZhemm(handle_native, side_native, uplo_native, m_native, n_native, alpha_native, A_native, lda_native, B_native, ldb_native, beta_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // side is primitive
     // uplo is primitive
     // m is primitive
@@ -14172,8 +15347,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZhemmNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -14221,10 +15395,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStrsmNative(JNIEnv *env
     cublasDiagType_t diag_native;
     int m_native = 0;
     int n_native = 0;
-    float* alpha_native;
-    float* A_native;
+    float const * alpha_native = NULL;
+    float const * A_native = NULL;
     int lda_native = 0;
-    float* B_native;
+    float * B_native = NULL;
     int ldb_native = 0;
 
     // Obtain native variable values
@@ -14240,17 +15414,17 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStrsmNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    A_native = (float*)getPointer(env, A);
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    A_native = (float const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (float*)getPointer(env, B);
+    B_native = (float *)getPointer(env, B);
     ldb_native = (int)ldb;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasStrsm(handle_native, side_native, uplo_native, trans_native, diag_native, m_native, n_native, alpha_native, A_native, lda_native, B_native, ldb_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // side is primitive
     // uplo is primitive
     // trans is primitive
@@ -14264,8 +15438,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStrsmNative(JNIEnv *env
     // ldb is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -14313,10 +15486,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtrsmNative(JNIEnv *env
     cublasDiagType_t diag_native;
     int m_native = 0;
     int n_native = 0;
-    double* alpha_native;
-    double* A_native;
+    double const * alpha_native = NULL;
+    double const * A_native = NULL;
     int lda_native = 0;
-    double* B_native;
+    double * B_native = NULL;
     int ldb_native = 0;
 
     // Obtain native variable values
@@ -14332,17 +15505,17 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtrsmNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (double*)alpha_pointerData->getPointer(env);
-    A_native = (double*)getPointer(env, A);
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    A_native = (double const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (double*)getPointer(env, B);
+    B_native = (double *)getPointer(env, B);
     ldb_native = (int)ldb;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDtrsm(handle_native, side_native, uplo_native, trans_native, diag_native, m_native, n_native, alpha_native, A_native, lda_native, B_native, ldb_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // side is primitive
     // uplo is primitive
     // trans is primitive
@@ -14356,8 +15529,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtrsmNative(JNIEnv *env
     // ldb is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -14405,10 +15577,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtrsmNative(JNIEnv *env
     cublasDiagType_t diag_native;
     int m_native = 0;
     int n_native = 0;
-    cuComplex* alpha_native;
-    cuComplex* A_native;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * A_native = NULL;
     int lda_native = 0;
-    cuComplex* B_native;
+    cuComplex * B_native = NULL;
     int ldb_native = 0;
 
     // Obtain native variable values
@@ -14424,17 +15596,17 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtrsmNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuComplex*)getPointer(env, A);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (cuComplex*)getPointer(env, B);
+    B_native = (cuComplex *)getPointer(env, B);
     ldb_native = (int)ldb;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCtrsm(handle_native, side_native, uplo_native, trans_native, diag_native, m_native, n_native, alpha_native, A_native, lda_native, B_native, ldb_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // side is primitive
     // uplo is primitive
     // trans is primitive
@@ -14448,8 +15620,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtrsmNative(JNIEnv *env
     // ldb is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -14497,10 +15668,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtrsmNative(JNIEnv *env
     cublasDiagType_t diag_native;
     int m_native = 0;
     int n_native = 0;
-    cuDoubleComplex* alpha_native;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * A_native = NULL;
     int lda_native = 0;
-    cuDoubleComplex* B_native;
+    cuDoubleComplex * B_native = NULL;
     int ldb_native = 0;
 
     // Obtain native variable values
@@ -14516,17 +15687,17 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtrsmNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuDoubleComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (cuDoubleComplex*)getPointer(env, B);
+    B_native = (cuDoubleComplex *)getPointer(env, B);
     ldb_native = (int)ldb;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZtrsm(handle_native, side_native, uplo_native, trans_native, diag_native, m_native, n_native, alpha_native, A_native, lda_native, B_native, ldb_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // side is primitive
     // uplo is primitive
     // trans is primitive
@@ -14540,8 +15711,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtrsmNative(JNIEnv *env
     // ldb is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -14595,12 +15765,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStrmmNative(JNIEnv *env
     cublasDiagType_t diag_native;
     int m_native = 0;
     int n_native = 0;
-    float* alpha_native;
-    float* A_native;
+    float const * alpha_native = NULL;
+    float const * A_native = NULL;
     int lda_native = 0;
-    float* B_native;
+    float const * B_native = NULL;
     int ldb_native = 0;
-    float* C_native;
+    float * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -14616,19 +15786,19 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStrmmNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    A_native = (float*)getPointer(env, A);
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    A_native = (float const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (float*)getPointer(env, B);
+    B_native = (float const *)getPointer(env, B);
     ldb_native = (int)ldb;
-    C_native = (float*)getPointer(env, C);
+    C_native = (float *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasStrmm(handle_native, side_native, uplo_native, trans_native, diag_native, m_native, n_native, alpha_native, A_native, lda_native, B_native, ldb_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // side is primitive
     // uplo is primitive
     // trans is primitive
@@ -14644,8 +15814,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStrmmNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -14699,12 +15868,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtrmmNative(JNIEnv *env
     cublasDiagType_t diag_native;
     int m_native = 0;
     int n_native = 0;
-    double* alpha_native;
-    double* A_native;
+    double const * alpha_native = NULL;
+    double const * A_native = NULL;
     int lda_native = 0;
-    double* B_native;
+    double const * B_native = NULL;
     int ldb_native = 0;
-    double* C_native;
+    double * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -14720,19 +15889,19 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtrmmNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (double*)alpha_pointerData->getPointer(env);
-    A_native = (double*)getPointer(env, A);
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    A_native = (double const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (double*)getPointer(env, B);
+    B_native = (double const *)getPointer(env, B);
     ldb_native = (int)ldb;
-    C_native = (double*)getPointer(env, C);
+    C_native = (double *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDtrmm(handle_native, side_native, uplo_native, trans_native, diag_native, m_native, n_native, alpha_native, A_native, lda_native, B_native, ldb_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // side is primitive
     // uplo is primitive
     // trans is primitive
@@ -14748,8 +15917,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtrmmNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -14803,12 +15971,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtrmmNative(JNIEnv *env
     cublasDiagType_t diag_native;
     int m_native = 0;
     int n_native = 0;
-    cuComplex* alpha_native;
-    cuComplex* A_native;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * A_native = NULL;
     int lda_native = 0;
-    cuComplex* B_native;
+    cuComplex const * B_native = NULL;
     int ldb_native = 0;
-    cuComplex* C_native;
+    cuComplex * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -14824,19 +15992,19 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtrmmNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuComplex*)getPointer(env, A);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (cuComplex*)getPointer(env, B);
+    B_native = (cuComplex const *)getPointer(env, B);
     ldb_native = (int)ldb;
-    C_native = (cuComplex*)getPointer(env, C);
+    C_native = (cuComplex *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCtrmm(handle_native, side_native, uplo_native, trans_native, diag_native, m_native, n_native, alpha_native, A_native, lda_native, B_native, ldb_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // side is primitive
     // uplo is primitive
     // trans is primitive
@@ -14852,8 +16020,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtrmmNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -14907,12 +16074,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtrmmNative(JNIEnv *env
     cublasDiagType_t diag_native;
     int m_native = 0;
     int n_native = 0;
-    cuDoubleComplex* alpha_native;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * A_native = NULL;
     int lda_native = 0;
-    cuDoubleComplex* B_native;
+    cuDoubleComplex const * B_native = NULL;
     int ldb_native = 0;
-    cuDoubleComplex* C_native;
+    cuDoubleComplex * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -14928,19 +16095,19 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtrmmNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuDoubleComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (cuDoubleComplex*)getPointer(env, B);
+    B_native = (cuDoubleComplex const *)getPointer(env, B);
     ldb_native = (int)ldb;
-    C_native = (cuDoubleComplex*)getPointer(env, C);
+    C_native = (cuDoubleComplex *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZtrmm(handle_native, side_native, uplo_native, trans_native, diag_native, m_native, n_native, alpha_native, A_native, lda_native, B_native, ldb_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // side is primitive
     // uplo is primitive
     // trans is primitive
@@ -14956,8 +16123,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtrmmNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -15015,13 +16181,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgemmBatchedNative(JNIE
     int m_native = 0;
     int n_native = 0;
     int k_native = 0;
-    float* alpha_native;
-    const float** Aarray_native = NULL;
+    float const * alpha_native = NULL;
+    float const * * Aarray_native = NULL;
     int lda_native = 0;
-    const float** Barray_native = NULL;
+    float const * * Barray_native = NULL;
     int ldb_native = 0;
-    float* beta_native;
-    float** Carray_native = NULL;
+    float const * beta_native = NULL;
+    float * * Carray_native = NULL;
     int ldc_native = 0;
     int batchCount_native = 0;
 
@@ -15037,18 +16203,18 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgemmBatchedNative(JNIE
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    Aarray_native = (const float**)getPointer(env, Aarray);
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    Aarray_native = (float const * *)getPointer(env, Aarray);
     lda_native = (int)lda;
-    Barray_native = (const float**)getPointer(env, Barray);
+    Barray_native = (float const * *)getPointer(env, Barray);
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (float*)beta_pointerData->getPointer(env);
-    Carray_native = (float**)getPointer(env, Carray);
+    beta_native = (float *)beta_pointerData->getPointer(env);
+    Carray_native = (float * *)getPointer(env, Carray);
     ldc_native = (int)ldc;
     batchCount_native = (int)batchCount;
 
@@ -15056,7 +16222,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgemmBatchedNative(JNIE
     cublasStatus_t jniResult_native = cublasSgemmBatched(handle_native, transa_native, transb_native, m_native, n_native, k_native, alpha_native, Aarray_native, lda_native, Barray_native, ldb_native, beta_native, Carray_native, ldc_native, batchCount_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // transa is primitive
     // transb is primitive
     // m is primitive
@@ -15073,8 +16239,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgemmBatchedNative(JNIE
     // batchCount is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -15132,13 +16297,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgemmBatchedNative(JNIE
     int m_native = 0;
     int n_native = 0;
     int k_native = 0;
-    double* alpha_native;
-    const double** Aarray_native = NULL;
+    double const * alpha_native = NULL;
+    double const * * Aarray_native = NULL;
     int lda_native = 0;
-    const double** Barray_native = NULL;
+    double const * * Barray_native = NULL;
     int ldb_native = 0;
-    double* beta_native;
-    double** Carray_native = NULL;
+    double const * beta_native = NULL;
+    double * * Carray_native = NULL;
     int ldc_native = 0;
     int batchCount_native = 0;
 
@@ -15154,18 +16319,18 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgemmBatchedNative(JNIE
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (double*)alpha_pointerData->getPointer(env);
-    Aarray_native = (const double**)getPointer(env, Aarray);
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    Aarray_native = (double const * *)getPointer(env, Aarray);
     lda_native = (int)lda;
-    Barray_native = (const double**)getPointer(env, Barray);
+    Barray_native = (double const * *)getPointer(env, Barray);
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (double*)beta_pointerData->getPointer(env);
-    Carray_native = (double**)getPointer(env, Carray);
+    beta_native = (double *)beta_pointerData->getPointer(env);
+    Carray_native = (double * *)getPointer(env, Carray);
     ldc_native = (int)ldc;
     batchCount_native = (int)batchCount;
 
@@ -15173,7 +16338,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgemmBatchedNative(JNIE
     cublasStatus_t jniResult_native = cublasDgemmBatched(handle_native, transa_native, transb_native, m_native, n_native, k_native, alpha_native, Aarray_native, lda_native, Barray_native, ldb_native, beta_native, Carray_native, ldc_native, batchCount_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // transa is primitive
     // transb is primitive
     // m is primitive
@@ -15190,8 +16355,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgemmBatchedNative(JNIE
     // batchCount is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -15249,13 +16413,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgemmBatchedNative(JNIE
     int m_native = 0;
     int n_native = 0;
     int k_native = 0;
-    cuComplex* alpha_native;
-    const cuComplex** Aarray_native = NULL;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * * Aarray_native = NULL;
     int lda_native = 0;
-    const cuComplex** Barray_native = NULL;
+    cuComplex const * * Barray_native = NULL;
     int ldb_native = 0;
-    cuComplex* beta_native;
-    cuComplex** Carray_native = NULL;
+    cuComplex const * beta_native = NULL;
+    cuComplex * * Carray_native = NULL;
     int ldc_native = 0;
     int batchCount_native = 0;
 
@@ -15271,18 +16435,18 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgemmBatchedNative(JNIE
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    Aarray_native = (const cuComplex**)getPointer(env, Aarray);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    Aarray_native = (cuComplex const * *)getPointer(env, Aarray);
     lda_native = (int)lda;
-    Barray_native = (const cuComplex**)getPointer(env, Barray);
+    Barray_native = (cuComplex const * *)getPointer(env, Barray);
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuComplex*)beta_pointerData->getPointer(env);
-    Carray_native = (cuComplex**)getPointer(env, Carray);
+    beta_native = (cuComplex *)beta_pointerData->getPointer(env);
+    Carray_native = (cuComplex * *)getPointer(env, Carray);
     ldc_native = (int)ldc;
     batchCount_native = (int)batchCount;
 
@@ -15290,7 +16454,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgemmBatchedNative(JNIE
     cublasStatus_t jniResult_native = cublasCgemmBatched(handle_native, transa_native, transb_native, m_native, n_native, k_native, alpha_native, Aarray_native, lda_native, Barray_native, ldb_native, beta_native, Carray_native, ldc_native, batchCount_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // transa is primitive
     // transb is primitive
     // m is primitive
@@ -15307,8 +16471,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgemmBatchedNative(JNIE
     // batchCount is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -15366,13 +16529,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgemmBatchedNative(JNIE
     int m_native = 0;
     int n_native = 0;
     int k_native = 0;
-    cuDoubleComplex* alpha_native;
-    const cuDoubleComplex** Aarray_native = NULL;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * * Aarray_native = NULL;
     int lda_native = 0;
-    const cuDoubleComplex** Barray_native = NULL;
+    cuDoubleComplex const * * Barray_native = NULL;
     int ldb_native = 0;
-    cuDoubleComplex* beta_native;
-    cuDoubleComplex** Carray_native = NULL;
+    cuDoubleComplex const * beta_native = NULL;
+    cuDoubleComplex * * Carray_native = NULL;
     int ldc_native = 0;
     int batchCount_native = 0;
 
@@ -15388,18 +16551,18 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgemmBatchedNative(JNIE
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    Aarray_native = (const cuDoubleComplex**)getPointer(env, Aarray);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    Aarray_native = (cuDoubleComplex const * *)getPointer(env, Aarray);
     lda_native = (int)lda;
-    Barray_native = (const cuDoubleComplex**)getPointer(env, Barray);
+    Barray_native = (cuDoubleComplex const * *)getPointer(env, Barray);
     ldb_native = (int)ldb;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuDoubleComplex*)beta_pointerData->getPointer(env);
-    Carray_native = (cuDoubleComplex**)getPointer(env, Carray);
+    beta_native = (cuDoubleComplex *)beta_pointerData->getPointer(env);
+    Carray_native = (cuDoubleComplex * *)getPointer(env, Carray);
     ldc_native = (int)ldc;
     batchCount_native = (int)batchCount;
 
@@ -15407,7 +16570,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgemmBatchedNative(JNIE
     cublasStatus_t jniResult_native = cublasZgemmBatched(handle_native, transa_native, transb_native, m_native, n_native, k_native, alpha_native, Aarray_native, lda_native, Barray_native, ldb_native, beta_native, Carray_native, ldc_native, batchCount_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // transa is primitive
     // transb is primitive
     // m is primitive
@@ -15424,8 +16587,519 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgemmBatchedNative(JNIE
     // batchCount is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgemmStridedBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint transa, jint transb, jint m, jint n, jint k, jobject alpha, jobject A, jint lda, jlong strideA, jobject B, jint ldb, jlong strideB, jobject beta, jobject C, jint ldc, jlong strideC, jint batchCount)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasSgemmStridedBatched");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // transa is primitive
+    // transb is primitive
+    // m is primitive
+    // n is primitive
+    // k is primitive
+    if (alpha == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'alpha' is null for cublasSgemmStridedBatched");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (A == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'A' is null for cublasSgemmStridedBatched");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // lda is primitive
+    // strideA is primitive
+    if (B == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'B' is null for cublasSgemmStridedBatched");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // ldb is primitive
+    // strideB is primitive
+    if (beta == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'beta' is null for cublasSgemmStridedBatched");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (C == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'C' is null for cublasSgemmStridedBatched");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // ldc is primitive
+    // strideC is primitive
+    // batchCount is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasSgemmStridedBatched(handle=%p, transa=%d, transb=%d, m=%d, n=%d, k=%d, alpha=%p, A=%p, lda=%d, strideA=%ld, B=%p, ldb=%d, strideB=%ld, beta=%p, C=%p, ldc=%d, strideC=%ld, batchCount=%d)\n",
+        handle, transa, transb, m, n, k, alpha, A, lda, strideA, B, ldb, strideB, beta, C, ldc, strideC, batchCount);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    cublasOperation_t transa_native;
+    cublasOperation_t transb_native;
+    int m_native = 0;
+    int n_native = 0;
+    int k_native = 0;
+    float const * alpha_native = NULL;
+    float const * A_native = NULL;
+    int lda_native = 0;
+    long long  strideA_native = 0;
+    float const * B_native = NULL;
+    int ldb_native = 0;
+    long long  strideB_native = 0;
+    float const * beta_native = NULL;
+    float * C_native = NULL;
+    int ldc_native = 0;
+    long long  strideC_native = 0;
+    int batchCount_native = 0;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    transa_native = (cublasOperation_t)transa;
+    transb_native = (cublasOperation_t)transb;
+    m_native = (int)m;
+    n_native = (int)n;
+    k_native = (int)k;
+    PointerData *alpha_pointerData = initPointerData(env, alpha);
+    if (alpha_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    A_native = (float const *)getPointer(env, A);
+    lda_native = (int)lda;
+    strideA_native = (long long)strideA;
+    B_native = (float const *)getPointer(env, B);
+    ldb_native = (int)ldb;
+    strideB_native = (long long)strideB;
+    PointerData *beta_pointerData = initPointerData(env, beta);
+    if (beta_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    beta_native = (float *)beta_pointerData->getPointer(env);
+    C_native = (float *)getPointer(env, C);
+    ldc_native = (int)ldc;
+    strideC_native = (long long)strideC;
+    batchCount_native = (int)batchCount;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasSgemmStridedBatched(handle_native, transa_native, transb_native, m_native, n_native, k_native, alpha_native, A_native, lda_native, strideA_native, B_native, ldb_native, strideB_native, beta_native, C_native, ldc_native, strideC_native, batchCount_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // transa is primitive
+    // transb is primitive
+    // m is primitive
+    // n is primitive
+    // k is primitive
+    if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // A is a native pointer
+    // lda is primitive
+    // strideA is primitive
+    // B is a native pointer
+    // ldb is primitive
+    // strideB is primitive
+    if (!releasePointerData(env, beta_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // C is a native pointer
+    // ldc is primitive
+    // strideC is primitive
+    // batchCount is primitive
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgemmStridedBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint transa, jint transb, jint m, jint n, jint k, jobject alpha, jobject A, jint lda, jlong strideA, jobject B, jint ldb, jlong strideB, jobject beta, jobject C, jint ldc, jlong strideC, jint batchCount)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasDgemmStridedBatched");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // transa is primitive
+    // transb is primitive
+    // m is primitive
+    // n is primitive
+    // k is primitive
+    if (alpha == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'alpha' is null for cublasDgemmStridedBatched");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (A == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'A' is null for cublasDgemmStridedBatched");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // lda is primitive
+    // strideA is primitive
+    if (B == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'B' is null for cublasDgemmStridedBatched");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // ldb is primitive
+    // strideB is primitive
+    if (beta == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'beta' is null for cublasDgemmStridedBatched");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (C == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'C' is null for cublasDgemmStridedBatched");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // ldc is primitive
+    // strideC is primitive
+    // batchCount is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasDgemmStridedBatched(handle=%p, transa=%d, transb=%d, m=%d, n=%d, k=%d, alpha=%p, A=%p, lda=%d, strideA=%ld, B=%p, ldb=%d, strideB=%ld, beta=%p, C=%p, ldc=%d, strideC=%ld, batchCount=%d)\n",
+        handle, transa, transb, m, n, k, alpha, A, lda, strideA, B, ldb, strideB, beta, C, ldc, strideC, batchCount);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    cublasOperation_t transa_native;
+    cublasOperation_t transb_native;
+    int m_native = 0;
+    int n_native = 0;
+    int k_native = 0;
+    double const * alpha_native = NULL;
+    double const * A_native = NULL;
+    int lda_native = 0;
+    long long  strideA_native = 0;
+    double const * B_native = NULL;
+    int ldb_native = 0;
+    long long  strideB_native = 0;
+    double const * beta_native = NULL;
+    double * C_native = NULL;
+    int ldc_native = 0;
+    long long  strideC_native = 0;
+    int batchCount_native = 0;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    transa_native = (cublasOperation_t)transa;
+    transb_native = (cublasOperation_t)transb;
+    m_native = (int)m;
+    n_native = (int)n;
+    k_native = (int)k;
+    PointerData *alpha_pointerData = initPointerData(env, alpha);
+    if (alpha_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    A_native = (double const *)getPointer(env, A);
+    lda_native = (int)lda;
+    strideA_native = (long long)strideA;
+    B_native = (double const *)getPointer(env, B);
+    ldb_native = (int)ldb;
+    strideB_native = (long long)strideB;
+    PointerData *beta_pointerData = initPointerData(env, beta);
+    if (beta_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    beta_native = (double *)beta_pointerData->getPointer(env);
+    C_native = (double *)getPointer(env, C);
+    ldc_native = (int)ldc;
+    strideC_native = (long long)strideC;
+    batchCount_native = (int)batchCount;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasDgemmStridedBatched(handle_native, transa_native, transb_native, m_native, n_native, k_native, alpha_native, A_native, lda_native, strideA_native, B_native, ldb_native, strideB_native, beta_native, C_native, ldc_native, strideC_native, batchCount_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // transa is primitive
+    // transb is primitive
+    // m is primitive
+    // n is primitive
+    // k is primitive
+    if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // A is a native pointer
+    // lda is primitive
+    // strideA is primitive
+    // B is a native pointer
+    // ldb is primitive
+    // strideB is primitive
+    if (!releasePointerData(env, beta_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // C is a native pointer
+    // ldc is primitive
+    // strideC is primitive
+    // batchCount is primitive
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgemmStridedBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint transa, jint transb, jint m, jint n, jint k, jobject alpha, jobject A, jint lda, jlong strideA, jobject B, jint ldb, jlong strideB, jobject beta, jobject C, jint ldc, jlong strideC, jint batchCount)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasCgemmStridedBatched");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // transa is primitive
+    // transb is primitive
+    // m is primitive
+    // n is primitive
+    // k is primitive
+    if (alpha == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'alpha' is null for cublasCgemmStridedBatched");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (A == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'A' is null for cublasCgemmStridedBatched");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // lda is primitive
+    // strideA is primitive
+    if (B == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'B' is null for cublasCgemmStridedBatched");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // ldb is primitive
+    // strideB is primitive
+    if (beta == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'beta' is null for cublasCgemmStridedBatched");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (C == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'C' is null for cublasCgemmStridedBatched");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // ldc is primitive
+    // strideC is primitive
+    // batchCount is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasCgemmStridedBatched(handle=%p, transa=%d, transb=%d, m=%d, n=%d, k=%d, alpha=%p, A=%p, lda=%d, strideA=%ld, B=%p, ldb=%d, strideB=%ld, beta=%p, C=%p, ldc=%d, strideC=%ld, batchCount=%d)\n",
+        handle, transa, transb, m, n, k, alpha, A, lda, strideA, B, ldb, strideB, beta, C, ldc, strideC, batchCount);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    cublasOperation_t transa_native;
+    cublasOperation_t transb_native;
+    int m_native = 0;
+    int n_native = 0;
+    int k_native = 0;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * A_native = NULL;
+    int lda_native = 0;
+    long long  strideA_native = 0;
+    cuComplex const * B_native = NULL;
+    int ldb_native = 0;
+    long long  strideB_native = 0;
+    cuComplex const * beta_native = NULL;
+    cuComplex * C_native = NULL;
+    int ldc_native = 0;
+    long long  strideC_native = 0;
+    int batchCount_native = 0;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    transa_native = (cublasOperation_t)transa;
+    transb_native = (cublasOperation_t)transb;
+    m_native = (int)m;
+    n_native = (int)n;
+    k_native = (int)k;
+    PointerData *alpha_pointerData = initPointerData(env, alpha);
+    if (alpha_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuComplex const *)getPointer(env, A);
+    lda_native = (int)lda;
+    strideA_native = (long long)strideA;
+    B_native = (cuComplex const *)getPointer(env, B);
+    ldb_native = (int)ldb;
+    strideB_native = (long long)strideB;
+    PointerData *beta_pointerData = initPointerData(env, beta);
+    if (beta_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    beta_native = (cuComplex *)beta_pointerData->getPointer(env);
+    C_native = (cuComplex *)getPointer(env, C);
+    ldc_native = (int)ldc;
+    strideC_native = (long long)strideC;
+    batchCount_native = (int)batchCount;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasCgemmStridedBatched(handle_native, transa_native, transb_native, m_native, n_native, k_native, alpha_native, A_native, lda_native, strideA_native, B_native, ldb_native, strideB_native, beta_native, C_native, ldc_native, strideC_native, batchCount_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // transa is primitive
+    // transb is primitive
+    // m is primitive
+    // n is primitive
+    // k is primitive
+    if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // A is a native pointer
+    // lda is primitive
+    // strideA is primitive
+    // B is a native pointer
+    // ldb is primitive
+    // strideB is primitive
+    if (!releasePointerData(env, beta_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // C is a native pointer
+    // ldc is primitive
+    // strideC is primitive
+    // batchCount is primitive
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgemmStridedBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint transa, jint transb, jint m, jint n, jint k, jobject alpha, jobject A, jint lda, jlong strideA, jobject B, jint ldb, jlong strideB, jobject beta, jobject C, jint ldc, jlong strideC, jint batchCount)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasZgemmStridedBatched");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // transa is primitive
+    // transb is primitive
+    // m is primitive
+    // n is primitive
+    // k is primitive
+    if (alpha == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'alpha' is null for cublasZgemmStridedBatched");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (A == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'A' is null for cublasZgemmStridedBatched");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // lda is primitive
+    // strideA is primitive
+    if (B == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'B' is null for cublasZgemmStridedBatched");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // ldb is primitive
+    // strideB is primitive
+    if (beta == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'beta' is null for cublasZgemmStridedBatched");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (C == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'C' is null for cublasZgemmStridedBatched");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // ldc is primitive
+    // strideC is primitive
+    // batchCount is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasZgemmStridedBatched(handle=%p, transa=%d, transb=%d, m=%d, n=%d, k=%d, alpha=%p, A=%p, lda=%d, strideA=%ld, B=%p, ldb=%d, strideB=%ld, beta=%p, C=%p, ldc=%d, strideC=%ld, batchCount=%d)\n",
+        handle, transa, transb, m, n, k, alpha, A, lda, strideA, B, ldb, strideB, beta, C, ldc, strideC, batchCount);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    cublasOperation_t transa_native;
+    cublasOperation_t transb_native;
+    int m_native = 0;
+    int n_native = 0;
+    int k_native = 0;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * A_native = NULL;
+    int lda_native = 0;
+    long long  strideA_native = 0;
+    cuDoubleComplex const * B_native = NULL;
+    int ldb_native = 0;
+    long long  strideB_native = 0;
+    cuDoubleComplex const * beta_native = NULL;
+    cuDoubleComplex * C_native = NULL;
+    int ldc_native = 0;
+    long long  strideC_native = 0;
+    int batchCount_native = 0;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    transa_native = (cublasOperation_t)transa;
+    transb_native = (cublasOperation_t)transb;
+    m_native = (int)m;
+    n_native = (int)n;
+    k_native = (int)k;
+    PointerData *alpha_pointerData = initPointerData(env, alpha);
+    if (alpha_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuDoubleComplex const *)getPointer(env, A);
+    lda_native = (int)lda;
+    strideA_native = (long long)strideA;
+    B_native = (cuDoubleComplex const *)getPointer(env, B);
+    ldb_native = (int)ldb;
+    strideB_native = (long long)strideB;
+    PointerData *beta_pointerData = initPointerData(env, beta);
+    if (beta_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    beta_native = (cuDoubleComplex *)beta_pointerData->getPointer(env);
+    C_native = (cuDoubleComplex *)getPointer(env, C);
+    ldc_native = (int)ldc;
+    strideC_native = (long long)strideC;
+    batchCount_native = (int)batchCount;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasZgemmStridedBatched(handle_native, transa_native, transb_native, m_native, n_native, k_native, alpha_native, A_native, lda_native, strideA_native, B_native, ldb_native, strideB_native, beta_native, C_native, ldc_native, strideC_native, batchCount_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // transa is primitive
+    // transb is primitive
+    // m is primitive
+    // n is primitive
+    // k is primitive
+    if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // A is a native pointer
+    // lda is primitive
+    // strideA is primitive
+    // B is a native pointer
+    // ldb is primitive
+    // strideB is primitive
+    if (!releasePointerData(env, beta_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // C is a native pointer
+    // ldc is primitive
+    // strideC is primitive
+    // batchCount is primitive
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -15480,13 +17154,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgeamNative(JNIEnv *env
     cublasOperation_t transb_native;
     int m_native = 0;
     int n_native = 0;
-    float* alpha_native;
-    float* A_native;
+    float const * alpha_native = NULL;
+    float const * A_native = NULL;
     int lda_native = 0;
-    float* beta_native;
-    float* B_native;
+    float const * beta_native = NULL;
+    float const * B_native = NULL;
     int ldb_native = 0;
-    float* C_native;
+    float * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -15500,25 +17174,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgeamNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    A_native = (float*)getPointer(env, A);
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    A_native = (float const *)getPointer(env, A);
     lda_native = (int)lda;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (float*)beta_pointerData->getPointer(env);
-    B_native = (float*)getPointer(env, B);
+    beta_native = (float *)beta_pointerData->getPointer(env);
+    B_native = (float const *)getPointer(env, B);
     ldb_native = (int)ldb;
-    C_native = (float*)getPointer(env, C);
+    C_native = (float *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSgeam(handle_native, transa_native, transb_native, m_native, n_native, alpha_native, A_native, lda_native, beta_native, B_native, ldb_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // transa is primitive
     // transb is primitive
     // m is primitive
@@ -15533,8 +17207,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgeamNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -15589,13 +17262,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgeamNative(JNIEnv *env
     cublasOperation_t transb_native;
     int m_native = 0;
     int n_native = 0;
-    double* alpha_native;
-    double* A_native;
+    double const * alpha_native = NULL;
+    double const * A_native = NULL;
     int lda_native = 0;
-    double* beta_native;
-    double* B_native;
+    double const * beta_native = NULL;
+    double const * B_native = NULL;
     int ldb_native = 0;
-    double* C_native;
+    double * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -15609,25 +17282,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgeamNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (double*)alpha_pointerData->getPointer(env);
-    A_native = (double*)getPointer(env, A);
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    A_native = (double const *)getPointer(env, A);
     lda_native = (int)lda;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (double*)beta_pointerData->getPointer(env);
-    B_native = (double*)getPointer(env, B);
+    beta_native = (double *)beta_pointerData->getPointer(env);
+    B_native = (double const *)getPointer(env, B);
     ldb_native = (int)ldb;
-    C_native = (double*)getPointer(env, C);
+    C_native = (double *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDgeam(handle_native, transa_native, transb_native, m_native, n_native, alpha_native, A_native, lda_native, beta_native, B_native, ldb_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // transa is primitive
     // transb is primitive
     // m is primitive
@@ -15642,8 +17315,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgeamNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -15698,13 +17370,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgeamNative(JNIEnv *env
     cublasOperation_t transb_native;
     int m_native = 0;
     int n_native = 0;
-    cuComplex* alpha_native;
-    cuComplex* A_native;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * A_native = NULL;
     int lda_native = 0;
-    cuComplex* beta_native;
-    cuComplex* B_native;
+    cuComplex const * beta_native = NULL;
+    cuComplex const * B_native = NULL;
     int ldb_native = 0;
-    cuComplex* C_native;
+    cuComplex * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -15718,25 +17390,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgeamNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuComplex*)getPointer(env, A);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuComplex const *)getPointer(env, A);
     lda_native = (int)lda;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuComplex*)beta_pointerData->getPointer(env);
-    B_native = (cuComplex*)getPointer(env, B);
+    beta_native = (cuComplex *)beta_pointerData->getPointer(env);
+    B_native = (cuComplex const *)getPointer(env, B);
     ldb_native = (int)ldb;
-    C_native = (cuComplex*)getPointer(env, C);
+    C_native = (cuComplex *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCgeam(handle_native, transa_native, transb_native, m_native, n_native, alpha_native, A_native, lda_native, beta_native, B_native, ldb_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // transa is primitive
     // transb is primitive
     // m is primitive
@@ -15751,8 +17423,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgeamNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -15807,13 +17478,13 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgeamNative(JNIEnv *env
     cublasOperation_t transb_native;
     int m_native = 0;
     int n_native = 0;
-    cuDoubleComplex* alpha_native;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * A_native = NULL;
     int lda_native = 0;
-    cuDoubleComplex* beta_native;
-    cuDoubleComplex* B_native;
+    cuDoubleComplex const * beta_native = NULL;
+    cuDoubleComplex const * B_native = NULL;
     int ldb_native = 0;
-    cuDoubleComplex* C_native;
+    cuDoubleComplex * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -15827,25 +17498,25 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgeamNative(JNIEnv *env
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuDoubleComplex const *)getPointer(env, A);
     lda_native = (int)lda;
     PointerData *beta_pointerData = initPointerData(env, beta);
     if (beta_pointerData == NULL)
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    beta_native = (cuDoubleComplex*)beta_pointerData->getPointer(env);
-    B_native = (cuDoubleComplex*)getPointer(env, B);
+    beta_native = (cuDoubleComplex *)beta_pointerData->getPointer(env);
+    B_native = (cuDoubleComplex const *)getPointer(env, B);
     ldb_native = (int)ldb;
-    C_native = (cuDoubleComplex*)getPointer(env, C);
+    C_native = (cuDoubleComplex *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZgeam(handle_native, transa_native, transb_native, m_native, n_native, alpha_native, A_native, lda_native, beta_native, B_native, ldb_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // transa is primitive
     // transb is primitive
     // m is primitive
@@ -15860,12 +17531,11 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgeamNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
-JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgetrfBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject A, jint lda, jobject P, jobject INFO, jint batchSize)
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgetrfBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject A, jint lda, jobject P, jobject info, jint batchSize)
 {
     // Null-checks for non-primitive arguments
     if (handle == NULL)
@@ -15885,54 +17555,53 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgetrfBatchedNative(JNI
         ThrowByName(env, "java/lang/NullPointerException", "Parameter 'P' is null for cublasSgetrfBatched");
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    if (INFO == NULL)
+    if (info == NULL)
     {
-        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'INFO' is null for cublasSgetrfBatched");
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'info' is null for cublasSgetrfBatched");
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
     // batchSize is primitive
 
     // Log message
-    Logger::log(LOG_TRACE, "Executing cublasSgetrfBatched(handle=%p, n=%d, A=%p, lda=%d, P=%p, INFO=%p, batchSize=%d)\n",
-        handle, n, A, lda, P, INFO, batchSize);
+    Logger::log(LOG_TRACE, "Executing cublasSgetrfBatched(handle=%p, n=%d, A=%p, lda=%d, P=%p, info=%p, batchSize=%d)\n",
+        handle, n, A, lda, P, info, batchSize);
 
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    float** A_native = NULL;
+    float * * A_native = NULL;
     int lda_native = 0;
-    int* P_native;
-    int* INFO_native;
+    int * P_native = NULL;
+    int * info_native = NULL;
     int batchSize_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    A_native = (float**)getPointer(env, A);
+    A_native = (float * *)getPointer(env, A);
     lda_native = (int)lda;
-    P_native = (int*)getPointer(env, P);
-    INFO_native = (int*)getPointer(env, INFO);
+    P_native = (int *)getPointer(env, P);
+    info_native = (int *)getPointer(env, info);
     batchSize_native = (int)batchSize;
 
     // Native function call
-    cublasStatus_t jniResult_native = cublasSgetrfBatched(handle_native, n_native, A_native, lda_native, P_native, INFO_native, batchSize_native);
+    cublasStatus_t jniResult_native = cublasSgetrfBatched(handle_native, n_native, A_native, lda_native, P_native, info_native, batchSize_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // A is a native pointer
     // lda is primitive
     // P is a native pointer
-    // INFO is a native pointer
+    // info is a native pointer
     // batchSize is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
-JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgetrfBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject A, jint lda, jobject P, jobject INFO, jint batchSize)
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgetrfBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject A, jint lda, jobject P, jobject info, jint batchSize)
 {
     // Null-checks for non-primitive arguments
     if (handle == NULL)
@@ -15952,54 +17621,53 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgetrfBatchedNative(JNI
         ThrowByName(env, "java/lang/NullPointerException", "Parameter 'P' is null for cublasDgetrfBatched");
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    if (INFO == NULL)
+    if (info == NULL)
     {
-        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'INFO' is null for cublasDgetrfBatched");
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'info' is null for cublasDgetrfBatched");
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
     // batchSize is primitive
 
     // Log message
-    Logger::log(LOG_TRACE, "Executing cublasDgetrfBatched(handle=%p, n=%d, A=%p, lda=%d, P=%p, INFO=%p, batchSize=%d)\n",
-        handle, n, A, lda, P, INFO, batchSize);
+    Logger::log(LOG_TRACE, "Executing cublasDgetrfBatched(handle=%p, n=%d, A=%p, lda=%d, P=%p, info=%p, batchSize=%d)\n",
+        handle, n, A, lda, P, info, batchSize);
 
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    double** A_native = NULL;
+    double * * A_native = NULL;
     int lda_native = 0;
-    int* P_native;
-    int* INFO_native;
+    int * P_native = NULL;
+    int * info_native = NULL;
     int batchSize_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    A_native = (double**)getPointer(env, A);
+    A_native = (double * *)getPointer(env, A);
     lda_native = (int)lda;
-    P_native = (int*)getPointer(env, P);
-    INFO_native = (int*)getPointer(env, INFO);
+    P_native = (int *)getPointer(env, P);
+    info_native = (int *)getPointer(env, info);
     batchSize_native = (int)batchSize;
 
     // Native function call
-    cublasStatus_t jniResult_native = cublasDgetrfBatched(handle_native, n_native, A_native, lda_native, P_native, INFO_native, batchSize_native);
+    cublasStatus_t jniResult_native = cublasDgetrfBatched(handle_native, n_native, A_native, lda_native, P_native, info_native, batchSize_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // A is a native pointer
     // lda is primitive
     // P is a native pointer
-    // INFO is a native pointer
+    // info is a native pointer
     // batchSize is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
-JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgetrfBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject A, jint lda, jobject P, jobject INFO, jint batchSize)
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgetrfBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject A, jint lda, jobject P, jobject info, jint batchSize)
 {
     // Null-checks for non-primitive arguments
     if (handle == NULL)
@@ -16019,54 +17687,53 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgetrfBatchedNative(JNI
         ThrowByName(env, "java/lang/NullPointerException", "Parameter 'P' is null for cublasCgetrfBatched");
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    if (INFO == NULL)
+    if (info == NULL)
     {
-        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'INFO' is null for cublasCgetrfBatched");
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'info' is null for cublasCgetrfBatched");
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
     // batchSize is primitive
 
     // Log message
-    Logger::log(LOG_TRACE, "Executing cublasCgetrfBatched(handle=%p, n=%d, A=%p, lda=%d, P=%p, INFO=%p, batchSize=%d)\n",
-        handle, n, A, lda, P, INFO, batchSize);
+    Logger::log(LOG_TRACE, "Executing cublasCgetrfBatched(handle=%p, n=%d, A=%p, lda=%d, P=%p, info=%p, batchSize=%d)\n",
+        handle, n, A, lda, P, info, batchSize);
 
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    cuComplex** A_native = NULL;
+    cuComplex * * A_native = NULL;
     int lda_native = 0;
-    int* P_native;
-    int* INFO_native;
+    int * P_native = NULL;
+    int * info_native = NULL;
     int batchSize_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    A_native = (cuComplex**)getPointer(env, A);
+    A_native = (cuComplex * *)getPointer(env, A);
     lda_native = (int)lda;
-    P_native = (int*)getPointer(env, P);
-    INFO_native = (int*)getPointer(env, INFO);
+    P_native = (int *)getPointer(env, P);
+    info_native = (int *)getPointer(env, info);
     batchSize_native = (int)batchSize;
 
     // Native function call
-    cublasStatus_t jniResult_native = cublasCgetrfBatched(handle_native, n_native, A_native, lda_native, P_native, INFO_native, batchSize_native);
+    cublasStatus_t jniResult_native = cublasCgetrfBatched(handle_native, n_native, A_native, lda_native, P_native, info_native, batchSize_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // A is a native pointer
     // lda is primitive
     // P is a native pointer
-    // INFO is a native pointer
+    // info is a native pointer
     // batchSize is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
-JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgetrfBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject A, jint lda, jobject P, jobject INFO, jint batchSize)
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgetrfBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject A, jint lda, jobject P, jobject info, jint batchSize)
 {
     // Null-checks for non-primitive arguments
     if (handle == NULL)
@@ -16086,54 +17753,53 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgetrfBatchedNative(JNI
         ThrowByName(env, "java/lang/NullPointerException", "Parameter 'P' is null for cublasZgetrfBatched");
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    if (INFO == NULL)
+    if (info == NULL)
     {
-        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'INFO' is null for cublasZgetrfBatched");
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'info' is null for cublasZgetrfBatched");
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
     // batchSize is primitive
 
     // Log message
-    Logger::log(LOG_TRACE, "Executing cublasZgetrfBatched(handle=%p, n=%d, A=%p, lda=%d, P=%p, INFO=%p, batchSize=%d)\n",
-        handle, n, A, lda, P, INFO, batchSize);
+    Logger::log(LOG_TRACE, "Executing cublasZgetrfBatched(handle=%p, n=%d, A=%p, lda=%d, P=%p, info=%p, batchSize=%d)\n",
+        handle, n, A, lda, P, info, batchSize);
 
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    cuDoubleComplex** A_native = NULL;
+    cuDoubleComplex * * A_native = NULL;
     int lda_native = 0;
-    int* P_native;
-    int* INFO_native;
+    int * P_native = NULL;
+    int * info_native = NULL;
     int batchSize_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    A_native = (cuDoubleComplex**)getPointer(env, A);
+    A_native = (cuDoubleComplex * *)getPointer(env, A);
     lda_native = (int)lda;
-    P_native = (int*)getPointer(env, P);
-    INFO_native = (int*)getPointer(env, INFO);
+    P_native = (int *)getPointer(env, P);
+    info_native = (int *)getPointer(env, info);
     batchSize_native = (int)batchSize;
 
     // Native function call
-    cublasStatus_t jniResult_native = cublasZgetrfBatched(handle_native, n_native, A_native, lda_native, P_native, INFO_native, batchSize_native);
+    cublasStatus_t jniResult_native = cublasZgetrfBatched(handle_native, n_native, A_native, lda_native, P_native, info_native, batchSize_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // A is a native pointer
     // lda is primitive
     // P is a native pointer
-    // INFO is a native pointer
+    // info is a native pointer
     // batchSize is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
-JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgetriBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject A, jint lda, jobject P, jobject C, jint ldc, jobject INFO, jint batchSize)
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgetriBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject A, jint lda, jobject P, jobject C, jint ldc, jobject info, jint batchSize)
 {
     // Null-checks for non-primitive arguments
     if (handle == NULL)
@@ -16159,60 +17825,59 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgetriBatchedNative(JNI
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
     // ldc is primitive
-    if (INFO == NULL)
+    if (info == NULL)
     {
-        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'INFO' is null for cublasSgetriBatched");
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'info' is null for cublasSgetriBatched");
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
     // batchSize is primitive
 
     // Log message
-    Logger::log(LOG_TRACE, "Executing cublasSgetriBatched(handle=%p, n=%d, A=%p, lda=%d, P=%p, C=%p, ldc=%d, INFO=%p, batchSize=%d)\n",
-        handle, n, A, lda, P, C, ldc, INFO, batchSize);
+    Logger::log(LOG_TRACE, "Executing cublasSgetriBatched(handle=%p, n=%d, A=%p, lda=%d, P=%p, C=%p, ldc=%d, info=%p, batchSize=%d)\n",
+        handle, n, A, lda, P, C, ldc, info, batchSize);
 
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    const float** A_native = NULL;
+    float const * * A_native = NULL;
     int lda_native = 0;
-    int* P_native;
-    float** C_native = NULL;
+    int const * P_native = NULL;
+    float * * C_native = NULL;
     int ldc_native = 0;
-    int* INFO_native;
+    int * info_native = NULL;
     int batchSize_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    A_native = (const float**)getPointer(env, A);
+    A_native = (float const * *)getPointer(env, A);
     lda_native = (int)lda;
-    P_native = (int*)getPointer(env, P);
-    C_native = (float**)getPointer(env, C);
+    P_native = (int const *)getPointer(env, P);
+    C_native = (float * *)getPointer(env, C);
     ldc_native = (int)ldc;
-    INFO_native = (int*)getPointer(env, INFO);
+    info_native = (int *)getPointer(env, info);
     batchSize_native = (int)batchSize;
 
     // Native function call
-    cublasStatus_t jniResult_native = cublasSgetriBatched(handle_native, n_native, A_native, lda_native, P_native, C_native, ldc_native, INFO_native, batchSize_native);
+    cublasStatus_t jniResult_native = cublasSgetriBatched(handle_native, n_native, A_native, lda_native, P_native, C_native, ldc_native, info_native, batchSize_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // A is a native pointer
     // lda is primitive
     // P is a native pointer
     // C is a native pointer
     // ldc is primitive
-    // INFO is a native pointer
+    // info is a native pointer
     // batchSize is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
-JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgetriBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject A, jint lda, jobject P, jobject C, jint ldc, jobject INFO, jint batchSize)
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgetriBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject A, jint lda, jobject P, jobject C, jint ldc, jobject info, jint batchSize)
 {
     // Null-checks for non-primitive arguments
     if (handle == NULL)
@@ -16238,60 +17903,59 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgetriBatchedNative(JNI
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
     // ldc is primitive
-    if (INFO == NULL)
+    if (info == NULL)
     {
-        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'INFO' is null for cublasDgetriBatched");
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'info' is null for cublasDgetriBatched");
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
     // batchSize is primitive
 
     // Log message
-    Logger::log(LOG_TRACE, "Executing cublasDgetriBatched(handle=%p, n=%d, A=%p, lda=%d, P=%p, C=%p, ldc=%d, INFO=%p, batchSize=%d)\n",
-        handle, n, A, lda, P, C, ldc, INFO, batchSize);
+    Logger::log(LOG_TRACE, "Executing cublasDgetriBatched(handle=%p, n=%d, A=%p, lda=%d, P=%p, C=%p, ldc=%d, info=%p, batchSize=%d)\n",
+        handle, n, A, lda, P, C, ldc, info, batchSize);
 
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    const double** A_native = NULL;
+    double const * * A_native = NULL;
     int lda_native = 0;
-    int* P_native;
-    double** C_native = NULL;
+    int const * P_native = NULL;
+    double * * C_native = NULL;
     int ldc_native = 0;
-    int* INFO_native;
+    int * info_native = NULL;
     int batchSize_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    A_native = (const double**)getPointer(env, A);
+    A_native = (double const * *)getPointer(env, A);
     lda_native = (int)lda;
-    P_native = (int*)getPointer(env, P);
-    C_native = (double**)getPointer(env, C);
+    P_native = (int const *)getPointer(env, P);
+    C_native = (double * *)getPointer(env, C);
     ldc_native = (int)ldc;
-    INFO_native = (int*)getPointer(env, INFO);
+    info_native = (int *)getPointer(env, info);
     batchSize_native = (int)batchSize;
 
     // Native function call
-    cublasStatus_t jniResult_native = cublasDgetriBatched(handle_native, n_native, A_native, lda_native, P_native, C_native, ldc_native, INFO_native, batchSize_native);
+    cublasStatus_t jniResult_native = cublasDgetriBatched(handle_native, n_native, A_native, lda_native, P_native, C_native, ldc_native, info_native, batchSize_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // A is a native pointer
     // lda is primitive
     // P is a native pointer
     // C is a native pointer
     // ldc is primitive
-    // INFO is a native pointer
+    // info is a native pointer
     // batchSize is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
-JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgetriBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject A, jint lda, jobject P, jobject C, jint ldc, jobject INFO, jint batchSize)
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgetriBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject A, jint lda, jobject P, jobject C, jint ldc, jobject info, jint batchSize)
 {
     // Null-checks for non-primitive arguments
     if (handle == NULL)
@@ -16317,60 +17981,59 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgetriBatchedNative(JNI
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
     // ldc is primitive
-    if (INFO == NULL)
+    if (info == NULL)
     {
-        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'INFO' is null for cublasCgetriBatched");
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'info' is null for cublasCgetriBatched");
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
     // batchSize is primitive
 
     // Log message
-    Logger::log(LOG_TRACE, "Executing cublasCgetriBatched(handle=%p, n=%d, A=%p, lda=%d, P=%p, C=%p, ldc=%d, INFO=%p, batchSize=%d)\n",
-        handle, n, A, lda, P, C, ldc, INFO, batchSize);
+    Logger::log(LOG_TRACE, "Executing cublasCgetriBatched(handle=%p, n=%d, A=%p, lda=%d, P=%p, C=%p, ldc=%d, info=%p, batchSize=%d)\n",
+        handle, n, A, lda, P, C, ldc, info, batchSize);
 
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    const cuComplex** A_native = NULL;
+    cuComplex const * * A_native = NULL;
     int lda_native = 0;
-    int* P_native;
-    cuComplex** C_native = NULL;
+    int const * P_native = NULL;
+    cuComplex * * C_native = NULL;
     int ldc_native = 0;
-    int* INFO_native;
+    int * info_native = NULL;
     int batchSize_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    A_native = (const cuComplex**)getPointer(env, A);
+    A_native = (cuComplex const * *)getPointer(env, A);
     lda_native = (int)lda;
-    P_native = (int*)getPointer(env, P);
-    C_native = (cuComplex**)getPointer(env, C);
+    P_native = (int const *)getPointer(env, P);
+    C_native = (cuComplex * *)getPointer(env, C);
     ldc_native = (int)ldc;
-    INFO_native = (int*)getPointer(env, INFO);
+    info_native = (int *)getPointer(env, info);
     batchSize_native = (int)batchSize;
 
     // Native function call
-    cublasStatus_t jniResult_native = cublasCgetriBatched(handle_native, n_native, A_native, lda_native, P_native, C_native, ldc_native, INFO_native, batchSize_native);
+    cublasStatus_t jniResult_native = cublasCgetriBatched(handle_native, n_native, A_native, lda_native, P_native, C_native, ldc_native, info_native, batchSize_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // A is a native pointer
     // lda is primitive
     // P is a native pointer
     // C is a native pointer
     // ldc is primitive
-    // INFO is a native pointer
+    // info is a native pointer
     // batchSize is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
-JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgetriBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject A, jint lda, jobject P, jobject C, jint ldc, jobject INFO, jint batchSize)
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgetriBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject A, jint lda, jobject P, jobject C, jint ldc, jobject info, jint batchSize)
 {
     // Null-checks for non-primitive arguments
     if (handle == NULL)
@@ -16396,59 +18059,57 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgetriBatchedNative(JNI
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
     // ldc is primitive
-    if (INFO == NULL)
+    if (info == NULL)
     {
-        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'INFO' is null for cublasZgetriBatched");
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'info' is null for cublasZgetriBatched");
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
     // batchSize is primitive
 
     // Log message
-    Logger::log(LOG_TRACE, "Executing cublasZgetriBatched(handle=%p, n=%d, A=%p, lda=%d, P=%p, C=%p, ldc=%d, INFO=%p, batchSize=%d)\n",
-        handle, n, A, lda, P, C, ldc, INFO, batchSize);
+    Logger::log(LOG_TRACE, "Executing cublasZgetriBatched(handle=%p, n=%d, A=%p, lda=%d, P=%p, C=%p, ldc=%d, info=%p, batchSize=%d)\n",
+        handle, n, A, lda, P, C, ldc, info, batchSize);
 
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    const cuDoubleComplex** A_native = NULL;
+    cuDoubleComplex const * * A_native = NULL;
     int lda_native = 0;
-    int* P_native;
-    cuDoubleComplex** C_native = NULL;
+    int const * P_native = NULL;
+    cuDoubleComplex * * C_native = NULL;
     int ldc_native = 0;
-    int* INFO_native;
+    int * info_native = NULL;
     int batchSize_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    A_native = (const cuDoubleComplex**)getPointer(env, A);
+    A_native = (cuDoubleComplex const * *)getPointer(env, A);
     lda_native = (int)lda;
-    P_native = (int*)getPointer(env, P);
-    C_native = (cuDoubleComplex**)getPointer(env, C);
+    P_native = (int const *)getPointer(env, P);
+    C_native = (cuDoubleComplex * *)getPointer(env, C);
     ldc_native = (int)ldc;
-    INFO_native = (int*)getPointer(env, INFO);
+    info_native = (int *)getPointer(env, info);
     batchSize_native = (int)batchSize;
 
     // Native function call
-    cublasStatus_t jniResult_native = cublasZgetriBatched(handle_native, n_native, A_native, lda_native, P_native, C_native, ldc_native, INFO_native, batchSize_native);
+    cublasStatus_t jniResult_native = cublasZgetriBatched(handle_native, n_native, A_native, lda_native, P_native, C_native, ldc_native, info_native, batchSize_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // A is a native pointer
     // lda is primitive
     // P is a native pointer
     // C is a native pointer
     // ldc is primitive
-    // INFO is a native pointer
+    // info is a native pointer
     // batchSize is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
-
 
 JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgetrsBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint trans, jint n, jint nrhs, jobject Aarray, jint lda, jobject devIpiv, jobject Barray, jint ldb, jobject info, jint batchSize)
 {
@@ -16494,12 +18155,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgetrsBatchedNative(JNI
     cublasOperation_t trans_native;
     int n_native = 0;
     int nrhs_native = 0;
-    const float** Aarray_native = NULL;
+    float const * * Aarray_native = NULL;
     int lda_native = 0;
-    int* devIpiv_native;
-    float** Barray_native = NULL;
+    int const * devIpiv_native = NULL;
+    float * * Barray_native = NULL;
     int ldb_native = 0;
-    int* info_native;
+    int * info_native = NULL;
     int batchSize_native = 0;
 
     // Obtain native variable values
@@ -16507,19 +18168,19 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgetrsBatchedNative(JNI
     trans_native = (cublasOperation_t)trans;
     n_native = (int)n;
     nrhs_native = (int)nrhs;
-    Aarray_native = (const float**)getPointer(env, Aarray);
+    Aarray_native = (float const * *)getPointer(env, Aarray);
     lda_native = (int)lda;
-    devIpiv_native = (int*)getPointer(env, devIpiv);
-    Barray_native = (float**)getPointer(env, Barray);
+    devIpiv_native = (int const *)getPointer(env, devIpiv);
+    Barray_native = (float * *)getPointer(env, Barray);
     ldb_native = (int)ldb;
-    info_native = (int*)getPointer(env, info);
+    info_native = (int *)getPointer(env, info);
     batchSize_native = (int)batchSize;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSgetrsBatched(handle_native, trans_native, n_native, nrhs_native, Aarray_native, lda_native, devIpiv_native, Barray_native, ldb_native, info_native, batchSize_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // trans is primitive
     // n is primitive
     // nrhs is primitive
@@ -16532,8 +18193,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgetrsBatchedNative(JNI
     // batchSize is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -16581,12 +18241,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgetrsBatchedNative(JNI
     cublasOperation_t trans_native;
     int n_native = 0;
     int nrhs_native = 0;
-    const double** Aarray_native = NULL;
+    double const * * Aarray_native = NULL;
     int lda_native = 0;
-    int* devIpiv_native;
-    double** Barray_native = NULL;
+    int const * devIpiv_native = NULL;
+    double * * Barray_native = NULL;
     int ldb_native = 0;
-    int* info_native;
+    int * info_native = NULL;
     int batchSize_native = 0;
 
     // Obtain native variable values
@@ -16594,19 +18254,19 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgetrsBatchedNative(JNI
     trans_native = (cublasOperation_t)trans;
     n_native = (int)n;
     nrhs_native = (int)nrhs;
-    Aarray_native = (const double**)getPointer(env, Aarray);
+    Aarray_native = (double const * *)getPointer(env, Aarray);
     lda_native = (int)lda;
-    devIpiv_native = (int*)getPointer(env, devIpiv);
-    Barray_native = (double**)getPointer(env, Barray);
+    devIpiv_native = (int const *)getPointer(env, devIpiv);
+    Barray_native = (double * *)getPointer(env, Barray);
     ldb_native = (int)ldb;
-    info_native = (int*)getPointer(env, info);
+    info_native = (int *)getPointer(env, info);
     batchSize_native = (int)batchSize;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDgetrsBatched(handle_native, trans_native, n_native, nrhs_native, Aarray_native, lda_native, devIpiv_native, Barray_native, ldb_native, info_native, batchSize_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // trans is primitive
     // n is primitive
     // nrhs is primitive
@@ -16619,8 +18279,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgetrsBatchedNative(JNI
     // batchSize is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -16668,12 +18327,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgetrsBatchedNative(JNI
     cublasOperation_t trans_native;
     int n_native = 0;
     int nrhs_native = 0;
-    const cuComplex** Aarray_native = NULL;
+    cuComplex const * * Aarray_native = NULL;
     int lda_native = 0;
-    int* devIpiv_native;
-    cuComplex** Barray_native = NULL;
+    int const * devIpiv_native = NULL;
+    cuComplex * * Barray_native = NULL;
     int ldb_native = 0;
-    int* info_native;
+    int * info_native = NULL;
     int batchSize_native = 0;
 
     // Obtain native variable values
@@ -16681,19 +18340,19 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgetrsBatchedNative(JNI
     trans_native = (cublasOperation_t)trans;
     n_native = (int)n;
     nrhs_native = (int)nrhs;
-    Aarray_native = (const cuComplex**)getPointer(env, Aarray);
+    Aarray_native = (cuComplex const * *)getPointer(env, Aarray);
     lda_native = (int)lda;
-    devIpiv_native = (int*)getPointer(env, devIpiv);
-    Barray_native = (cuComplex**)getPointer(env, Barray);
+    devIpiv_native = (int const *)getPointer(env, devIpiv);
+    Barray_native = (cuComplex * *)getPointer(env, Barray);
     ldb_native = (int)ldb;
-    info_native = (int*)getPointer(env, info);
+    info_native = (int *)getPointer(env, info);
     batchSize_native = (int)batchSize;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCgetrsBatched(handle_native, trans_native, n_native, nrhs_native, Aarray_native, lda_native, devIpiv_native, Barray_native, ldb_native, info_native, batchSize_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // trans is primitive
     // n is primitive
     // nrhs is primitive
@@ -16706,8 +18365,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgetrsBatchedNative(JNI
     // batchSize is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -16755,12 +18413,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgetrsBatchedNative(JNI
     cublasOperation_t trans_native;
     int n_native = 0;
     int nrhs_native = 0;
-    const cuDoubleComplex** Aarray_native = NULL;
+    cuDoubleComplex const * * Aarray_native = NULL;
     int lda_native = 0;
-    int* devIpiv_native;
-    cuDoubleComplex** Barray_native = NULL;
+    int const * devIpiv_native = NULL;
+    cuDoubleComplex * * Barray_native = NULL;
     int ldb_native = 0;
-    int* info_native;
+    int * info_native = NULL;
     int batchSize_native = 0;
 
     // Obtain native variable values
@@ -16768,19 +18426,19 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgetrsBatchedNative(JNI
     trans_native = (cublasOperation_t)trans;
     n_native = (int)n;
     nrhs_native = (int)nrhs;
-    Aarray_native = (const cuDoubleComplex**)getPointer(env, Aarray);
+    Aarray_native = (cuDoubleComplex const * *)getPointer(env, Aarray);
     lda_native = (int)lda;
-    devIpiv_native = (int*)getPointer(env, devIpiv);
-    Barray_native = (cuDoubleComplex**)getPointer(env, Barray);
+    devIpiv_native = (int const *)getPointer(env, devIpiv);
+    Barray_native = (cuDoubleComplex * *)getPointer(env, Barray);
     ldb_native = (int)ldb;
-    info_native = (int*)getPointer(env, info);
+    info_native = (int *)getPointer(env, info);
     batchSize_native = (int)batchSize;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZgetrsBatched(handle_native, trans_native, n_native, nrhs_native, Aarray_native, lda_native, devIpiv_native, Barray_native, ldb_native, info_native, batchSize_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // trans is primitive
     // n is primitive
     // nrhs is primitive
@@ -16793,12 +18451,9 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgetrsBatchedNative(JNI
     // batchSize is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
-
-
 
 JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStrsmBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint side, jint uplo, jint trans, jint diag, jint m, jint n, jobject alpha, jobject A, jint lda, jobject B, jint ldb, jint batchCount)
 {
@@ -16845,10 +18500,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStrsmBatchedNative(JNIE
     cublasDiagType_t diag_native;
     int m_native = 0;
     int n_native = 0;
-    float* alpha_native;
-    const float** A_native = NULL;
+    float const * alpha_native = NULL;
+    float const * * A_native = NULL;
     int lda_native = 0;
-    float** B_native = NULL;
+    float * * B_native = NULL;
     int ldb_native = 0;
     int batchCount_native = 0;
 
@@ -16865,10 +18520,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStrsmBatchedNative(JNIE
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (float*)alpha_pointerData->getPointer(env);
-    A_native = (const float**)getPointer(env, A);
+    alpha_native = (float *)alpha_pointerData->getPointer(env);
+    A_native = (float const * *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (float**)getPointer(env, B);
+    B_native = (float * *)getPointer(env, B);
     ldb_native = (int)ldb;
     batchCount_native = (int)batchCount;
 
@@ -16876,7 +18531,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStrsmBatchedNative(JNIE
     cublasStatus_t jniResult_native = cublasStrsmBatched(handle_native, side_native, uplo_native, trans_native, diag_native, m_native, n_native, alpha_native, A_native, lda_native, B_native, ldb_native, batchCount_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // side is primitive
     // uplo is primitive
     // trans is primitive
@@ -16891,8 +18546,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStrsmBatchedNative(JNIE
     // batchCount is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -16941,10 +18595,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtrsmBatchedNative(JNIE
     cublasDiagType_t diag_native;
     int m_native = 0;
     int n_native = 0;
-    double* alpha_native;
-    const double** A_native = NULL;
+    double const * alpha_native = NULL;
+    double const * * A_native = NULL;
     int lda_native = 0;
-    double** B_native = NULL;
+    double * * B_native = NULL;
     int ldb_native = 0;
     int batchCount_native = 0;
 
@@ -16961,10 +18615,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtrsmBatchedNative(JNIE
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (double*)alpha_pointerData->getPointer(env);
-    A_native = (const double**)getPointer(env, A);
+    alpha_native = (double *)alpha_pointerData->getPointer(env);
+    A_native = (double const * *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (double**)getPointer(env, B);
+    B_native = (double * *)getPointer(env, B);
     ldb_native = (int)ldb;
     batchCount_native = (int)batchCount;
 
@@ -16972,7 +18626,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtrsmBatchedNative(JNIE
     cublasStatus_t jniResult_native = cublasDtrsmBatched(handle_native, side_native, uplo_native, trans_native, diag_native, m_native, n_native, alpha_native, A_native, lda_native, B_native, ldb_native, batchCount_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // side is primitive
     // uplo is primitive
     // trans is primitive
@@ -16987,8 +18641,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtrsmBatchedNative(JNIE
     // batchCount is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -17037,10 +18690,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtrsmBatchedNative(JNIE
     cublasDiagType_t diag_native;
     int m_native = 0;
     int n_native = 0;
-    cuComplex* alpha_native;
-    const cuComplex** A_native = NULL;
+    cuComplex const * alpha_native = NULL;
+    cuComplex const * * A_native = NULL;
     int lda_native = 0;
-    cuComplex** B_native = NULL;
+    cuComplex * * B_native = NULL;
     int ldb_native = 0;
     int batchCount_native = 0;
 
@@ -17057,10 +18710,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtrsmBatchedNative(JNIE
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuComplex*)alpha_pointerData->getPointer(env);
-    A_native = (const cuComplex**)getPointer(env, A);
+    alpha_native = (cuComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuComplex const * *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (cuComplex**)getPointer(env, B);
+    B_native = (cuComplex * *)getPointer(env, B);
     ldb_native = (int)ldb;
     batchCount_native = (int)batchCount;
 
@@ -17068,7 +18721,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtrsmBatchedNative(JNIE
     cublasStatus_t jniResult_native = cublasCtrsmBatched(handle_native, side_native, uplo_native, trans_native, diag_native, m_native, n_native, alpha_native, A_native, lda_native, B_native, ldb_native, batchCount_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // side is primitive
     // uplo is primitive
     // trans is primitive
@@ -17083,8 +18736,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtrsmBatchedNative(JNIE
     // batchCount is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -17133,10 +18785,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtrsmBatchedNative(JNIE
     cublasDiagType_t diag_native;
     int m_native = 0;
     int n_native = 0;
-    cuDoubleComplex* alpha_native;
-    const cuDoubleComplex** A_native = NULL;
+    cuDoubleComplex const * alpha_native = NULL;
+    cuDoubleComplex const * * A_native = NULL;
     int lda_native = 0;
-    cuDoubleComplex** B_native = NULL;
+    cuDoubleComplex * * B_native = NULL;
     int ldb_native = 0;
     int batchCount_native = 0;
 
@@ -17153,10 +18805,10 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtrsmBatchedNative(JNIE
     {
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
-    alpha_native = (cuDoubleComplex*)alpha_pointerData->getPointer(env);
-    A_native = (const cuDoubleComplex**)getPointer(env, A);
+    alpha_native = (cuDoubleComplex *)alpha_pointerData->getPointer(env);
+    A_native = (cuDoubleComplex const * *)getPointer(env, A);
     lda_native = (int)lda;
-    B_native = (cuDoubleComplex**)getPointer(env, B);
+    B_native = (cuDoubleComplex * *)getPointer(env, B);
     ldb_native = (int)ldb;
     batchCount_native = (int)batchCount;
 
@@ -17164,7 +18816,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtrsmBatchedNative(JNIE
     cublasStatus_t jniResult_native = cublasZtrsmBatched(handle_native, side_native, uplo_native, trans_native, diag_native, m_native, n_native, alpha_native, A_native, lda_native, B_native, ldb_native, batchCount_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // side is primitive
     // uplo is primitive
     // trans is primitive
@@ -17179,12 +18831,11 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtrsmBatchedNative(JNIE
     // batchCount is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
-JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSmatinvBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject A, jint lda, jobject Ainv, jint lda_inv, jobject INFO, jint batchSize)
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSmatinvBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject A, jint lda, jobject Ainv, jint lda_inv, jobject info, jint batchSize)
 {
     // Null-checks for non-primitive arguments
     if (handle == NULL)
@@ -17205,57 +18856,56 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSmatinvBatchedNative(JN
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
     // lda_inv is primitive
-    if (INFO == NULL)
+    if (info == NULL)
     {
-        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'INFO' is null for cublasSmatinvBatched");
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'info' is null for cublasSmatinvBatched");
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
     // batchSize is primitive
 
     // Log message
-    Logger::log(LOG_TRACE, "Executing cublasSmatinvBatched(handle=%p, n=%d, A=%p, lda=%d, Ainv=%p, lda_inv=%d, INFO=%p, batchSize=%d)\n",
-        handle, n, A, lda, Ainv, lda_inv, INFO, batchSize);
+    Logger::log(LOG_TRACE, "Executing cublasSmatinvBatched(handle=%p, n=%d, A=%p, lda=%d, Ainv=%p, lda_inv=%d, info=%p, batchSize=%d)\n",
+        handle, n, A, lda, Ainv, lda_inv, info, batchSize);
 
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    const float** A_native = NULL;
+    float const * * A_native = NULL;
     int lda_native = 0;
-    float** Ainv_native = NULL;
+    float * * Ainv_native = NULL;
     int lda_inv_native = 0;
-    int* INFO_native;
+    int * info_native = NULL;
     int batchSize_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    A_native = (const float**)getPointer(env, A);
+    A_native = (float const * *)getPointer(env, A);
     lda_native = (int)lda;
-    Ainv_native = (float**)getPointer(env, Ainv);
+    Ainv_native = (float * *)getPointer(env, Ainv);
     lda_inv_native = (int)lda_inv;
-    INFO_native = (int*)getPointer(env, INFO);
+    info_native = (int *)getPointer(env, info);
     batchSize_native = (int)batchSize;
 
     // Native function call
-    cublasStatus_t jniResult_native = cublasSmatinvBatched(handle_native, n_native, A_native, lda_native, Ainv_native, lda_inv_native, INFO_native, batchSize_native);
+    cublasStatus_t jniResult_native = cublasSmatinvBatched(handle_native, n_native, A_native, lda_native, Ainv_native, lda_inv_native, info_native, batchSize_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // A is a native pointer
     // lda is primitive
     // Ainv is a native pointer
     // lda_inv is primitive
-    // INFO is a native pointer
+    // info is a native pointer
     // batchSize is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
-JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDmatinvBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject A, jint lda, jobject Ainv, jint lda_inv, jobject INFO, jint batchSize)
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDmatinvBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject A, jint lda, jobject Ainv, jint lda_inv, jobject info, jint batchSize)
 {
     // Null-checks for non-primitive arguments
     if (handle == NULL)
@@ -17276,57 +18926,56 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDmatinvBatchedNative(JN
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
     // lda_inv is primitive
-    if (INFO == NULL)
+    if (info == NULL)
     {
-        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'INFO' is null for cublasDmatinvBatched");
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'info' is null for cublasDmatinvBatched");
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
     // batchSize is primitive
 
     // Log message
-    Logger::log(LOG_TRACE, "Executing cublasDmatinvBatched(handle=%p, n=%d, A=%p, lda=%d, Ainv=%p, lda_inv=%d, INFO=%p, batchSize=%d)\n",
-        handle, n, A, lda, Ainv, lda_inv, INFO, batchSize);
+    Logger::log(LOG_TRACE, "Executing cublasDmatinvBatched(handle=%p, n=%d, A=%p, lda=%d, Ainv=%p, lda_inv=%d, info=%p, batchSize=%d)\n",
+        handle, n, A, lda, Ainv, lda_inv, info, batchSize);
 
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    const double** A_native = NULL;
+    double const * * A_native = NULL;
     int lda_native = 0;
-    double** Ainv_native = NULL;
+    double * * Ainv_native = NULL;
     int lda_inv_native = 0;
-    int* INFO_native;
+    int * info_native = NULL;
     int batchSize_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    A_native = (const double**)getPointer(env, A);
+    A_native = (double const * *)getPointer(env, A);
     lda_native = (int)lda;
-    Ainv_native = (double**)getPointer(env, Ainv);
+    Ainv_native = (double * *)getPointer(env, Ainv);
     lda_inv_native = (int)lda_inv;
-    INFO_native = (int*)getPointer(env, INFO);
+    info_native = (int *)getPointer(env, info);
     batchSize_native = (int)batchSize;
 
     // Native function call
-    cublasStatus_t jniResult_native = cublasDmatinvBatched(handle_native, n_native, A_native, lda_native, Ainv_native, lda_inv_native, INFO_native, batchSize_native);
+    cublasStatus_t jniResult_native = cublasDmatinvBatched(handle_native, n_native, A_native, lda_native, Ainv_native, lda_inv_native, info_native, batchSize_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // A is a native pointer
     // lda is primitive
     // Ainv is a native pointer
     // lda_inv is primitive
-    // INFO is a native pointer
+    // info is a native pointer
     // batchSize is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
-JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCmatinvBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject A, jint lda, jobject Ainv, jint lda_inv, jobject INFO, jint batchSize)
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCmatinvBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject A, jint lda, jobject Ainv, jint lda_inv, jobject info, jint batchSize)
 {
     // Null-checks for non-primitive arguments
     if (handle == NULL)
@@ -17347,57 +18996,56 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCmatinvBatchedNative(JN
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
     // lda_inv is primitive
-    if (INFO == NULL)
+    if (info == NULL)
     {
-        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'INFO' is null for cublasCmatinvBatched");
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'info' is null for cublasCmatinvBatched");
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
     // batchSize is primitive
 
     // Log message
-    Logger::log(LOG_TRACE, "Executing cublasCmatinvBatched(handle=%p, n=%d, A=%p, lda=%d, Ainv=%p, lda_inv=%d, INFO=%p, batchSize=%d)\n",
-        handle, n, A, lda, Ainv, lda_inv, INFO, batchSize);
+    Logger::log(LOG_TRACE, "Executing cublasCmatinvBatched(handle=%p, n=%d, A=%p, lda=%d, Ainv=%p, lda_inv=%d, info=%p, batchSize=%d)\n",
+        handle, n, A, lda, Ainv, lda_inv, info, batchSize);
 
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    const cuComplex** A_native = NULL;
+    cuComplex const * * A_native = NULL;
     int lda_native = 0;
-    cuComplex** Ainv_native = NULL;
+    cuComplex * * Ainv_native = NULL;
     int lda_inv_native = 0;
-    int* INFO_native;
+    int * info_native = NULL;
     int batchSize_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    A_native = (const cuComplex**)getPointer(env, A);
+    A_native = (cuComplex const * *)getPointer(env, A);
     lda_native = (int)lda;
-    Ainv_native = (cuComplex**)getPointer(env, Ainv);
+    Ainv_native = (cuComplex * *)getPointer(env, Ainv);
     lda_inv_native = (int)lda_inv;
-    INFO_native = (int*)getPointer(env, INFO);
+    info_native = (int *)getPointer(env, info);
     batchSize_native = (int)batchSize;
 
     // Native function call
-    cublasStatus_t jniResult_native = cublasCmatinvBatched(handle_native, n_native, A_native, lda_native, Ainv_native, lda_inv_native, INFO_native, batchSize_native);
+    cublasStatus_t jniResult_native = cublasCmatinvBatched(handle_native, n_native, A_native, lda_native, Ainv_native, lda_inv_native, info_native, batchSize_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // A is a native pointer
     // lda is primitive
     // Ainv is a native pointer
     // lda_inv is primitive
-    // INFO is a native pointer
+    // info is a native pointer
     // batchSize is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
-JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZmatinvBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject A, jint lda, jobject Ainv, jint lda_inv, jobject INFO, jint batchSize)
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZmatinvBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject A, jint lda, jobject Ainv, jint lda_inv, jobject info, jint batchSize)
 {
     // Null-checks for non-primitive arguments
     if (handle == NULL)
@@ -17418,53 +19066,52 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZmatinvBatchedNative(JN
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
     // lda_inv is primitive
-    if (INFO == NULL)
+    if (info == NULL)
     {
-        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'INFO' is null for cublasZmatinvBatched");
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'info' is null for cublasZmatinvBatched");
         return JCUBLAS_STATUS_INTERNAL_ERROR;
     }
     // batchSize is primitive
 
     // Log message
-    Logger::log(LOG_TRACE, "Executing cublasZmatinvBatched(handle=%p, n=%d, A=%p, lda=%d, Ainv=%p, lda_inv=%d, INFO=%p, batchSize=%d)\n",
-        handle, n, A, lda, Ainv, lda_inv, INFO, batchSize);
+    Logger::log(LOG_TRACE, "Executing cublasZmatinvBatched(handle=%p, n=%d, A=%p, lda=%d, Ainv=%p, lda_inv=%d, info=%p, batchSize=%d)\n",
+        handle, n, A, lda, Ainv, lda_inv, info, batchSize);
 
     // Native variable declarations
     cublasHandle_t handle_native;
     int n_native = 0;
-    const cuDoubleComplex** A_native = NULL;
+    cuDoubleComplex const * * A_native = NULL;
     int lda_native = 0;
-    cuDoubleComplex** Ainv_native = NULL;
+    cuDoubleComplex * * Ainv_native = NULL;
     int lda_inv_native = 0;
-    int* INFO_native;
+    int * info_native = NULL;
     int batchSize_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     n_native = (int)n;
-    A_native = (const cuDoubleComplex**)getPointer(env, A);
+    A_native = (cuDoubleComplex const * *)getPointer(env, A);
     lda_native = (int)lda;
-    Ainv_native = (cuDoubleComplex**)getPointer(env, Ainv);
+    Ainv_native = (cuDoubleComplex * *)getPointer(env, Ainv);
     lda_inv_native = (int)lda_inv;
-    INFO_native = (int*)getPointer(env, INFO);
+    info_native = (int *)getPointer(env, info);
     batchSize_native = (int)batchSize;
 
     // Native function call
-    cublasStatus_t jniResult_native = cublasZmatinvBatched(handle_native, n_native, A_native, lda_native, Ainv_native, lda_inv_native, INFO_native, batchSize_native);
+    cublasStatus_t jniResult_native = cublasZmatinvBatched(handle_native, n_native, A_native, lda_native, Ainv_native, lda_inv_native, info_native, batchSize_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // n is primitive
     // A is a native pointer
     // lda is primitive
     // Ainv is a native pointer
     // lda_inv is primitive
-    // INFO is a native pointer
+    // info is a native pointer
     // batchSize is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -17504,27 +19151,27 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgeqrfBatchedNative(JNI
     cublasHandle_t handle_native;
     int m_native = 0;
     int n_native = 0;
-    float** Aarray_native = NULL;
+    float * * Aarray_native = NULL;
     int lda_native = 0;
-    float** TauArray_native = NULL;
-    int* info_native;
+    float * * TauArray_native = NULL;
+    int * info_native = NULL;
     int batchSize_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     m_native = (int)m;
     n_native = (int)n;
-    Aarray_native = (float**)getPointer(env, Aarray);
+    Aarray_native = (float * *)getPointer(env, Aarray);
     lda_native = (int)lda;
-    TauArray_native = (float**)getPointer(env, TauArray);
-    info_native = (int*)getPointer(env, info);
+    TauArray_native = (float * *)getPointer(env, TauArray);
+    info_native = (int *)getPointer(env, info);
     batchSize_native = (int)batchSize;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSgeqrfBatched(handle_native, m_native, n_native, Aarray_native, lda_native, TauArray_native, info_native, batchSize_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // m is primitive
     // n is primitive
     // Aarray is a native pointer
@@ -17534,8 +19181,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgeqrfBatchedNative(JNI
     // batchSize is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -17575,27 +19221,27 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgeqrfBatchedNative(JNI
     cublasHandle_t handle_native;
     int m_native = 0;
     int n_native = 0;
-    double** Aarray_native = NULL;
+    double * * Aarray_native = NULL;
     int lda_native = 0;
-    double** TauArray_native = NULL;
-    int* info_native;
+    double * * TauArray_native = NULL;
+    int * info_native = NULL;
     int batchSize_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     m_native = (int)m;
     n_native = (int)n;
-    Aarray_native = (double**)getPointer(env, Aarray);
+    Aarray_native = (double * *)getPointer(env, Aarray);
     lda_native = (int)lda;
-    TauArray_native = (double**)getPointer(env, TauArray);
-    info_native = (int*)getPointer(env, info);
+    TauArray_native = (double * *)getPointer(env, TauArray);
+    info_native = (int *)getPointer(env, info);
     batchSize_native = (int)batchSize;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDgeqrfBatched(handle_native, m_native, n_native, Aarray_native, lda_native, TauArray_native, info_native, batchSize_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // m is primitive
     // n is primitive
     // Aarray is a native pointer
@@ -17605,8 +19251,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgeqrfBatchedNative(JNI
     // batchSize is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -17646,27 +19291,27 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgeqrfBatchedNative(JNI
     cublasHandle_t handle_native;
     int m_native = 0;
     int n_native = 0;
-    cuComplex** Aarray_native = NULL;
+    cuComplex * * Aarray_native = NULL;
     int lda_native = 0;
-    cuComplex** TauArray_native = NULL;
-    int* info_native;
+    cuComplex * * TauArray_native = NULL;
+    int * info_native = NULL;
     int batchSize_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     m_native = (int)m;
     n_native = (int)n;
-    Aarray_native = (cuComplex**)getPointer(env, Aarray);
+    Aarray_native = (cuComplex * *)getPointer(env, Aarray);
     lda_native = (int)lda;
-    TauArray_native = (cuComplex**)getPointer(env, TauArray);
-    info_native = (int*)getPointer(env, info);
+    TauArray_native = (cuComplex * *)getPointer(env, TauArray);
+    info_native = (int *)getPointer(env, info);
     batchSize_native = (int)batchSize;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCgeqrfBatched(handle_native, m_native, n_native, Aarray_native, lda_native, TauArray_native, info_native, batchSize_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // m is primitive
     // n is primitive
     // Aarray is a native pointer
@@ -17676,8 +19321,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgeqrfBatchedNative(JNI
     // batchSize is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -17717,27 +19361,27 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgeqrfBatchedNative(JNI
     cublasHandle_t handle_native;
     int m_native = 0;
     int n_native = 0;
-    cuDoubleComplex** Aarray_native = NULL;
+    cuDoubleComplex * * Aarray_native = NULL;
     int lda_native = 0;
-    cuDoubleComplex** TauArray_native = NULL;
-    int* info_native;
+    cuDoubleComplex * * TauArray_native = NULL;
+    int * info_native = NULL;
     int batchSize_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     m_native = (int)m;
     n_native = (int)n;
-    Aarray_native = (cuDoubleComplex**)getPointer(env, Aarray);
+    Aarray_native = (cuDoubleComplex * *)getPointer(env, Aarray);
     lda_native = (int)lda;
-    TauArray_native = (cuDoubleComplex**)getPointer(env, TauArray);
-    info_native = (int*)getPointer(env, info);
+    TauArray_native = (cuDoubleComplex * *)getPointer(env, TauArray);
+    info_native = (int *)getPointer(env, info);
     batchSize_native = (int)batchSize;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZgeqrfBatched(handle_native, m_native, n_native, Aarray_native, lda_native, TauArray_native, info_native, batchSize_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // m is primitive
     // n is primitive
     // Aarray is a native pointer
@@ -17747,8 +19391,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgeqrfBatchedNative(JNI
     // batchSize is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -17798,12 +19441,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgelsBatchedNative(JNIE
     int m_native = 0;
     int n_native = 0;
     int nrhs_native = 0;
-    float** Aarray_native = NULL;
+    float * * Aarray_native = NULL;
     int lda_native = 0;
-    float** Carray_native = NULL;
+    float * * Carray_native = NULL;
     int ldc_native = 0;
-    int* info_native;
-    int* devInfoArray_native;
+    int * info_native = NULL;
+    int * devInfoArray_native = NULL;
     int batchSize_native = 0;
 
     // Obtain native variable values
@@ -17812,19 +19455,19 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgelsBatchedNative(JNIE
     m_native = (int)m;
     n_native = (int)n;
     nrhs_native = (int)nrhs;
-    Aarray_native = (float**)getPointer(env, Aarray);
+    Aarray_native = (float * *)getPointer(env, Aarray);
     lda_native = (int)lda;
-    Carray_native = (float**)getPointer(env, Carray);
+    Carray_native = (float * *)getPointer(env, Carray);
     ldc_native = (int)ldc;
-    info_native = (int*)getPointer(env, info);
-    devInfoArray_native = (int*)getPointer(env, devInfoArray);
+    info_native = (int *)getPointer(env, info);
+    devInfoArray_native = (int *)getPointer(env, devInfoArray);
     batchSize_native = (int)batchSize;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSgelsBatched(handle_native, trans_native, m_native, n_native, nrhs_native, Aarray_native, lda_native, Carray_native, ldc_native, info_native, devInfoArray_native, batchSize_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // trans is primitive
     // m is primitive
     // n is primitive
@@ -17838,8 +19481,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgelsBatchedNative(JNIE
     // batchSize is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -17889,12 +19531,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgelsBatchedNative(JNIE
     int m_native = 0;
     int n_native = 0;
     int nrhs_native = 0;
-    double** Aarray_native = NULL;
+    double * * Aarray_native = NULL;
     int lda_native = 0;
-    double** Carray_native = NULL;
+    double * * Carray_native = NULL;
     int ldc_native = 0;
-    int* info_native;
-    int* devInfoArray_native;
+    int * info_native = NULL;
+    int * devInfoArray_native = NULL;
     int batchSize_native = 0;
 
     // Obtain native variable values
@@ -17903,19 +19545,19 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgelsBatchedNative(JNIE
     m_native = (int)m;
     n_native = (int)n;
     nrhs_native = (int)nrhs;
-    Aarray_native = (double**)getPointer(env, Aarray);
+    Aarray_native = (double * *)getPointer(env, Aarray);
     lda_native = (int)lda;
-    Carray_native = (double**)getPointer(env, Carray);
+    Carray_native = (double * *)getPointer(env, Carray);
     ldc_native = (int)ldc;
-    info_native = (int*)getPointer(env, info);
-    devInfoArray_native = (int*)getPointer(env, devInfoArray);
+    info_native = (int *)getPointer(env, info);
+    devInfoArray_native = (int *)getPointer(env, devInfoArray);
     batchSize_native = (int)batchSize;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDgelsBatched(handle_native, trans_native, m_native, n_native, nrhs_native, Aarray_native, lda_native, Carray_native, ldc_native, info_native, devInfoArray_native, batchSize_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // trans is primitive
     // m is primitive
     // n is primitive
@@ -17929,8 +19571,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDgelsBatchedNative(JNIE
     // batchSize is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -17980,12 +19621,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgelsBatchedNative(JNIE
     int m_native = 0;
     int n_native = 0;
     int nrhs_native = 0;
-    cuComplex** Aarray_native = NULL;
+    cuComplex * * Aarray_native = NULL;
     int lda_native = 0;
-    cuComplex** Carray_native = NULL;
+    cuComplex * * Carray_native = NULL;
     int ldc_native = 0;
-    int* info_native;
-    int* devInfoArray_native;
+    int * info_native = NULL;
+    int * devInfoArray_native = NULL;
     int batchSize_native = 0;
 
     // Obtain native variable values
@@ -17994,19 +19635,19 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgelsBatchedNative(JNIE
     m_native = (int)m;
     n_native = (int)n;
     nrhs_native = (int)nrhs;
-    Aarray_native = (cuComplex**)getPointer(env, Aarray);
+    Aarray_native = (cuComplex * *)getPointer(env, Aarray);
     lda_native = (int)lda;
-    Carray_native = (cuComplex**)getPointer(env, Carray);
+    Carray_native = (cuComplex * *)getPointer(env, Carray);
     ldc_native = (int)ldc;
-    info_native = (int*)getPointer(env, info);
-    devInfoArray_native = (int*)getPointer(env, devInfoArray);
+    info_native = (int *)getPointer(env, info);
+    devInfoArray_native = (int *)getPointer(env, devInfoArray);
     batchSize_native = (int)batchSize;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCgelsBatched(handle_native, trans_native, m_native, n_native, nrhs_native, Aarray_native, lda_native, Carray_native, ldc_native, info_native, devInfoArray_native, batchSize_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // trans is primitive
     // m is primitive
     // n is primitive
@@ -18020,8 +19661,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgelsBatchedNative(JNIE
     // batchSize is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -18071,12 +19711,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgelsBatchedNative(JNIE
     int m_native = 0;
     int n_native = 0;
     int nrhs_native = 0;
-    cuDoubleComplex** Aarray_native = NULL;
+    cuDoubleComplex * * Aarray_native = NULL;
     int lda_native = 0;
-    cuDoubleComplex** Carray_native = NULL;
+    cuDoubleComplex * * Carray_native = NULL;
     int ldc_native = 0;
-    int* info_native;
-    int* devInfoArray_native;
+    int * info_native = NULL;
+    int * devInfoArray_native = NULL;
     int batchSize_native = 0;
 
     // Obtain native variable values
@@ -18085,19 +19725,19 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgelsBatchedNative(JNIE
     m_native = (int)m;
     n_native = (int)n;
     nrhs_native = (int)nrhs;
-    Aarray_native = (cuDoubleComplex**)getPointer(env, Aarray);
+    Aarray_native = (cuDoubleComplex * *)getPointer(env, Aarray);
     lda_native = (int)lda;
-    Carray_native = (cuDoubleComplex**)getPointer(env, Carray);
+    Carray_native = (cuDoubleComplex * *)getPointer(env, Carray);
     ldc_native = (int)ldc;
-    info_native = (int*)getPointer(env, info);
-    devInfoArray_native = (int*)getPointer(env, devInfoArray);
+    info_native = (int *)getPointer(env, info);
+    devInfoArray_native = (int *)getPointer(env, devInfoArray);
     batchSize_native = (int)batchSize;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZgelsBatched(handle_native, trans_native, m_native, n_native, nrhs_native, Aarray_native, lda_native, Carray_native, ldc_native, info_native, devInfoArray_native, batchSize_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // trans is primitive
     // m is primitive
     // n is primitive
@@ -18111,11 +19751,9 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgelsBatchedNative(JNIE
     // batchSize is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
-
 
 JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSdgmmNative(JNIEnv *env, jclass cls, jobject handle, jint mode, jint m, jint n, jobject A, jint lda, jobject x, jint incx, jobject C, jint ldc)
 {
@@ -18156,11 +19794,11 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSdgmmNative(JNIEnv *env
     cublasSideMode_t mode_native;
     int m_native = 0;
     int n_native = 0;
-    float* A_native;
+    float const * A_native = NULL;
     int lda_native = 0;
-    float* x_native;
+    float const * x_native = NULL;
     int incx_native = 0;
-    float* C_native;
+    float * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -18168,18 +19806,18 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSdgmmNative(JNIEnv *env
     mode_native = (cublasSideMode_t)mode;
     m_native = (int)m;
     n_native = (int)n;
-    A_native = (float*)getPointer(env, A);
+    A_native = (float const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (float*)getPointer(env, x);
+    x_native = (float const *)getPointer(env, x);
     incx_native = (int)incx;
-    C_native = (float*)getPointer(env, C);
+    C_native = (float *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasSdgmm(handle_native, mode_native, m_native, n_native, A_native, lda_native, x_native, incx_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // mode is primitive
     // m is primitive
     // n is primitive
@@ -18191,8 +19829,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSdgmmNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -18235,11 +19872,11 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDdgmmNative(JNIEnv *env
     cublasSideMode_t mode_native;
     int m_native = 0;
     int n_native = 0;
-    double* A_native;
+    double const * A_native = NULL;
     int lda_native = 0;
-    double* x_native;
+    double const * x_native = NULL;
     int incx_native = 0;
-    double* C_native;
+    double * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -18247,18 +19884,18 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDdgmmNative(JNIEnv *env
     mode_native = (cublasSideMode_t)mode;
     m_native = (int)m;
     n_native = (int)n;
-    A_native = (double*)getPointer(env, A);
+    A_native = (double const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (double*)getPointer(env, x);
+    x_native = (double const *)getPointer(env, x);
     incx_native = (int)incx;
-    C_native = (double*)getPointer(env, C);
+    C_native = (double *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDdgmm(handle_native, mode_native, m_native, n_native, A_native, lda_native, x_native, incx_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // mode is primitive
     // m is primitive
     // n is primitive
@@ -18270,8 +19907,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDdgmmNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -18314,11 +19950,11 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCdgmmNative(JNIEnv *env
     cublasSideMode_t mode_native;
     int m_native = 0;
     int n_native = 0;
-    cuComplex* A_native;
+    cuComplex const * A_native = NULL;
     int lda_native = 0;
-    cuComplex* x_native;
+    cuComplex const * x_native = NULL;
     int incx_native = 0;
-    cuComplex* C_native;
+    cuComplex * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -18326,18 +19962,18 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCdgmmNative(JNIEnv *env
     mode_native = (cublasSideMode_t)mode;
     m_native = (int)m;
     n_native = (int)n;
-    A_native = (cuComplex*)getPointer(env, A);
+    A_native = (cuComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (cuComplex*)getPointer(env, x);
+    x_native = (cuComplex const *)getPointer(env, x);
     incx_native = (int)incx;
-    C_native = (cuComplex*)getPointer(env, C);
+    C_native = (cuComplex *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCdgmm(handle_native, mode_native, m_native, n_native, A_native, lda_native, x_native, incx_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // mode is primitive
     // m is primitive
     // n is primitive
@@ -18349,8 +19985,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCdgmmNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -18393,11 +20028,11 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZdgmmNative(JNIEnv *env
     cublasSideMode_t mode_native;
     int m_native = 0;
     int n_native = 0;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex const * A_native = NULL;
     int lda_native = 0;
-    cuDoubleComplex* x_native;
+    cuDoubleComplex const * x_native = NULL;
     int incx_native = 0;
-    cuDoubleComplex* C_native;
+    cuDoubleComplex * C_native = NULL;
     int ldc_native = 0;
 
     // Obtain native variable values
@@ -18405,18 +20040,18 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZdgmmNative(JNIEnv *env
     mode_native = (cublasSideMode_t)mode;
     m_native = (int)m;
     n_native = (int)n;
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    A_native = (cuDoubleComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    x_native = (cuDoubleComplex*)getPointer(env, x);
+    x_native = (cuDoubleComplex const *)getPointer(env, x);
     incx_native = (int)incx;
-    C_native = (cuDoubleComplex*)getPointer(env, C);
+    C_native = (cuDoubleComplex *)getPointer(env, C);
     ldc_native = (int)ldc;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZdgmm(handle_native, mode_native, m_native, n_native, A_native, lda_native, x_native, incx_native, C_native, ldc_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // mode is primitive
     // m is primitive
     // n is primitive
@@ -18428,8 +20063,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZdgmmNative(JNIEnv *env
     // ldc is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -18463,23 +20097,23 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStpttrNative(JNIEnv *en
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    float* AP_native;
-    float* A_native;
+    float const * AP_native = NULL;
+    float * A_native = NULL;
     int lda_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     uplo_native = (cublasFillMode_t)uplo;
     n_native = (int)n;
-    AP_native = (float*)getPointer(env, AP);
-    A_native = (float*)getPointer(env, A);
+    AP_native = (float const *)getPointer(env, AP);
+    A_native = (float *)getPointer(env, A);
     lda_native = (int)lda;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasStpttr(handle_native, uplo_native, n_native, AP_native, A_native, lda_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     // AP is a native pointer
@@ -18487,8 +20121,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStpttrNative(JNIEnv *en
     // lda is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -18522,23 +20155,23 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtpttrNative(JNIEnv *en
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    double* AP_native;
-    double* A_native;
+    double const * AP_native = NULL;
+    double * A_native = NULL;
     int lda_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     uplo_native = (cublasFillMode_t)uplo;
     n_native = (int)n;
-    AP_native = (double*)getPointer(env, AP);
-    A_native = (double*)getPointer(env, A);
+    AP_native = (double const *)getPointer(env, AP);
+    A_native = (double *)getPointer(env, A);
     lda_native = (int)lda;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDtpttr(handle_native, uplo_native, n_native, AP_native, A_native, lda_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     // AP is a native pointer
@@ -18546,8 +20179,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtpttrNative(JNIEnv *en
     // lda is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -18581,23 +20213,23 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtpttrNative(JNIEnv *en
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    cuComplex* AP_native;
-    cuComplex* A_native;
+    cuComplex const * AP_native = NULL;
+    cuComplex * A_native = NULL;
     int lda_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     uplo_native = (cublasFillMode_t)uplo;
     n_native = (int)n;
-    AP_native = (cuComplex*)getPointer(env, AP);
-    A_native = (cuComplex*)getPointer(env, A);
+    AP_native = (cuComplex const *)getPointer(env, AP);
+    A_native = (cuComplex *)getPointer(env, A);
     lda_native = (int)lda;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCtpttr(handle_native, uplo_native, n_native, AP_native, A_native, lda_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     // AP is a native pointer
@@ -18605,8 +20237,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtpttrNative(JNIEnv *en
     // lda is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -18640,23 +20271,23 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtpttrNative(JNIEnv *en
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    cuDoubleComplex* AP_native;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex const * AP_native = NULL;
+    cuDoubleComplex * A_native = NULL;
     int lda_native = 0;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     uplo_native = (cublasFillMode_t)uplo;
     n_native = (int)n;
-    AP_native = (cuDoubleComplex*)getPointer(env, AP);
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    AP_native = (cuDoubleComplex const *)getPointer(env, AP);
+    A_native = (cuDoubleComplex *)getPointer(env, A);
     lda_native = (int)lda;
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZtpttr(handle_native, uplo_native, n_native, AP_native, A_native, lda_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     // AP is a native pointer
@@ -18664,8 +20295,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtpttrNative(JNIEnv *en
     // lda is primitive
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -18699,23 +20329,23 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStrttpNative(JNIEnv *en
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    float* A_native;
+    float const * A_native = NULL;
     int lda_native = 0;
-    float* AP_native;
+    float * AP_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     uplo_native = (cublasFillMode_t)uplo;
     n_native = (int)n;
-    A_native = (float*)getPointer(env, A);
+    A_native = (float const *)getPointer(env, A);
     lda_native = (int)lda;
-    AP_native = (float*)getPointer(env, AP);
+    AP_native = (float *)getPointer(env, AP);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasStrttp(handle_native, uplo_native, n_native, A_native, lda_native, AP_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     // A is a native pointer
@@ -18723,8 +20353,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasStrttpNative(JNIEnv *en
     // AP is a native pointer
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -18758,23 +20387,23 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtrttpNative(JNIEnv *en
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    double* A_native;
+    double const * A_native = NULL;
     int lda_native = 0;
-    double* AP_native;
+    double * AP_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     uplo_native = (cublasFillMode_t)uplo;
     n_native = (int)n;
-    A_native = (double*)getPointer(env, A);
+    A_native = (double const *)getPointer(env, A);
     lda_native = (int)lda;
-    AP_native = (double*)getPointer(env, AP);
+    AP_native = (double *)getPointer(env, AP);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasDtrttp(handle_native, uplo_native, n_native, A_native, lda_native, AP_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     // A is a native pointer
@@ -18782,8 +20411,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDtrttpNative(JNIEnv *en
     // AP is a native pointer
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -18817,23 +20445,23 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtrttpNative(JNIEnv *en
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    cuComplex* A_native;
+    cuComplex const * A_native = NULL;
     int lda_native = 0;
-    cuComplex* AP_native;
+    cuComplex * AP_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     uplo_native = (cublasFillMode_t)uplo;
     n_native = (int)n;
-    A_native = (cuComplex*)getPointer(env, A);
+    A_native = (cuComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    AP_native = (cuComplex*)getPointer(env, AP);
+    AP_native = (cuComplex *)getPointer(env, AP);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasCtrttp(handle_native, uplo_native, n_native, A_native, lda_native, AP_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     // A is a native pointer
@@ -18841,8 +20469,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCtrttpNative(JNIEnv *en
     // AP is a native pointer
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 
@@ -18876,23 +20503,23 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtrttpNative(JNIEnv *en
     cublasHandle_t handle_native;
     cublasFillMode_t uplo_native;
     int n_native = 0;
-    cuDoubleComplex* A_native;
+    cuDoubleComplex const * A_native = NULL;
     int lda_native = 0;
-    cuDoubleComplex* AP_native;
+    cuDoubleComplex * AP_native = NULL;
 
     // Obtain native variable values
     handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
     uplo_native = (cublasFillMode_t)uplo;
     n_native = (int)n;
-    A_native = (cuDoubleComplex*)getPointer(env, A);
+    A_native = (cuDoubleComplex const *)getPointer(env, A);
     lda_native = (int)lda;
-    AP_native = (cuDoubleComplex*)getPointer(env, AP);
+    AP_native = (cuDoubleComplex *)getPointer(env, AP);
 
     // Native function call
     cublasStatus_t jniResult_native = cublasZtrttp(handle_native, uplo_native, n_native, A_native, lda_native, AP_native);
 
     // Write back native variable values
-    // handle is a native pointer object
+    // handle is read-only
     // uplo is primitive
     // n is primitive
     // A is a native pointer
@@ -18900,8 +20527,7 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZtrttpNative(JNIEnv *en
     // AP is a native pointer
 
     // Return the result
-    jint jniResult;
-    jniResult = (jint)jniResult_native;
+    jint jniResult = (jint)jniResult_native;
     return jniResult;
 }
 

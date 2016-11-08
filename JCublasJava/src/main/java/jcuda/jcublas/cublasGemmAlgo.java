@@ -38,6 +38,9 @@ public class cublasGemmAlgo
     public static final int CUBLAS_GEMM_ALGO2         =  2;
     public static final int CUBLAS_GEMM_ALGO3         =  3;
     public static final int CUBLAS_GEMM_ALGO4         =  4;
+    public static final int CUBLAS_GEMM_ALGO5         =  5;
+    public static final int CUBLAS_GEMM_ALGO6         =  6;
+    public static final int CUBLAS_GEMM_ALGO7         =  7;
 
     /**
      * Returns the String identifying the given cublasGemmAlgo
@@ -55,6 +58,9 @@ public class cublasGemmAlgo
             case CUBLAS_GEMM_ALGO2: return "CUBLAS_GEMM_ALGO2";
             case CUBLAS_GEMM_ALGO3: return "CUBLAS_GEMM_ALGO3";
             case CUBLAS_GEMM_ALGO4: return "CUBLAS_GEMM_ALGO4";
+            case CUBLAS_GEMM_ALGO5: return "CUBLAS_GEMM_ALGO5";
+            case CUBLAS_GEMM_ALGO6: return "CUBLAS_GEMM_ALGO6";
+            case CUBLAS_GEMM_ALGO7: return "CUBLAS_GEMM_ALGO7";
         }
         return "INVALID cublasGemmAlgo: " + n;
     }

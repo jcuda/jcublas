@@ -45,6 +45,70 @@ extern "C" {
 
     /*
     * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasSetVectorNative
+    * Signature: (IILjcuda/Pointer;ILjcuda/Pointer;I)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSetVectorNative
+        (JNIEnv *, jclass, jint, jint, jobject, jint, jobject, jint);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasGetVectorNative
+    * Signature: (IILjcuda/Pointer;ILjcuda/Pointer;I)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasGetVectorNative
+        (JNIEnv *, jclass, jint, jint, jobject, jint, jobject, jint);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasSetMatrixNative
+    * Signature: (IIILjcuda/Pointer;ILjcuda/Pointer;I)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSetMatrixNative
+        (JNIEnv *, jclass, jint, jint, jint, jobject, jint, jobject, jint);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasGetMatrixNative
+    * Signature: (IIILjcuda/Pointer;ILjcuda/Pointer;I)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasGetMatrixNative
+        (JNIEnv *, jclass, jint, jint, jint, jobject, jint, jobject, jint);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasSetVectorAsyncNative
+    * Signature: (IILjcuda/Pointer;ILjcuda/Pointer;ILjcuda/runtime/cudaStream_t;)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSetVectorAsyncNative
+        (JNIEnv *, jclass, jint, jint, jobject, jint, jobject, jint, jobject);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasGetVectorAsyncNative
+    * Signature: (IILjcuda/Pointer;ILjcuda/Pointer;ILjcuda/runtime/cudaStream_t;)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasGetVectorAsyncNative
+        (JNIEnv *, jclass, jint, jint, jobject, jint, jobject, jint, jobject);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasSetMatrixAsyncNative
+    * Signature: (IIILjcuda/Pointer;ILjcuda/Pointer;ILjcuda/runtime/cudaStream_t;)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSetMatrixAsyncNative
+        (JNIEnv *, jclass, jint, jint, jint, jobject, jint, jobject, jint, jobject);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasGetMatrixAsyncNative
+    * Signature: (IIILjcuda/Pointer;ILjcuda/Pointer;ILjcuda/runtime/cudaStream_t;)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasGetMatrixAsyncNative
+        (JNIEnv *, jclass, jint, jint, jint, jobject, jint, jobject, jint, jobject);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
     * Method:    cublasCreateNative
     * Signature: (Ljcuda/jcublas/cublasHandle;)I
     */
@@ -122,70 +186,6 @@ extern "C" {
     */
     JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSetAtomicsModeNative
         (JNIEnv *, jclass, jobject, jint);
-
-    /*
-    * Class:     jcuda_jcublas_JCublas2
-    * Method:    cublasSetVectorNative
-    * Signature: (IILjcuda/Pointer;ILjcuda/Pointer;I)I
-    */
-    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSetVectorNative
-        (JNIEnv *, jclass, jint, jint, jobject, jint, jobject, jint);
-
-    /*
-    * Class:     jcuda_jcublas_JCublas2
-    * Method:    cublasGetVectorNative
-    * Signature: (IILjcuda/Pointer;ILjcuda/Pointer;I)I
-    */
-    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasGetVectorNative
-        (JNIEnv *, jclass, jint, jint, jobject, jint, jobject, jint);
-
-    /*
-    * Class:     jcuda_jcublas_JCublas2
-    * Method:    cublasSetMatrixNative
-    * Signature: (IIILjcuda/Pointer;ILjcuda/Pointer;I)I
-    */
-    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSetMatrixNative
-        (JNIEnv *, jclass, jint, jint, jint, jobject, jint, jobject, jint);
-
-    /*
-    * Class:     jcuda_jcublas_JCublas2
-    * Method:    cublasGetMatrixNative
-    * Signature: (IIILjcuda/Pointer;ILjcuda/Pointer;I)I
-    */
-    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasGetMatrixNative
-        (JNIEnv *, jclass, jint, jint, jint, jobject, jint, jobject, jint);
-
-    /*
-    * Class:     jcuda_jcublas_JCublas2
-    * Method:    cublasSetVectorAsyncNative
-    * Signature: (IILjcuda/Pointer;ILjcuda/Pointer;ILjcuda/runtime/cudaStream_t;)I
-    */
-    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSetVectorAsyncNative
-        (JNIEnv *, jclass, jint, jint, jobject, jint, jobject, jint, jobject);
-
-    /*
-    * Class:     jcuda_jcublas_JCublas2
-    * Method:    cublasGetVectorAsyncNative
-    * Signature: (IILjcuda/Pointer;ILjcuda/Pointer;ILjcuda/runtime/cudaStream_t;)I
-    */
-    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasGetVectorAsyncNative
-        (JNIEnv *, jclass, jint, jint, jobject, jint, jobject, jint, jobject);
-
-    /*
-    * Class:     jcuda_jcublas_JCublas2
-    * Method:    cublasSetMatrixAsyncNative
-    * Signature: (IIILjcuda/Pointer;ILjcuda/Pointer;ILjcuda/runtime/cudaStream_t;)I
-    */
-    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSetMatrixAsyncNative
-        (JNIEnv *, jclass, jint, jint, jint, jobject, jint, jobject, jint, jobject);
-
-    /*
-    * Class:     jcuda_jcublas_JCublas2
-    * Method:    cublasGetMatrixAsyncNative
-    * Signature: (IIILjcuda/Pointer;ILjcuda/Pointer;ILjcuda/runtime/cudaStream_t;)I
-    */
-    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasGetMatrixAsyncNative
-        (JNIEnv *, jclass, jint, jint, jint, jobject, jint, jobject, jint, jobject);
 
     /*
     * Class:     jcuda_jcublas_JCublas2
@@ -1317,14 +1317,6 @@ extern "C" {
 
     /*
     * Class:     jcuda_jcublas_JCublas2
-    * Method:    cublasUint8gemmBiasNative
-    * Signature: (Ljcuda/jcublas/cublasHandle;IIIIII[BII[BII[BIIII)I
-    */
-    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasUint8gemmBiasNative
-        (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jint, jint, jbyteArray, jint, jint, jbyteArray, jint, jint, jbyteArray, jint, jint, jint, jint);
-
-    /*
-    * Class:     jcuda_jcublas_JCublas2
     * Method:    cublasSsyrkNative
     * Signature: (Ljcuda/jcublas/cublasHandle;IIIILjcuda/Pointer;Ljcuda/Pointer;ILjcuda/Pointer;Ljcuda/Pointer;I)I
     */
@@ -1637,6 +1629,14 @@ extern "C" {
 
     /*
     * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasCgemm3mBatchedNative
+    * Signature: (Ljcuda/jcublas/cublasHandle;IIIIILjcuda/Pointer;Ljcuda/Pointer;ILjcuda/Pointer;ILjcuda/Pointer;Ljcuda/Pointer;II)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgemm3mBatchedNative
+        (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jint, jobject, jobject, jint, jobject, jint, jobject, jobject, jint, jint);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
     * Method:    cublasZgemmBatchedNative
     * Signature: (Ljcuda/jcublas/cublasHandle;IIIIILjcuda/Pointer;Ljcuda/Pointer;ILjcuda/Pointer;ILjcuda/Pointer;Ljcuda/Pointer;II)I
     */
@@ -1665,6 +1665,14 @@ extern "C" {
     * Signature: (Ljcuda/jcublas/cublasHandle;IIIIILjcuda/Pointer;Ljcuda/Pointer;IJLjcuda/Pointer;IJLjcuda/Pointer;Ljcuda/Pointer;IJI)I
     */
     JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgemmStridedBatchedNative
+        (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jint, jobject, jobject, jint, jlong, jobject, jint, jlong, jobject, jobject, jint, jlong, jint);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasCgemm3mStridedBatchedNative
+    * Signature: (Ljcuda/jcublas/cublasHandle;IIIIILjcuda/Pointer;Ljcuda/Pointer;IJLjcuda/Pointer;IJLjcuda/Pointer;Ljcuda/Pointer;IJI)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCgemm3mStridedBatchedNative
         (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jint, jobject, jobject, jint, jlong, jobject, jint, jlong, jobject, jobject, jint, jlong, jint);
 
     /*

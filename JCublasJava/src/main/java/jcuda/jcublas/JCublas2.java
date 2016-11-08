@@ -5309,6 +5309,43 @@ public class JCublas2
         int batchCount);
 
 
+    public static int cublasCgemm3mBatched(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        int m, 
+        int n, 
+        int k, 
+        Pointer alpha, /** host or device pointer */
+        Pointer Aarray, 
+        int lda, 
+        Pointer Barray, 
+        int ldb, 
+        Pointer beta, /** host or device pointer */
+        Pointer Carray, 
+        int ldc, 
+        int batchCount)
+    {
+        return checkResult(cublasCgemm3mBatchedNative(handle, transa, transb, m, n, k, alpha, Aarray, lda, Barray, ldb, beta, Carray, ldc, batchCount));
+    }
+    private static native int cublasCgemm3mBatchedNative(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        int m, 
+        int n, 
+        int k, 
+        Pointer alpha, /** host or device pointer */
+        Pointer Aarray, 
+        int lda, 
+        Pointer Barray, 
+        int ldb, 
+        Pointer beta, /** host or device pointer */
+        Pointer Carray, 
+        int ldc, 
+        int batchCount);
+
+
     public static int cublasZgemmBatched(
         cublasHandle handle, 
         int transa, 
@@ -5455,6 +5492,49 @@ public class JCublas2
         return checkResult(cublasCgemmStridedBatchedNative(handle, transa, transb, m, n, k, alpha, A, lda, strideA, B, ldb, strideB, beta, C, ldc, strideC, batchCount));
     }
     private static native int cublasCgemmStridedBatchedNative(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        int m, 
+        int n, 
+        int k, 
+        Pointer alpha, // host or device pointer
+        Pointer A, 
+        int lda, 
+        long strideA, // purposely signed
+        Pointer B, 
+        int ldb, 
+        long strideB, 
+        Pointer beta, // host or device pointer$
+        Pointer C, 
+        int ldc, 
+        long strideC, 
+        int batchCount);
+
+
+    public static int cublasCgemm3mStridedBatched(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        int m, 
+        int n, 
+        int k, 
+        Pointer alpha, // host or device pointer
+        Pointer A, 
+        int lda, 
+        long strideA, // purposely signed
+        Pointer B, 
+        int ldb, 
+        long strideB, 
+        Pointer beta, // host or device pointer$
+        Pointer C, 
+        int ldc, 
+        long strideC, 
+        int batchCount)
+    {
+        return checkResult(cublasCgemm3mStridedBatchedNative(handle, transa, transb, m, n, k, alpha, A, lda, strideA, B, ldb, strideB, beta, C, ldc, strideC, batchCount));
+    }
+    private static native int cublasCgemm3mStridedBatchedNative(
         cublasHandle handle, 
         int transa, 
         int transb, 

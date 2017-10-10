@@ -917,10 +917,10 @@ JNIEXPORT void JNICALL Java_jcuda_jcublas_JCublas_cublasSrotmgNative
     cublasSrotmg(sd1ArrayElements, sd2ArrayElements,
         sx1ArrayElements, &sy1, sparamArrayElements);
 
-    env->ReleaseFloatArrayElements(sparam, sparamArrayElements, JNI_COMMIT);
-    env->ReleaseFloatArrayElements(sd1, sd1ArrayElements, JNI_COMMIT);
-    env->ReleaseFloatArrayElements(sd2, sd2ArrayElements, JNI_COMMIT);
-    env->ReleaseFloatArrayElements(sx1, sx1ArrayElements, JNI_COMMIT);
+    env->ReleaseFloatArrayElements(sparam, sparamArrayElements, 0);
+    env->ReleaseFloatArrayElements(sd1, sd1ArrayElements, 0);
+    env->ReleaseFloatArrayElements(sd2, sd2ArrayElements, 0);
+    env->ReleaseFloatArrayElements(sx1, sx1ArrayElements, 0);
 }
 
 
@@ -1107,10 +1107,10 @@ JNIEXPORT void JNICALL Java_jcuda_jcublas_JCublas_cublasDrotmgNative
     cublasDrotmg(sd1ArrayElements, sd2ArrayElements,
         sx1ArrayElements, &sy1, sparamArrayElements);
 
-    env->ReleaseDoubleArrayElements(sparam, sparamArrayElements, JNI_COMMIT);
-    env->ReleaseDoubleArrayElements(sd1, sd1ArrayElements, JNI_COMMIT);
-    env->ReleaseDoubleArrayElements(sd2, sd2ArrayElements, JNI_COMMIT);
-    env->ReleaseDoubleArrayElements(sx1, sx1ArrayElements, JNI_COMMIT);
+    env->ReleaseDoubleArrayElements(sparam, sparamArrayElements, 0);
+    env->ReleaseDoubleArrayElements(sd1, sd1ArrayElements, 0);
+    env->ReleaseDoubleArrayElements(sd2, sd2ArrayElements, 0);
+    env->ReleaseDoubleArrayElements(sx1, sx1ArrayElements, 0);
 }
 
 

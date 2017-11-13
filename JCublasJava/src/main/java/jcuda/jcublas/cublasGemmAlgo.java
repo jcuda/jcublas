@@ -27,32 +27,57 @@
  */
 package jcuda.jcublas;
 
-/**
+/** 
  * Different GEMM algorithms
  */
 public class cublasGemmAlgo
 {
-    public static final int CUBLAS_GEMM_DFALT         = -1;
-    public static final int CUBLAS_GEMM_ALGO0         =  0;
-    public static final int CUBLAS_GEMM_ALGO1         =  1;
-    public static final int CUBLAS_GEMM_ALGO2         =  2;
-    public static final int CUBLAS_GEMM_ALGO3         =  3;
-    public static final int CUBLAS_GEMM_ALGO4         =  4;
-    public static final int CUBLAS_GEMM_ALGO5         =  5;
-    public static final int CUBLAS_GEMM_ALGO6         =  6;
-    public static final int CUBLAS_GEMM_ALGO7         =  7;
+    public static final int CUBLAS_GEMM_DFALT = -1;
+    public static final int CUBLAS_GEMM_DEFAULT = -1;
+    public static final int CUBLAS_GEMM_ALGO0 = 0;
+    public static final int CUBLAS_GEMM_ALGO1 = 1;
+    public static final int CUBLAS_GEMM_ALGO2 = 2;
+    public static final int CUBLAS_GEMM_ALGO3 = 3;
+    public static final int CUBLAS_GEMM_ALGO4 = 4;
+    public static final int CUBLAS_GEMM_ALGO5 = 5;
+    public static final int CUBLAS_GEMM_ALGO6 = 6;
+    public static final int CUBLAS_GEMM_ALGO7 = 7;
+    public static final int CUBLAS_GEMM_ALGO8 = 8;
+    public static final int CUBLAS_GEMM_ALGO9 = 9;
+    public static final int CUBLAS_GEMM_ALGO10 = 10;
+    public static final int CUBLAS_GEMM_ALGO11 = 11;
+    public static final int CUBLAS_GEMM_ALGO12 = 12;
+    public static final int CUBLAS_GEMM_ALGO13 = 13;
+    public static final int CUBLAS_GEMM_ALGO14 = 14;
+    public static final int CUBLAS_GEMM_ALGO15 = 15;
+    public static final int CUBLAS_GEMM_ALGO16 = 16;
+    public static final int CUBLAS_GEMM_ALGO17 = 17;
+    public static final int CUBLAS_GEMM_DEFAULT_TENSOR_OP = 99;
+    public static final int CUBLAS_GEMM_DFALT_TENSOR_OP = 99;
+    public static final int CUBLAS_GEMM_ALGO0_TENSOR_OP = 100;
+    public static final int CUBLAS_GEMM_ALGO1_TENSOR_OP = 101;
+    public static final int CUBLAS_GEMM_ALGO2_TENSOR_OP = 102;
+    public static final int CUBLAS_GEMM_ALGO3_TENSOR_OP = 103;
+    public static final int CUBLAS_GEMM_ALGO4_TENSOR_OP = 104;
 
     /**
-     * Returns the String identifying the given cublasGemmAlgo
+     * Private constructor to prevent instantiation
+     */
+    private cublasGemmAlgo()
+    {
+        // Private constructor to prevent instantiation
+    }
+
+    /**
+     * Returns a string representation of the given constant
      *
-     * @param n The cublasGemmAlgo
-     * @return The String identifying the given cublasGemmAlgo
+     * @return A string representation of the given constant
      */
     public static String stringFor(int n)
     {
         switch (n)
         {
-            case CUBLAS_GEMM_DFALT: return "CUBLAS_GEMM_DFALT";
+            case CUBLAS_GEMM_DEFAULT: return "CUBLAS_GEMM_DEFAULT";
             case CUBLAS_GEMM_ALGO0: return "CUBLAS_GEMM_ALGO0";
             case CUBLAS_GEMM_ALGO1: return "CUBLAS_GEMM_ALGO1";
             case CUBLAS_GEMM_ALGO2: return "CUBLAS_GEMM_ALGO2";
@@ -61,16 +86,24 @@ public class cublasGemmAlgo
             case CUBLAS_GEMM_ALGO5: return "CUBLAS_GEMM_ALGO5";
             case CUBLAS_GEMM_ALGO6: return "CUBLAS_GEMM_ALGO6";
             case CUBLAS_GEMM_ALGO7: return "CUBLAS_GEMM_ALGO7";
+            case CUBLAS_GEMM_ALGO8: return "CUBLAS_GEMM_ALGO8";
+            case CUBLAS_GEMM_ALGO9: return "CUBLAS_GEMM_ALGO9";
+            case CUBLAS_GEMM_ALGO10: return "CUBLAS_GEMM_ALGO10";
+            case CUBLAS_GEMM_ALGO11: return "CUBLAS_GEMM_ALGO11";
+            case CUBLAS_GEMM_ALGO12: return "CUBLAS_GEMM_ALGO12";
+            case CUBLAS_GEMM_ALGO13: return "CUBLAS_GEMM_ALGO13";
+            case CUBLAS_GEMM_ALGO14: return "CUBLAS_GEMM_ALGO14";
+            case CUBLAS_GEMM_ALGO15: return "CUBLAS_GEMM_ALGO15";
+            case CUBLAS_GEMM_ALGO16: return "CUBLAS_GEMM_ALGO16";
+            case CUBLAS_GEMM_ALGO17: return "CUBLAS_GEMM_ALGO17";
+            case CUBLAS_GEMM_DEFAULT_TENSOR_OP: return "CUBLAS_GEMM_DEFAULT_TENSOR_OP";
+            case CUBLAS_GEMM_ALGO0_TENSOR_OP: return "CUBLAS_GEMM_ALGO0_TENSOR_OP";
+            case CUBLAS_GEMM_ALGO1_TENSOR_OP: return "CUBLAS_GEMM_ALGO1_TENSOR_OP";
+            case CUBLAS_GEMM_ALGO2_TENSOR_OP: return "CUBLAS_GEMM_ALGO2_TENSOR_OP";
+            case CUBLAS_GEMM_ALGO3_TENSOR_OP: return "CUBLAS_GEMM_ALGO3_TENSOR_OP";
+            case CUBLAS_GEMM_ALGO4_TENSOR_OP: return "CUBLAS_GEMM_ALGO4_TENSOR_OP";
         }
-        return "INVALID cublasGemmAlgo: " + n;
+        return "INVALID cublasGemmAlgo: "+n;
     }
-
-    /**
-     * Private constructor to prevent instantiation.
-     */
-    private cublasGemmAlgo()
-    {
-        // Private constructor to prevent instantiation.
-    }
-
 }
+

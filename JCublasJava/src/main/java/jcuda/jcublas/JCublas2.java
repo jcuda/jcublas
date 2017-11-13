@@ -585,6 +585,28 @@ public class JCublas2
         int mode);
 
 
+    public static int cublasGetMathMode(
+        cublasHandle handle, 
+        int[] mode)
+    {
+        return checkResult(cublasGetMathModeNative(handle, mode));
+    }
+    private static native int cublasGetMathModeNative(
+        cublasHandle handle, 
+        int[] mode);
+
+
+    public static int cublasSetMathMode(
+        cublasHandle handle, 
+        int mode)
+    {
+        return checkResult(cublasSetMathModeNative(handle, mode));
+    }
+    private static native int cublasSetMathModeNative(
+        cublasHandle handle, 
+        int mode);
+
+    
     public static int cublasNrm2Ex(
         cublasHandle handle, 
         int n, 

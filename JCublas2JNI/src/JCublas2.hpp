@@ -189,6 +189,22 @@ extern "C" {
 
     /*
     * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasGetMathModeNative
+    * Signature: (Ljcuda/jcublas/cublasHandle;[I)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasGetMathModeNative
+        (JNIEnv *, jclass, jobject, jintArray);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
+    * Method:    cublasSetMathModeNative
+    * Signature: (Ljcuda/jcublas/cublasHandle;I)I
+    */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSetMathModeNative
+        (JNIEnv *, jclass, jobject, jint);
+
+    /*
+    * Class:     jcuda_jcublas_JCublas2
     * Method:    cublasNrm2ExNative
     * Signature: (Ljcuda/jcublas/cublasHandle;ILjcuda/Pointer;IILjcuda/Pointer;II)I
     */

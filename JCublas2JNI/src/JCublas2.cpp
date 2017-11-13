@@ -841,6 +841,78 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSetAtomicsModeNative(JN
     return jniResult;
 }
 
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasGetMathModeNative(JNIEnv *env, jclass cls, jobject handle, jintArray mode)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasGetMathMode");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (mode == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'mode' is null for cublasGetMathMode");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasGetMathMode(handle=%p, mode=%p)\n",
+        handle, mode);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    cublasMath_t mode_native;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    // mode is write-only
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasGetMathMode(handle_native, &mode_native);
+
+    // Write back native variable values
+    // handle is read-only
+    if (!set(env, mode, 0, (jint)mode_native)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSetMathModeNative(JNIEnv *env, jclass cls, jobject handle, jint mode)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasSetMathMode");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // mode is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasSetMathMode(handle=%p, mode=%d)\n",
+        handle, mode);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    cublasMath_t mode_native;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    mode_native = (cublasMath_t)mode;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasSetMathMode(handle_native, mode_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // mode is primitive
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
 JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasNrm2ExNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject x, jint xType, jint incx, jobject result, jint resultType, jint executionType)
 {
     // Null-checks for non-primitive arguments

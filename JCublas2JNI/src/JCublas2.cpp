@@ -16779,6 +16779,290 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZgemmBatchedNative(JNIE
     return jniResult;
 }
 
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasGemmBatchedExNative(JNIEnv *env, jclass cls, jobject handle, jint transa, jint transb, jint m, jint n, jint k, jobject alpha, jobject Aarray, jint Atype, jint lda, jobject Barray, jint Btype, jint ldb, jobject beta, jobject Carray, jint Ctype, jint ldc, jint batchCount, jint computeType, jint algo)
+{
+	// Null-checks for non-primitive arguments
+	if (handle == NULL)
+	{
+		ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasGemmBatchedEx");
+		return JCUBLAS_STATUS_INTERNAL_ERROR;
+	}
+	// transa is primitive
+	// transb is primitive
+	// m is primitive
+	// n is primitive
+	// k is primitive
+	if (alpha == NULL)
+	{
+		ThrowByName(env, "java/lang/NullPointerException", "Parameter 'alpha' is null for cublasGemmBatchedEx");
+		return JCUBLAS_STATUS_INTERNAL_ERROR;
+	}
+	if (Aarray == NULL)
+	{
+		ThrowByName(env, "java/lang/NullPointerException", "Parameter 'Aarray' is null for cublasGemmBatchedEx");
+		return JCUBLAS_STATUS_INTERNAL_ERROR;
+	}
+	// Atype is primitive
+	// lda is primitive
+	if (Barray == NULL)
+	{
+		ThrowByName(env, "java/lang/NullPointerException", "Parameter 'Barray' is null for cublasGemmBatchedEx");
+		return JCUBLAS_STATUS_INTERNAL_ERROR;
+	}
+	// Btype is primitive
+	// ldb is primitive
+	if (beta == NULL)
+	{
+		ThrowByName(env, "java/lang/NullPointerException", "Parameter 'beta' is null for cublasGemmBatchedEx");
+		return JCUBLAS_STATUS_INTERNAL_ERROR;
+	}
+	if (Carray == NULL)
+	{
+		ThrowByName(env, "java/lang/NullPointerException", "Parameter 'Carray' is null for cublasGemmBatchedEx");
+		return JCUBLAS_STATUS_INTERNAL_ERROR;
+	}
+	// Ctype is primitive
+	// ldc is primitive
+	// batchCount is primitive
+	// computeType is primitive
+	// algo is primitive
+
+	// Log message
+	Logger::log(LOG_TRACE, "Executing cublasGemmBatchedEx(handle=%p, transa=%d, transb=%d, m=%d, n=%d, k=%d, alpha=%p, Aarray=%p, Atype=%d, lda=%d, Barray=%p, Btype=%d, ldb=%d, beta=%p, Carray=%p, Ctype=%d, ldc=%d, batchCount=%d, computeType=%d, algo=%d)\n",
+		handle, transa, transb, m, n, k, alpha, Aarray, Atype, lda, Barray, Btype, ldb, beta, Carray, Ctype, ldc, batchCount, computeType, algo);
+
+	// Native variable declarations
+	cublasHandle_t handle_native;
+	cublasOperation_t transa_native;
+	cublasOperation_t transb_native;
+	int m_native = 0;
+	int n_native = 0;
+	int k_native = 0;
+	void * alpha_native = NULL;
+	void * * Aarray_native = NULL;
+	cudaDataType Atype_native;
+	int lda_native = 0;
+	void * * Barray_native = NULL;
+	cudaDataType Btype_native;
+	int ldb_native = 0;
+	void * beta_native = NULL;
+	void * * Carray_native = NULL;
+	cudaDataType Ctype_native;
+	int ldc_native = 0;
+	int batchCount_native = 0;
+	cudaDataType computeType_native;
+	cublasGemmAlgo_t algo_native;
+
+	// Obtain native variable values
+	handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+	transa_native = (cublasOperation_t)transa;
+	transb_native = (cublasOperation_t)transb;
+	m_native = (int)m;
+	n_native = (int)n;
+	k_native = (int)k;
+	PointerData *alpha_pointerData = initPointerData(env, alpha);
+	if (alpha_pointerData == NULL)
+	{
+		return JCUBLAS_STATUS_INTERNAL_ERROR;
+	}
+	alpha_native = (void *)alpha_pointerData->getPointer(env);
+	Aarray_native = (void * *)getPointer(env, Aarray);
+	Atype_native = (cudaDataType)Atype;
+	lda_native = (int)lda;
+	Barray_native = (void * *)getPointer(env, Barray);
+	Btype_native = (cudaDataType)Btype;
+	ldb_native = (int)ldb;
+	PointerData *beta_pointerData = initPointerData(env, beta);
+	if (beta_pointerData == NULL)
+	{
+		return JCUBLAS_STATUS_INTERNAL_ERROR;
+	}
+	beta_native = (void *)beta_pointerData->getPointer(env);
+	Carray_native = (void * *)getPointer(env, Carray);
+	Ctype_native = (cudaDataType)Ctype;
+	ldc_native = (int)ldc;
+	batchCount_native = (int)batchCount;
+	computeType_native = (cudaDataType)computeType;
+	algo_native = (cublasGemmAlgo_t)algo;
+
+	// Native function call
+	cublasStatus_t jniResult_native = cublasGemmBatchedEx(handle_native, transa_native, transb_native, m_native, n_native, k_native, alpha_native, (const void**)Aarray_native, Atype_native, lda_native, (const void**)Barray_native, Btype_native, ldb_native, beta_native, Carray_native, Ctype_native, ldc_native, batchCount_native, computeType_native, algo_native);
+
+	// Write back native variable values
+	// handle is read-only
+	// transa is primitive
+	// transb is primitive
+	// m is primitive
+	// n is primitive
+	// k is primitive
+	if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+	// Aarray is a native pointer
+	// Atype is primitive
+	// lda is primitive
+	// Barray is a native pointer
+	// Btype is primitive
+	// ldb is primitive
+	if (!releasePointerData(env, beta_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+	// Carray is a native pointer
+	// Ctype is primitive
+	// ldc is primitive
+	// batchCount is primitive
+	// computeType is primitive
+	// algo is primitive
+
+	// Return the result
+	jint jniResult = (jint)jniResult_native;
+	return jniResult;
+}
+
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasGemmStridedBatchedExNative(JNIEnv *env, jclass cls, jobject handle, jint transa, jint transb, jint m, jint n, jint k, jobject alpha, jobject A, jint Atype, jint lda, jlong strideA, jobject B, jint Btype, jint ldb, jlong strideB, jobject beta, jobject C, jint Ctype, jint ldc, jlong strideC, jint batchCount, jint computeType, jint algo)
+{
+	// Null-checks for non-primitive arguments
+	if (handle == NULL)
+	{
+		ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasGemmStridedBatchedEx");
+		return JCUBLAS_STATUS_INTERNAL_ERROR;
+	}
+	// transa is primitive
+	// transb is primitive
+	// m is primitive
+	// n is primitive
+	// k is primitive
+	if (alpha == NULL)
+	{
+		ThrowByName(env, "java/lang/NullPointerException", "Parameter 'alpha' is null for cublasGemmStridedBatchedEx");
+		return JCUBLAS_STATUS_INTERNAL_ERROR;
+	}
+	if (A == NULL)
+	{
+		ThrowByName(env, "java/lang/NullPointerException", "Parameter 'A' is null for cublasGemmStridedBatchedEx");
+		return JCUBLAS_STATUS_INTERNAL_ERROR;
+	}
+	// Atype is primitive
+	// lda is primitive
+	// strideA is primitive
+	if (B == NULL)
+	{
+		ThrowByName(env, "java/lang/NullPointerException", "Parameter 'B' is null for cublasGemmStridedBatchedEx");
+		return JCUBLAS_STATUS_INTERNAL_ERROR;
+	}
+	// Btype is primitive
+	// ldb is primitive
+	// strideB is primitive
+	if (beta == NULL)
+	{
+		ThrowByName(env, "java/lang/NullPointerException", "Parameter 'beta' is null for cublasGemmStridedBatchedEx");
+		return JCUBLAS_STATUS_INTERNAL_ERROR;
+	}
+	if (C == NULL)
+	{
+		ThrowByName(env, "java/lang/NullPointerException", "Parameter 'C' is null for cublasGemmStridedBatchedEx");
+		return JCUBLAS_STATUS_INTERNAL_ERROR;
+	}
+	// Ctype is primitive
+	// ldc is primitive
+	// strideC is primitive
+	// batchCount is primitive
+	// computeType is primitive
+	// algo is primitive
+
+	// Log message
+	Logger::log(LOG_TRACE, "Executing cublasGemmStridedBatchedEx(handle=%p, transa=%d, transb=%d, m=%d, n=%d, k=%d, alpha=%p, A=%p, Atype=%d, lda=%d, strideA=%ld, B=%p, Btype=%d, ldb=%d, strideB=%ld, beta=%p, C=%p, Ctype=%d, ldc=%d, strideC=%ld, batchCount=%d, computeType=%d, algo=%d)\n",
+		handle, transa, transb, m, n, k, alpha, A, Atype, lda, strideA, B, Btype, ldb, strideB, beta, C, Ctype, ldc, strideC, batchCount, computeType, algo);
+
+	// Native variable declarations
+	cublasHandle_t handle_native;
+	cublasOperation_t transa_native;
+	cublasOperation_t transb_native;
+	int m_native = 0;
+	int n_native = 0;
+	int k_native = 0;
+	void * alpha_native = NULL;
+	void * A_native = NULL;
+	cudaDataType Atype_native;
+	int lda_native = 0;
+	long long  strideA_native = 0;
+	void * B_native = NULL;
+	cudaDataType Btype_native;
+	int ldb_native = 0;
+	long long  strideB_native = 0;
+	void * beta_native = NULL;
+	void * C_native = NULL;
+	cudaDataType Ctype_native;
+	int ldc_native = 0;
+	long long  strideC_native = 0;
+	int batchCount_native = 0;
+	cudaDataType computeType_native;
+	cublasGemmAlgo_t algo_native;
+
+	// Obtain native variable values
+	handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+	transa_native = (cublasOperation_t)transa;
+	transb_native = (cublasOperation_t)transb;
+	m_native = (int)m;
+	n_native = (int)n;
+	k_native = (int)k;
+	PointerData *alpha_pointerData = initPointerData(env, alpha);
+	if (alpha_pointerData == NULL)
+	{
+		return JCUBLAS_STATUS_INTERNAL_ERROR;
+	}
+	alpha_native = (void *)alpha_pointerData->getPointer(env);
+	A_native = (void *)getPointer(env, A);
+	Atype_native = (cudaDataType)Atype;
+	lda_native = (int)lda;
+	strideA_native = (long long)strideA;
+	B_native = (void *)getPointer(env, B);
+	Btype_native = (cudaDataType)Btype;
+	ldb_native = (int)ldb;
+	strideB_native = (long long)strideB;
+	PointerData *beta_pointerData = initPointerData(env, beta);
+	if (beta_pointerData == NULL)
+	{
+		return JCUBLAS_STATUS_INTERNAL_ERROR;
+	}
+	beta_native = (void *)beta_pointerData->getPointer(env);
+	C_native = (void *)getPointer(env, C);
+	Ctype_native = (cudaDataType)Ctype;
+	ldc_native = (int)ldc;
+	strideC_native = (long long)strideC;
+	batchCount_native = (int)batchCount;
+	computeType_native = (cudaDataType)computeType;
+	algo_native = (cublasGemmAlgo_t)algo;
+
+	// Native function call
+	cublasStatus_t jniResult_native = cublasGemmStridedBatchedEx(handle_native, transa_native, transb_native, m_native, n_native, k_native, alpha_native, A_native, Atype_native, lda_native, strideA_native, B_native, Btype_native, ldb_native, strideB_native, beta_native, C_native, Ctype_native, ldc_native, strideC_native, batchCount_native, computeType_native, algo_native);
+
+	// Write back native variable values
+	// handle is read-only
+	// transa is primitive
+	// transb is primitive
+	// m is primitive
+	// n is primitive
+	// k is primitive
+	if (!releasePointerData(env, alpha_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+	// A is a native pointer
+	// Atype is primitive
+	// lda is primitive
+	// strideA is primitive
+	// B is a native pointer
+	// Btype is primitive
+	// ldb is primitive
+	// strideB is primitive
+	if (!releasePointerData(env, beta_pointerData, JNI_ABORT)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+	// C is a native pointer
+	// Ctype is primitive
+	// ldc is primitive
+	// strideC is primitive
+	// batchCount is primitive
+	// computeType is primitive
+	// algo is primitive
+
+	// Return the result
+	jint jniResult = (jint)jniResult_native;
+	return jniResult;
+}
+
 JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSgemmStridedBatchedNative(JNIEnv *env, jclass cls, jobject handle, jint transa, jint transb, jint m, jint n, jint k, jobject alpha, jobject A, jint lda, jlong strideA, jobject B, jint ldb, jlong strideB, jobject beta, jobject C, jint ldc, jlong strideC, jint batchCount)
 {
     // Null-checks for non-primitive arguments

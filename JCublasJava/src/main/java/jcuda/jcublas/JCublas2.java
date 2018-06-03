@@ -606,16 +606,16 @@ public class JCublas2
         cublasHandle handle, 
         int mode);
 
-    
+
     public static int cublasNrm2Ex(
         cublasHandle handle, 
         int n, 
         Pointer x, 
         int xType, 
         int incx, 
-        Pointer result, /** host or device pointer */
+        Pointer result, 
         int resultType, 
-        int executionType)
+        int executionType)/** host or device pointer */
     {
         return checkResult(cublasNrm2ExNative(handle, n, x, xType, incx, result, resultType, executionType));
     }
@@ -625,9 +625,9 @@ public class JCublas2
         Pointer x, 
         int xType, 
         int incx, 
-        Pointer result, /** host or device pointer */
+        Pointer result, 
         int resultType, 
-        int executionType);
+        int executionType);/** host or device pointer */
 
 
     public static int cublasSnrm2(
@@ -5405,6 +5405,106 @@ public class JCublas2
         int batchCount);
 
 
+    public static int cublasGemmBatchedEx(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        int m, 
+        int n, 
+        int k, 
+        Pointer alpha, /** host or device pointer */
+        Pointer Aarray, 
+        int Atype, 
+        int lda, 
+        Pointer Barray, 
+        int Btype, 
+        int ldb, 
+        Pointer beta, /** host or device pointer */
+        Pointer Carray, 
+        int Ctype, 
+        int ldc, 
+        int batchCount, 
+        int computeType, 
+        int algo)
+    {
+        return checkResult(cublasGemmBatchedExNative(handle, transa, transb, m, n, k, alpha, Aarray, Atype, lda, Barray, Btype, ldb, beta, Carray, Ctype, ldc, batchCount, computeType, algo));
+    }
+    private static native int cublasGemmBatchedExNative(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        int m, 
+        int n, 
+        int k, 
+        Pointer alpha, /** host or device pointer */
+        Pointer Aarray, 
+        int Atype, 
+        int lda, 
+        Pointer Barray, 
+        int Btype, 
+        int ldb, 
+        Pointer beta, /** host or device pointer */
+        Pointer Carray, 
+        int Ctype, 
+        int ldc, 
+        int batchCount, 
+        int computeType, 
+        int algo);
+
+
+    public static int cublasGemmStridedBatchedEx(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        int m, 
+        int n, 
+        int k, 
+        Pointer alpha, /** host or device pointer */
+        Pointer A, 
+        int Atype, 
+        int lda, 
+        long strideA, /** purposely signed */
+        Pointer B, 
+        int Btype, 
+        int ldb, 
+        long strideB, 
+        Pointer beta, /** host or device pointer */
+        Pointer C, 
+        int Ctype, 
+        int ldc, 
+        long strideC, 
+        int batchCount, 
+        int computeType, 
+        int algo)
+    {
+        return checkResult(cublasGemmStridedBatchedExNative(handle, transa, transb, m, n, k, alpha, A, Atype, lda, strideA, B, Btype, ldb, strideB, beta, C, Ctype, ldc, strideC, batchCount, computeType, algo));
+    }
+    private static native int cublasGemmStridedBatchedExNative(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        int m, 
+        int n, 
+        int k, 
+        Pointer alpha, /** host or device pointer */
+        Pointer A, 
+        int Atype, 
+        int lda, 
+        long strideA, /** purposely signed */
+        Pointer B, 
+        int Btype, 
+        int ldb, 
+        long strideB, 
+        Pointer beta, /** host or device pointer */
+        Pointer C, 
+        int Ctype, 
+        int ldc, 
+        long strideC, 
+        int batchCount, 
+        int computeType, 
+        int algo);
+
+
     public static int cublasSgemmStridedBatched(
         cublasHandle handle, 
         int transa, 
@@ -5412,14 +5512,14 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, // host or device pointer
+        Pointer alpha, /** host or device pointer */
         Pointer A, 
         int lda, 
-        long strideA, // purposely signed
+        long strideA, /** purposely signed */
         Pointer B, 
         int ldb, 
         long strideB, 
-        Pointer beta, // host or device pointer
+        Pointer beta, /** host or device pointer */
         Pointer C, 
         int ldc, 
         long strideC, 
@@ -5434,14 +5534,14 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, // host or device pointer
+        Pointer alpha, /** host or device pointer */
         Pointer A, 
         int lda, 
-        long strideA, // purposely signed
+        long strideA, /** purposely signed */
         Pointer B, 
         int ldb, 
         long strideB, 
-        Pointer beta, // host or device pointer
+        Pointer beta, /** host or device pointer */
         Pointer C, 
         int ldc, 
         long strideC, 
@@ -5455,14 +5555,14 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, // host or device pointer
+        Pointer alpha, /** host or device pointer */
         Pointer A, 
         int lda, 
-        long strideA, // purposely signed
+        long strideA, /** purposely signed */
         Pointer B, 
         int ldb, 
         long strideB, 
-        Pointer beta, // host or device pointer$
+        Pointer beta, /** host or device pointer */
         Pointer C, 
         int ldc, 
         long strideC, 
@@ -5477,14 +5577,14 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, // host or device pointer
+        Pointer alpha, /** host or device pointer */
         Pointer A, 
         int lda, 
-        long strideA, // purposely signed
+        long strideA, /** purposely signed */
         Pointer B, 
         int ldb, 
         long strideB, 
-        Pointer beta, // host or device pointer$
+        Pointer beta, /** host or device pointer */
         Pointer C, 
         int ldc, 
         long strideC, 
@@ -5498,14 +5598,14 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, // host or device pointer
+        Pointer alpha, /** host or device pointer */
         Pointer A, 
         int lda, 
-        long strideA, // purposely signed
+        long strideA, /** purposely signed */
         Pointer B, 
         int ldb, 
         long strideB, 
-        Pointer beta, // host or device pointer$
+        Pointer beta, /** host or device pointer */
         Pointer C, 
         int ldc, 
         long strideC, 
@@ -5520,14 +5620,14 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, // host or device pointer
+        Pointer alpha, /** host or device pointer */
         Pointer A, 
         int lda, 
-        long strideA, // purposely signed
+        long strideA, /** purposely signed */
         Pointer B, 
         int ldb, 
         long strideB, 
-        Pointer beta, // host or device pointer$
+        Pointer beta, /** host or device pointer */
         Pointer C, 
         int ldc, 
         long strideC, 
@@ -5541,14 +5641,14 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, // host or device pointer
+        Pointer alpha, /** host or device pointer */
         Pointer A, 
         int lda, 
-        long strideA, // purposely signed
+        long strideA, /** purposely signed */
         Pointer B, 
         int ldb, 
         long strideB, 
-        Pointer beta, // host or device pointer$
+        Pointer beta, /** host or device pointer */
         Pointer C, 
         int ldc, 
         long strideC, 
@@ -5563,14 +5663,14 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, // host or device pointer
+        Pointer alpha, /** host or device pointer */
         Pointer A, 
         int lda, 
-        long strideA, // purposely signed
+        long strideA, /** purposely signed */
         Pointer B, 
         int ldb, 
         long strideB, 
-        Pointer beta, // host or device pointer$
+        Pointer beta, /** host or device pointer */
         Pointer C, 
         int ldc, 
         long strideC, 
@@ -5584,14 +5684,14 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, // host or device poi$
+        Pointer alpha, /** host or device pointer */
         Pointer A, 
         int lda, 
-        long strideA, // purposely signed
+        long strideA, /** purposely signed */
         Pointer B, 
         int ldb, 
         long strideB, 
-        Pointer beta, // host or device poi$
+        Pointer beta, /** host or device poi */
         Pointer C, 
         int ldc, 
         long strideC, 
@@ -5606,14 +5706,14 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, // host or device poi$
+        Pointer alpha, /** host or device pointer */
         Pointer A, 
         int lda, 
-        long strideA, // purposely signed
+        long strideA, /** purposely signed */
         Pointer B, 
         int ldb, 
         long strideB, 
-        Pointer beta, // host or device poi$
+        Pointer beta, /** host or device poi */
         Pointer C, 
         int ldc, 
         long strideC, 

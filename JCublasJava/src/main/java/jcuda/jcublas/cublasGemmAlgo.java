@@ -52,6 +52,19 @@ public class cublasGemmAlgo
     public static final int CUBLAS_GEMM_ALGO15 = 15;
     public static final int CUBLAS_GEMM_ALGO16 = 16;
     public static final int CUBLAS_GEMM_ALGO17 = 17;
+    // sliced 32x32
+    public static final int CUBLAS_GEMM_ALGO18 = 18;
+    // sliced 64x32
+    public static final int CUBLAS_GEMM_ALGO19 = 19;
+    // sliced 128x32
+    public static final int CUBLAS_GEMM_ALGO20 = 20;
+    // sliced 32x32 -splitK
+    public static final int CUBLAS_GEMM_ALGO21 = 21;
+    // sliced 64x32 -splitK
+    public static final int CUBLAS_GEMM_ALGO22 = 22;
+    // sliced 128x32 -splitK
+    public static final int CUBLAS_GEMM_ALGO23 = 23;
+    
     public static final int CUBLAS_GEMM_DEFAULT_TENSOR_OP = 99;
     public static final int CUBLAS_GEMM_DFALT_TENSOR_OP = 99;
     public static final int CUBLAS_GEMM_ALGO0_TENSOR_OP = 100;
@@ -59,6 +72,17 @@ public class cublasGemmAlgo
     public static final int CUBLAS_GEMM_ALGO2_TENSOR_OP = 102;
     public static final int CUBLAS_GEMM_ALGO3_TENSOR_OP = 103;
     public static final int CUBLAS_GEMM_ALGO4_TENSOR_OP = 104;
+    public static final int CUBLAS_GEMM_ALGO5_TENSOR_OP = 105;
+    public static final int CUBLAS_GEMM_ALGO6_TENSOR_OP = 106;
+    public static final int CUBLAS_GEMM_ALGO7_TENSOR_OP = 107;
+    public static final int CUBLAS_GEMM_ALGO8_TENSOR_OP = 108;
+    public static final int CUBLAS_GEMM_ALGO9_TENSOR_OP = 109;
+    public static final int CUBLAS_GEMM_ALGO10_TENSOR_OP = 110;
+    public static final int CUBLAS_GEMM_ALGO11_TENSOR_OP = 111;
+    public static final int CUBLAS_GEMM_ALGO12_TENSOR_OP = 112;
+    public static final int CUBLAS_GEMM_ALGO13_TENSOR_OP = 113;
+    public static final int CUBLAS_GEMM_ALGO14_TENSOR_OP = 114;
+    public static final int CUBLAS_GEMM_ALGO15_TENSOR_OP = 115;
 
     /**
      * Private constructor to prevent instantiation
@@ -96,12 +120,28 @@ public class cublasGemmAlgo
             case CUBLAS_GEMM_ALGO15: return "CUBLAS_GEMM_ALGO15";
             case CUBLAS_GEMM_ALGO16: return "CUBLAS_GEMM_ALGO16";
             case CUBLAS_GEMM_ALGO17: return "CUBLAS_GEMM_ALGO17";
+            case CUBLAS_GEMM_ALGO18: return "CUBLAS_GEMM_ALGO18";
+            case CUBLAS_GEMM_ALGO19: return "CUBLAS_GEMM_ALGO19";
+            case CUBLAS_GEMM_ALGO20: return "CUBLAS_GEMM_ALGO20";
+            case CUBLAS_GEMM_ALGO21: return "CUBLAS_GEMM_ALGO21";
+            case CUBLAS_GEMM_ALGO22: return "CUBLAS_GEMM_ALGO22";
+            case CUBLAS_GEMM_ALGO23: return "CUBLAS_GEMM_ALGO23";
             case CUBLAS_GEMM_DEFAULT_TENSOR_OP: return "CUBLAS_GEMM_DEFAULT_TENSOR_OP";
             case CUBLAS_GEMM_ALGO0_TENSOR_OP: return "CUBLAS_GEMM_ALGO0_TENSOR_OP";
             case CUBLAS_GEMM_ALGO1_TENSOR_OP: return "CUBLAS_GEMM_ALGO1_TENSOR_OP";
             case CUBLAS_GEMM_ALGO2_TENSOR_OP: return "CUBLAS_GEMM_ALGO2_TENSOR_OP";
             case CUBLAS_GEMM_ALGO3_TENSOR_OP: return "CUBLAS_GEMM_ALGO3_TENSOR_OP";
             case CUBLAS_GEMM_ALGO4_TENSOR_OP: return "CUBLAS_GEMM_ALGO4_TENSOR_OP";
+            case CUBLAS_GEMM_ALGO5_TENSOR_OP: return "CUBLAS_GEMM_ALGO5_TENSOR_OP";
+            case CUBLAS_GEMM_ALGO6_TENSOR_OP: return "CUBLAS_GEMM_ALGO6_TENSOR_OP";
+            case CUBLAS_GEMM_ALGO7_TENSOR_OP: return "CUBLAS_GEMM_ALGO7_TENSOR_OP";
+            case CUBLAS_GEMM_ALGO8_TENSOR_OP: return "CUBLAS_GEMM_ALGO8_TENSOR_OP";
+            case CUBLAS_GEMM_ALGO9_TENSOR_OP: return "CUBLAS_GEMM_ALGO9_TENSOR_OP";
+            case CUBLAS_GEMM_ALGO10_TENSOR_OP: return "CUBLAS_GEMM_ALGO10_TENSOR_OP";
+            case CUBLAS_GEMM_ALGO11_TENSOR_OP: return "CUBLAS_GEMM_ALGO11_TENSOR_OP";
+            case CUBLAS_GEMM_ALGO12_TENSOR_OP: return "CUBLAS_GEMM_ALGO12_TENSOR_OP";
+            case CUBLAS_GEMM_ALGO13_TENSOR_OP: return "CUBLAS_GEMM_ALGO13_TENSOR_OP";
+            case CUBLAS_GEMM_ALGO14_TENSOR_OP: return "CUBLAS_GEMM_ALGO14_TENSOR_OP";
         }
         return "INVALID cublasGemmAlgo: "+n;
     }

@@ -476,7 +476,7 @@ public class JCublas2
         int ldb,
         cudaStream_t stream);
     
-
+    
     //=== Auto-generated part ================================================
 
     public static int cublasCreate(
@@ -605,6 +605,39 @@ public class JCublas2
     private static native int cublasSetMathModeNative(
         cublasHandle handle, 
         int mode);
+
+
+    public static int cublasLoggerConfigure(
+        int logIsOn, 
+        int logToStdOut, 
+        int logToStdErr, 
+        String logFileName)
+    {
+        return checkResult(cublasLoggerConfigureNative(logIsOn, logToStdOut, logToStdErr, logFileName));
+    }
+    private static native int cublasLoggerConfigureNative(
+        int logIsOn, 
+        int logToStdOut, 
+        int logToStdErr, 
+        String logFileName);
+
+
+    public static int cublasSetLoggerCallback(
+        cublasLogCallback userCallback)
+    {
+        return checkResult(cublasSetLoggerCallbackNative(userCallback));
+    }
+    private static native int cublasSetLoggerCallbackNative(
+        cublasLogCallback userCallback);
+
+
+    public static int cublasGetLoggerCallback(
+        cublasLogCallback[] userCallback)
+    {
+        return checkResult(cublasGetLoggerCallbackNative(userCallback));
+    }
+    private static native int cublasGetLoggerCallbackNative(
+        cublasLogCallback[] userCallback);
 
 
     public static int cublasNrm2Ex(
@@ -6382,7 +6415,7 @@ public class JCublas2
         int n, 
         Pointer Aarray, /**Device pointer*/
         int lda, 
-        Pointer TauArray, /** Device pointer*/
+        Pointer TauArray, /**Device pointer*/
         Pointer info, 
         int batchSize)
     {
@@ -6394,7 +6427,7 @@ public class JCublas2
         int n, 
         Pointer Aarray, /**Device pointer*/
         int lda, 
-        Pointer TauArray, /** Device pointer*/
+        Pointer TauArray, /**Device pointer*/
         Pointer info, 
         int batchSize);
 
@@ -6405,7 +6438,7 @@ public class JCublas2
         int n, 
         Pointer Aarray, /**Device pointer*/
         int lda, 
-        Pointer TauArray, /** Device pointer*/
+        Pointer TauArray, /**Device pointer*/
         Pointer info, 
         int batchSize)
     {
@@ -6417,7 +6450,7 @@ public class JCublas2
         int n, 
         Pointer Aarray, /**Device pointer*/
         int lda, 
-        Pointer TauArray, /** Device pointer*/
+        Pointer TauArray, /**Device pointer*/
         Pointer info, 
         int batchSize);
 
@@ -6428,7 +6461,7 @@ public class JCublas2
         int n, 
         Pointer Aarray, /**Device pointer*/
         int lda, 
-        Pointer TauArray, /** Device pointer*/
+        Pointer TauArray, /**Device pointer*/
         Pointer info, 
         int batchSize)
     {
@@ -6440,7 +6473,7 @@ public class JCublas2
         int n, 
         Pointer Aarray, /**Device pointer*/
         int lda, 
-        Pointer TauArray, /** Device pointer*/
+        Pointer TauArray, /**Device pointer*/
         Pointer info, 
         int batchSize);
 
@@ -6451,7 +6484,7 @@ public class JCublas2
         int n, 
         Pointer Aarray, /**Device pointer*/
         int lda, 
-        Pointer TauArray, /** Device pointer*/
+        Pointer TauArray, /**Device pointer*/
         Pointer info, 
         int batchSize)
     {
@@ -6463,7 +6496,7 @@ public class JCublas2
         int n, 
         Pointer Aarray, /**Device pointer*/
         int lda, 
-        Pointer TauArray, /** Device pointer*/
+        Pointer TauArray, /**Device pointer*/
         Pointer info, 
         int batchSize);
 
@@ -6476,10 +6509,10 @@ public class JCublas2
         int nrhs, 
         Pointer Aarray, /**Device pointer*/
         int lda, 
-        Pointer Carray, /** Device pointer*/
+        Pointer Carray, /**Device pointer*/
         int ldc, 
         Pointer info, 
-        Pointer devInfoArray, /** Device pointer*/
+        Pointer devInfoArray, /**Device pointer*/
         int batchSize)
     {
         return checkResult(cublasSgelsBatchedNative(handle, trans, m, n, nrhs, Aarray, lda, Carray, ldc, info, devInfoArray, batchSize));
@@ -6492,10 +6525,10 @@ public class JCublas2
         int nrhs, 
         Pointer Aarray, /**Device pointer*/
         int lda, 
-        Pointer Carray, /** Device pointer*/
+        Pointer Carray, /**Device pointer*/
         int ldc, 
         Pointer info, 
-        Pointer devInfoArray, /** Device pointer*/
+        Pointer devInfoArray, /**Device pointer*/
         int batchSize);
 
 
@@ -6507,10 +6540,10 @@ public class JCublas2
         int nrhs, 
         Pointer Aarray, /**Device pointer*/
         int lda, 
-        Pointer Carray, /** Device pointer*/
+        Pointer Carray, /**Device pointer*/
         int ldc, 
         Pointer info, 
-        Pointer devInfoArray, /** Device pointer*/
+        Pointer devInfoArray, /**Device pointer*/
         int batchSize)
     {
         return checkResult(cublasDgelsBatchedNative(handle, trans, m, n, nrhs, Aarray, lda, Carray, ldc, info, devInfoArray, batchSize));
@@ -6523,10 +6556,10 @@ public class JCublas2
         int nrhs, 
         Pointer Aarray, /**Device pointer*/
         int lda, 
-        Pointer Carray, /** Device pointer*/
+        Pointer Carray, /**Device pointer*/
         int ldc, 
         Pointer info, 
-        Pointer devInfoArray, /** Device pointer*/
+        Pointer devInfoArray, /**Device pointer*/
         int batchSize);
 
 
@@ -6538,7 +6571,7 @@ public class JCublas2
         int nrhs, 
         Pointer Aarray, /**Device pointer*/
         int lda, 
-        Pointer Carray, /** Device pointer*/
+        Pointer Carray, /**Device pointer*/
         int ldc, 
         Pointer info, 
         Pointer devInfoArray, 
@@ -6554,7 +6587,7 @@ public class JCublas2
         int nrhs, 
         Pointer Aarray, /**Device pointer*/
         int lda, 
-        Pointer Carray, /** Device pointer*/
+        Pointer Carray, /**Device pointer*/
         int ldc, 
         Pointer info, 
         Pointer devInfoArray, 
@@ -6569,7 +6602,7 @@ public class JCublas2
         int nrhs, 
         Pointer Aarray, /**Device pointer*/
         int lda, 
-        Pointer Carray, /** Device pointer*/
+        Pointer Carray, /**Device pointer*/
         int ldc, 
         Pointer info, 
         Pointer devInfoArray, 
@@ -6585,7 +6618,7 @@ public class JCublas2
         int nrhs, 
         Pointer Aarray, /**Device pointer*/
         int lda, 
-        Pointer Carray, /** Device pointer*/
+        Pointer Carray, /**Device pointer*/
         int ldc, 
         Pointer info, 
         Pointer devInfoArray, 
@@ -6850,6 +6883,8 @@ public class JCublas2
         Pointer A, 
         int lda, 
         Pointer AP);
+
+
 
 
 }

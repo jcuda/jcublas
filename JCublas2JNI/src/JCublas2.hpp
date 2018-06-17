@@ -205,6 +205,30 @@ extern "C" {
 
 	/*
 	* Class:     jcuda_jcublas_JCublas2
+	* Method:    cublasLoggerConfigureNative
+	* Signature: (IIILjava/lang/String;)I
+	*/
+	JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasLoggerConfigureNative
+		(JNIEnv *, jclass, jint, jint, jint, jstring);
+
+	/*
+	* Class:     jcuda_jcublas_JCublas2
+	* Method:    cublasSetLoggerCallbackNative
+	* Signature: (Ljcuda/jcublas/cublasLogCallback;)I
+	*/
+	JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSetLoggerCallbackNative
+		(JNIEnv *, jclass, jobject);
+
+	/*
+	* Class:     jcuda_jcublas_JCublas2
+	* Method:    cublasGetLoggerCallbackNative
+	* Signature: ([Ljcuda/jcublas/cublasLogCallback;)I
+	*/
+	JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasGetLoggerCallbackNative
+		(JNIEnv *, jclass, jobjectArray);
+
+	/*
+	* Class:     jcuda_jcublas_JCublas2
 	* Method:    cublasNrm2ExNative
 	* Signature: (Ljcuda/jcublas/cublasHandle;ILjcuda/Pointer;IILjcuda/Pointer;II)I
 	*/

@@ -519,6 +519,13 @@ public class JCublas2
         int[] value);
 
 
+    public static long cublasGetCudartVersion()
+    {
+        return cublasGetCudartVersionNative();
+    }
+    private static native long cublasGetCudartVersionNative();
+
+
     public static int cublasSetStream(
         cublasHandle handle, 
         cudaStream_t streamId)
@@ -1153,6 +1160,29 @@ public class JCublas2
         int incy);
 
 
+    public static int cublasCopyEx(
+        cublasHandle handle, 
+        int n, 
+        Pointer x, 
+        int xType, 
+        int incx, 
+        Pointer y, 
+        int yType, 
+        int incy)
+    {
+        return checkResult(cublasCopyExNative(handle, n, x, xType, incx, y, yType, incy));
+    }
+    private static native int cublasCopyExNative(
+        cublasHandle handle, 
+        int n, 
+        Pointer x, 
+        int xType, 
+        int incx, 
+        Pointer y, 
+        int yType, 
+        int incy);
+
+
     public static int cublasScopy(
         cublasHandle handle, 
         int n, 
@@ -1305,6 +1335,29 @@ public class JCublas2
         int incy);
 
 
+    public static int cublasSwapEx(
+        cublasHandle handle, 
+        int n, 
+        Pointer x, 
+        int xType, 
+        int incx, 
+        Pointer y, 
+        int yType, 
+        int incy)
+    {
+        return checkResult(cublasSwapExNative(handle, n, x, xType, incx, y, yType, incy));
+    }
+    private static native int cublasSwapExNative(
+        cublasHandle handle, 
+        int n, 
+        Pointer x, 
+        int xType, 
+        int incx, 
+        Pointer y, 
+        int yType, 
+        int incy);
+
+
     public static int cublasIsamax(
         cublasHandle handle, 
         int n, 
@@ -1369,6 +1422,25 @@ public class JCublas2
         cublasHandle handle, 
         int n, 
         Pointer x, 
+        int incx, 
+        Pointer result);/** host or device pointer */
+
+
+    public static int cublasIamaxEx(
+        cublasHandle handle, 
+        int n, 
+        Pointer x, 
+        int xType, 
+        int incx, 
+        Pointer result)/** host or device pointer */
+    {
+        return checkResult(cublasIamaxExNative(handle, n, x, xType, incx, result));
+    }
+    private static native int cublasIamaxExNative(
+        cublasHandle handle, 
+        int n, 
+        Pointer x, 
+        int xType, 
         int incx, 
         Pointer result);/** host or device pointer */
 
@@ -1439,6 +1511,48 @@ public class JCublas2
         Pointer x, 
         int incx, 
         Pointer result);/** host or device pointer */
+
+
+    public static int cublasIaminEx(
+        cublasHandle handle, 
+        int n, 
+        Pointer x, 
+        int xType, 
+        int incx, 
+        Pointer result)/** host or device pointer */
+    {
+        return checkResult(cublasIaminExNative(handle, n, x, xType, incx, result));
+    }
+    private static native int cublasIaminExNative(
+        cublasHandle handle, 
+        int n, 
+        Pointer x, 
+        int xType, 
+        int incx, 
+        Pointer result);/** host or device pointer */
+
+
+    public static int cublasAsumEx(
+        cublasHandle handle, 
+        int n, 
+        Pointer x, 
+        int xType, 
+        int incx, 
+        Pointer result, 
+        int resultType, /** host or device pointer */
+        int executiontype)
+    {
+        return checkResult(cublasAsumExNative(handle, n, x, xType, incx, result, resultType, executiontype));
+    }
+    private static native int cublasAsumExNative(
+        cublasHandle handle, 
+        int n, 
+        Pointer x, 
+        int xType, 
+        int incx, 
+        Pointer result, 
+        int resultType, /** host or device pointer */
+        int executiontype);
 
 
     public static int cublasSasum(
@@ -1647,6 +1761,37 @@ public class JCublas2
         Pointer s);/** host or device pointer */
 
 
+    public static int cublasRotEx(
+        cublasHandle handle, 
+        int n, 
+        Pointer x, 
+        int xType, 
+        int incx, 
+        Pointer y, 
+        int yType, 
+        int incy, 
+        Pointer c, /** host or device pointer */
+        Pointer s, 
+        int csType, 
+        int executiontype)
+    {
+        return checkResult(cublasRotExNative(handle, n, x, xType, incx, y, yType, incy, c, s, csType, executiontype));
+    }
+    private static native int cublasRotExNative(
+        cublasHandle handle, 
+        int n, 
+        Pointer x, 
+        int xType, 
+        int incx, 
+        Pointer y, 
+        int yType, 
+        int incy, 
+        Pointer c, /** host or device pointer */
+        Pointer s, 
+        int csType, 
+        int executiontype);
+
+
     public static int cublasSrotg(
         cublasHandle handle, 
         Pointer a, /** host or device pointer */
@@ -1715,6 +1860,29 @@ public class JCublas2
         Pointer s);/** host or device pointer */
 
 
+    public static int cublasRotgEx(
+        cublasHandle handle, 
+        Pointer a, /** host or device pointer */
+        Pointer b, /** host or device pointer */
+        int abType, 
+        Pointer c, /** host or device pointer */
+        Pointer s, /** host or device pointer */
+        int csType, 
+        int executiontype)
+    {
+        return checkResult(cublasRotgExNative(handle, a, b, abType, c, s, csType, executiontype));
+    }
+    private static native int cublasRotgExNative(
+        cublasHandle handle, 
+        Pointer a, /** host or device pointer */
+        Pointer b, /** host or device pointer */
+        int abType, 
+        Pointer c, /** host or device pointer */
+        Pointer s, /** host or device pointer */
+        int csType, 
+        int executiontype);
+
+
     public static int cublasSrotm(
         cublasHandle handle, 
         int n, 
@@ -1757,6 +1925,35 @@ public class JCublas2
         Pointer param);/** host or device pointer */
 
 
+    public static int cublasRotmEx(
+        cublasHandle handle, 
+        int n, 
+        Pointer x, 
+        int xType, 
+        int incx, 
+        Pointer y, 
+        int yType, 
+        int incy, 
+        Pointer param, /** host or device pointer */
+        int paramType, 
+        int executiontype)
+    {
+        return checkResult(cublasRotmExNative(handle, n, x, xType, incx, y, yType, incy, param, paramType, executiontype));
+    }
+    private static native int cublasRotmExNative(
+        cublasHandle handle, 
+        int n, 
+        Pointer x, 
+        int xType, 
+        int incx, 
+        Pointer y, 
+        int yType, 
+        int incy, 
+        Pointer param, /** host or device pointer */
+        int paramType, 
+        int executiontype);
+
+
     public static int cublasSrotmg(
         cublasHandle handle, 
         Pointer d1, /** host or device pointer */
@@ -1793,6 +1990,37 @@ public class JCublas2
         Pointer x1, /** host or device pointer */
         Pointer y1, /** host or device pointer */
         Pointer param);/** host or device pointer */
+
+
+    public static int cublasRotmgEx(
+        cublasHandle handle, 
+        Pointer d1, /** host or device pointer */
+        int d1Type, 
+        Pointer d2, /** host or device pointer */
+        int d2Type, 
+        Pointer x1, /** host or device pointer */
+        int x1Type, 
+        Pointer y1, /** host or device pointer */
+        int y1Type, 
+        Pointer param, /** host or device pointer */
+        int paramType, 
+        int executiontype)
+    {
+        return checkResult(cublasRotmgExNative(handle, d1, d1Type, d2, d2Type, x1, x1Type, y1, y1Type, param, paramType, executiontype));
+    }
+    private static native int cublasRotmgExNative(
+        cublasHandle handle, 
+        Pointer d1, /** host or device pointer */
+        int d1Type, 
+        Pointer d2, /** host or device pointer */
+        int d2Type, 
+        Pointer x1, /** host or device pointer */
+        int x1Type, 
+        Pointer y1, /** host or device pointer */
+        int y1Type, 
+        Pointer param, /** host or device pointer */
+        int paramType, 
+        int executiontype);
 
 
     public static int cublasSgemv(

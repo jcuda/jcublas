@@ -44,6 +44,11 @@ public class cublasFillMode
     public static final int CUBLAS_FILL_MODE_UPPER = 1;
 
     /**
+     * The whole matrix is filled
+     */
+    public static final int CUBLAS_FILL_MODE_FULL = 2;
+
+    /**
      * Private constructor to prevent instantiation
      */
     private cublasFillMode(){}
@@ -59,6 +64,7 @@ public class cublasFillMode
         {
             case CUBLAS_FILL_MODE_LOWER: return "CUBLAS_FILL_MODE_LOWER";
             case CUBLAS_FILL_MODE_UPPER: return "CUBLAS_FILL_MODE_UPPER";
+            case CUBLAS_FILL_MODE_FULL: return "CUBLAS_FILL_MODE_FULL";
         }
         return "INVALID cublasFillMode: "+n;
     }

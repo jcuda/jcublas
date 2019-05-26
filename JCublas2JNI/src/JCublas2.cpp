@@ -625,6 +625,19 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasGetPropertyNative(JNIEn
     return jniResult;
 }
 
+JNIEXPORT jlong JNICALL Java_jcuda_jcublas_JCublas2_cublasGetCudartVersionNative(JNIEnv *env, jclass cls)
+{
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasGetCudartVersion()\n");
+
+    // Native function call
+    size_t jniResult_native = cublasGetCudartVersion();
+
+    // Return the result
+    jlong jniResult = (jlong)jniResult_native;
+    return jniResult;
+}
+
 JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSetStreamNative(JNIEnv *env, jclass cls, jobject handle, jobject streamId)
 {
     // Null-checks for non-primitive arguments
@@ -1419,7 +1432,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDotExNative(JNIEnv *env
     y_native = (void const *)getPointer(env, y);
     yType_native = (cudaDataType)yType;
     incy_native = (int)incy;
-    result_native = (void *)getPointer(env, result);
+    PointerData *result_pointerData = initPointerData(env, result);
+    if (result_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    result_native = (void *)result_pointerData->getPointer(env);
     resultType_native = (cudaDataType)resultType;
     executionType_native = (cudaDataType)executionType;
 
@@ -1435,7 +1453,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDotExNative(JNIEnv *env
     // y is a native pointer
     // yType is primitive
     // incy is primitive
-    // result is a native pointer
+    // If the PointerData is not backed by native memory, then this call has to block
+    if (!isPointerBackedByNativeMemory(env, result))
+    {
+        cudaDeviceSynchronize();
+    }
+    if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
     // resultType is primitive
     // executionType is primitive
 
@@ -1501,7 +1524,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDotcExNative(JNIEnv *en
     y_native = (void const *)getPointer(env, y);
     yType_native = (cudaDataType)yType;
     incy_native = (int)incy;
-    result_native = (void *)getPointer(env, result);
+    PointerData *result_pointerData = initPointerData(env, result);
+    if (result_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    result_native = (void *)result_pointerData->getPointer(env);
     resultType_native = (cudaDataType)resultType;
     executionType_native = (cudaDataType)executionType;
 
@@ -1517,7 +1545,12 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDotcExNative(JNIEnv *en
     // y is a native pointer
     // yType is primitive
     // incy is primitive
-    // result is a native pointer
+    // If the PointerData is not backed by native memory, then this call has to block
+    if (!isPointerBackedByNativeMemory(env, result))
+    {
+        cudaDeviceSynchronize();
+    }
+    if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
     // resultType is primitive
     // executionType is primitive
 
@@ -2778,6 +2811,72 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZaxpyNative(JNIEnv *env
     return jniResult;
 }
 
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasCopyExNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject x, jint xType, jint incx, jobject y, jint yType, jint incy)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasCopyEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // n is primitive
+    if (x == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'x' is null for cublasCopyEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // xType is primitive
+    // incx is primitive
+    if (y == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'y' is null for cublasCopyEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // yType is primitive
+    // incy is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasCopyEx(handle=%p, n=%d, x=%p, xType=%d, incx=%d, y=%p, yType=%d, incy=%d)\n",
+        handle, n, x, xType, incx, y, yType, incy);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    int n_native = 0;
+    void const * x_native = NULL;
+    cudaDataType xType_native;
+    int incx_native = 0;
+    void * y_native = NULL;
+    cudaDataType yType_native;
+    int incy_native = 0;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    n_native = (int)n;
+    x_native = (void const *)getPointer(env, x);
+    xType_native = (cudaDataType)xType;
+    incx_native = (int)incx;
+    y_native = (void *)getPointer(env, y);
+    yType_native = (cudaDataType)yType;
+    incy_native = (int)incy;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasCopyEx(handle_native, n_native, x_native, xType_native, incx_native, y_native, yType_native, incy_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // n is primitive
+    // x is a native pointer
+    // xType is primitive
+    // incx is primitive
+    // y is a native pointer
+    // yType is primitive
+    // incy is primitive
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
 JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasScopyNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject x, jint incx, jobject y, jint incy)
 {
     // Null-checks for non-primitive arguments
@@ -3242,6 +3341,72 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZswapNative(JNIEnv *env
     return jniResult;
 }
 
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSwapExNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject x, jint xType, jint incx, jobject y, jint yType, jint incy)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasSwapEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // n is primitive
+    if (x == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'x' is null for cublasSwapEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // xType is primitive
+    // incx is primitive
+    if (y == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'y' is null for cublasSwapEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // yType is primitive
+    // incy is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasSwapEx(handle=%p, n=%d, x=%p, xType=%d, incx=%d, y=%p, yType=%d, incy=%d)\n",
+        handle, n, x, xType, incx, y, yType, incy);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    int n_native = 0;
+    void * x_native = NULL;
+    cudaDataType xType_native;
+    int incx_native = 0;
+    void * y_native = NULL;
+    cudaDataType yType_native;
+    int incy_native = 0;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    n_native = (int)n;
+    x_native = (void *)getPointer(env, x);
+    xType_native = (cudaDataType)xType;
+    incx_native = (int)incx;
+    y_native = (void *)getPointer(env, y);
+    yType_native = (cudaDataType)yType;
+    incy_native = (int)incy;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasSwapEx(handle_native, n_native, x_native, xType_native, incx_native, y_native, yType_native, incy_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // n is primitive
+    // x is a native pointer
+    // xType is primitive
+    // incx is primitive
+    // y is a native pointer
+    // yType is primitive
+    // incy is primitive
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
 JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasIsamaxNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject x, jint incx, jobject result)
 {
     // Null-checks for non-primitive arguments
@@ -3485,6 +3650,74 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasIzamaxNative(JNIEnv *en
     // handle is read-only
     // n is primitive
     // x is a native pointer
+    // incx is primitive
+    // If the PointerData is not backed by native memory, then this call has to block
+    if (!isPointerBackedByNativeMemory(env, result))
+    {
+        cudaDeviceSynchronize();
+    }
+    if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasIamaxExNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject x, jint xType, jint incx, jobject result)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasIamaxEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // n is primitive
+    if (x == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'x' is null for cublasIamaxEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // xType is primitive
+    // incx is primitive
+    if (result == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'result' is null for cublasIamaxEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasIamaxEx(handle=%p, n=%d, x=%p, xType=%d, incx=%d, result=%p)\n",
+        handle, n, x, xType, incx, result);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    int n_native = 0;
+    void const * x_native = NULL;
+    cudaDataType xType_native;
+    int incx_native = 0;
+    int * result_native = NULL;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    n_native = (int)n;
+    x_native = (void const *)getPointer(env, x);
+    xType_native = (cudaDataType)xType;
+    incx_native = (int)incx;
+    PointerData *result_pointerData = initPointerData(env, result);
+    if (result_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    result_native = (int *)result_pointerData->getPointer(env);
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasIamaxEx(handle_native, n_native, x_native, xType_native, incx_native, result_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // n is primitive
+    // x is a native pointer
+    // xType is primitive
     // incx is primitive
     // If the PointerData is not backed by native memory, then this call has to block
     if (!isPointerBackedByNativeMemory(env, result))
@@ -3748,6 +3981,150 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasIzaminNative(JNIEnv *en
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasIaminExNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject x, jint xType, jint incx, jobject result)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasIaminEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // n is primitive
+    if (x == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'x' is null for cublasIaminEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // xType is primitive
+    // incx is primitive
+    if (result == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'result' is null for cublasIaminEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasIaminEx(handle=%p, n=%d, x=%p, xType=%d, incx=%d, result=%p)\n",
+        handle, n, x, xType, incx, result);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    int n_native = 0;
+    void const * x_native = NULL;
+    cudaDataType xType_native;
+    int incx_native = 0;
+    int * result_native = NULL;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    n_native = (int)n;
+    x_native = (void const *)getPointer(env, x);
+    xType_native = (cudaDataType)xType;
+    incx_native = (int)incx;
+    PointerData *result_pointerData = initPointerData(env, result);
+    if (result_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    result_native = (int *)result_pointerData->getPointer(env);
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasIaminEx(handle_native, n_native, x_native, xType_native, incx_native, result_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // n is primitive
+    // x is a native pointer
+    // xType is primitive
+    // incx is primitive
+    // If the PointerData is not backed by native memory, then this call has to block
+    if (!isPointerBackedByNativeMemory(env, result))
+    {
+        cudaDeviceSynchronize();
+    }
+    if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasAsumExNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject x, jint xType, jint incx, jobject result, jint resultType, jint executiontype)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasAsumEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // n is primitive
+    if (x == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'x' is null for cublasAsumEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // xType is primitive
+    // incx is primitive
+    if (result == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'result' is null for cublasAsumEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // resultType is primitive
+    // executiontype is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasAsumEx(handle=%p, n=%d, x=%p, xType=%d, incx=%d, result=%p, resultType=%d, executiontype=%d)\n",
+        handle, n, x, xType, incx, result, resultType, executiontype);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    int n_native = 0;
+    void const * x_native = NULL;
+    cudaDataType xType_native;
+    int incx_native = 0;
+    void * result_native = NULL;
+    cudaDataType resultType_native;
+    cudaDataType executiontype_native;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    n_native = (int)n;
+    x_native = (void const *)getPointer(env, x);
+    xType_native = (cudaDataType)xType;
+    incx_native = (int)incx;
+    PointerData *result_pointerData = initPointerData(env, result);
+    if (result_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    result_native = (void *)result_pointerData->getPointer(env);
+    resultType_native = (cudaDataType)resultType;
+    executiontype_native = (cudaDataType)executiontype;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasAsumEx(handle_native, n_native, x_native, xType_native, incx_native, result_native, resultType_native, executiontype_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // n is primitive
+    // x is a native pointer
+    // xType is primitive
+    // incx is primitive
+    // If the PointerData is not backed by native memory, then this call has to block
+    if (!isPointerBackedByNativeMemory(env, result))
+    {
+        cudaDeviceSynchronize();
+    }
+    if (!releasePointerData(env, result_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // resultType is primitive
+    // executiontype is primitive
 
     // Return the result
     jint jniResult = (jint)jniResult_native;
@@ -4574,6 +4951,106 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZdrotNative(JNIEnv *env
     return jniResult;
 }
 
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasRotExNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject x, jint xType, jint incx, jobject y, jint yType, jint incy, jobject c, jobject s, jint csType, jint executiontype)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasRotEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // n is primitive
+    if (x == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'x' is null for cublasRotEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // xType is primitive
+    // incx is primitive
+    if (y == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'y' is null for cublasRotEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // yType is primitive
+    // incy is primitive
+    if (c == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'c' is null for cublasRotEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (s == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 's' is null for cublasRotEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // csType is primitive
+    // executiontype is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasRotEx(handle=%p, n=%d, x=%p, xType=%d, incx=%d, y=%p, yType=%d, incy=%d, c=%p, s=%p, csType=%d, executiontype=%d)\n",
+        handle, n, x, xType, incx, y, yType, incy, c, s, csType, executiontype);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    int n_native = 0;
+    void * x_native = NULL;
+    cudaDataType xType_native;
+    int incx_native = 0;
+    void * y_native = NULL;
+    cudaDataType yType_native;
+    int incy_native = 0;
+    void const * c_native = NULL;
+    void const * s_native = NULL;
+    cudaDataType csType_native;
+    cudaDataType executiontype_native;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    n_native = (int)n;
+    x_native = (void *)getPointer(env, x);
+    xType_native = (cudaDataType)xType;
+    incx_native = (int)incx;
+    y_native = (void *)getPointer(env, y);
+    yType_native = (cudaDataType)yType;
+    incy_native = (int)incy;
+    PointerData *c_pointerData = initPointerData(env, c);
+    if (c_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    c_native = (void *)c_pointerData->getPointer(env);
+    s_native = (void const *)getPointer(env, s);
+    csType_native = (cudaDataType)csType;
+    executiontype_native = (cudaDataType)executiontype;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasRotEx(handle_native, n_native, x_native, xType_native, incx_native, y_native, yType_native, incy_native, c_native, s_native, csType_native, executiontype_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // n is primitive
+    // x is a native pointer
+    // xType is primitive
+    // incx is primitive
+    // y is a native pointer
+    // yType is primitive
+    // incy is primitive
+    // If the PointerData is not backed by native memory, then this call has to block
+    if (!isPointerBackedByNativeMemory(env, c))
+    {
+        cudaDeviceSynchronize();
+    }
+    if (!releasePointerData(env, c_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // s is a native pointer
+    // csType is primitive
+    // executiontype is primitive
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
 JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSrotgNative(JNIEnv *env, jclass cls, jobject handle, jobject a, jobject b, jobject c, jobject s)
 {
     // Null-checks for non-primitive arguments
@@ -4982,6 +5459,120 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasZrotgNative(JNIEnv *env
     return jniResult;
 }
 
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasRotgExNative(JNIEnv *env, jclass cls, jobject handle, jobject a, jobject b, jint abType, jobject c, jobject s, jint csType, jint executiontype)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasRotgEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (a == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'a' is null for cublasRotgEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (b == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'b' is null for cublasRotgEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // abType is primitive
+    if (c == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'c' is null for cublasRotgEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (s == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 's' is null for cublasRotgEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // csType is primitive
+    // executiontype is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasRotgEx(handle=%p, a=%p, b=%p, abType=%d, c=%p, s=%p, csType=%d, executiontype=%d)\n",
+        handle, a, b, abType, c, s, csType, executiontype);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    void * a_native = NULL;
+    void * b_native = NULL;
+    cudaDataType abType_native;
+    void * c_native = NULL;
+    void * s_native = NULL;
+    cudaDataType csType_native;
+    cudaDataType executiontype_native;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    PointerData *a_pointerData = initPointerData(env, a);
+    if (a_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    a_native = (void *)a_pointerData->getPointer(env);
+    PointerData *b_pointerData = initPointerData(env, b);
+    if (b_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    b_native = (void *)b_pointerData->getPointer(env);
+    abType_native = (cudaDataType)abType;
+    PointerData *c_pointerData = initPointerData(env, c);
+    if (c_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    c_native = (void *)c_pointerData->getPointer(env);
+    PointerData *s_pointerData = initPointerData(env, s);
+    if (s_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    s_native = (void *)s_pointerData->getPointer(env);
+    csType_native = (cudaDataType)csType;
+    executiontype_native = (cudaDataType)executiontype;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasRotgEx(handle_native, a_native, b_native, abType_native, c_native, s_native, csType_native, executiontype_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // If the PointerData is not backed by native memory, then this call has to block
+    if (!isPointerBackedByNativeMemory(env, a))
+    {
+        cudaDeviceSynchronize();
+    }
+    if (!releasePointerData(env, a_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // If the PointerData is not backed by native memory, then this call has to block
+    if (!isPointerBackedByNativeMemory(env, b))
+    {
+        cudaDeviceSynchronize();
+    }
+    if (!releasePointerData(env, b_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // abType is primitive
+    // If the PointerData is not backed by native memory, then this call has to block
+    if (!isPointerBackedByNativeMemory(env, c))
+    {
+        cudaDeviceSynchronize();
+    }
+    if (!releasePointerData(env, c_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // If the PointerData is not backed by native memory, then this call has to block
+    if (!isPointerBackedByNativeMemory(env, s))
+    {
+        cudaDeviceSynchronize();
+    }
+    if (!releasePointerData(env, s_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // csType is primitive
+    // executiontype is primitive
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
 JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSrotmNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject x, jint incx, jobject y, jint incy, jobject param)
 {
     // Null-checks for non-primitive arguments
@@ -5128,6 +5719,98 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDrotmNative(JNIEnv *env
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, param_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasRotmExNative(JNIEnv *env, jclass cls, jobject handle, jint n, jobject x, jint xType, jint incx, jobject y, jint yType, jint incy, jobject param, jint paramType, jint executiontype)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasRotmEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // n is primitive
+    if (x == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'x' is null for cublasRotmEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // xType is primitive
+    // incx is primitive
+    if (y == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'y' is null for cublasRotmEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // yType is primitive
+    // incy is primitive
+    if (param == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'param' is null for cublasRotmEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // paramType is primitive
+    // executiontype is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasRotmEx(handle=%p, n=%d, x=%p, xType=%d, incx=%d, y=%p, yType=%d, incy=%d, param=%p, paramType=%d, executiontype=%d)\n",
+        handle, n, x, xType, incx, y, yType, incy, param, paramType, executiontype);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    int n_native = 0;
+    void * x_native = NULL;
+    cudaDataType xType_native;
+    int incx_native = 0;
+    void * y_native = NULL;
+    cudaDataType yType_native;
+    int incy_native = 0;
+    void const * param_native = NULL;
+    cudaDataType paramType_native;
+    cudaDataType executiontype_native;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    n_native = (int)n;
+    x_native = (void *)getPointer(env, x);
+    xType_native = (cudaDataType)xType;
+    incx_native = (int)incx;
+    y_native = (void *)getPointer(env, y);
+    yType_native = (cudaDataType)yType;
+    incy_native = (int)incy;
+    PointerData *param_pointerData = initPointerData(env, param);
+    if (param_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    param_native = (void *)param_pointerData->getPointer(env);
+    paramType_native = (cudaDataType)paramType;
+    executiontype_native = (cudaDataType)executiontype;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasRotmEx(handle_native, n_native, x_native, xType_native, incx_native, y_native, yType_native, incy_native, param_native, paramType_native, executiontype_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // n is primitive
+    // x is a native pointer
+    // xType is primitive
+    // incx is primitive
+    // y is a native pointer
+    // yType is primitive
+    // incy is primitive
+    // If the PointerData is not backed by native memory, then this call has to block
+    if (!isPointerBackedByNativeMemory(env, param))
+    {
+        cudaDeviceSynchronize();
+    }
+    if (!releasePointerData(env, param_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // paramType is primitive
+    // executiontype is primitive
 
     // Return the result
     jint jniResult = (jint)jniResult_native;
@@ -5368,6 +6051,150 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasDrotmgNative(JNIEnv *en
         cudaDeviceSynchronize();
     }
     if (!releasePointerData(env, param_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasRotmgExNative(JNIEnv *env, jclass cls, jobject handle, jobject d1, jint d1Type, jobject d2, jint d2Type, jobject x1, jint x1Type, jobject y1, jint y1Type, jobject param, jint paramType, jint executiontype)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasRotmgEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (d1 == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'd1' is null for cublasRotmgEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // d1Type is primitive
+    if (d2 == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'd2' is null for cublasRotmgEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // d2Type is primitive
+    if (x1 == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'x1' is null for cublasRotmgEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // x1Type is primitive
+    if (y1 == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'y1' is null for cublasRotmgEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // y1Type is primitive
+    if (param == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'param' is null for cublasRotmgEx");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // paramType is primitive
+    // executiontype is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasRotmgEx(handle=%p, d1=%p, d1Type=%d, d2=%p, d2Type=%d, x1=%p, x1Type=%d, y1=%p, y1Type=%d, param=%p, paramType=%d, executiontype=%d)\n",
+        handle, d1, d1Type, d2, d2Type, x1, x1Type, y1, y1Type, param, paramType, executiontype);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    void * d1_native = NULL;
+    cudaDataType d1Type_native;
+    void * d2_native = NULL;
+    cudaDataType d2Type_native;
+    void * x1_native = NULL;
+    cudaDataType x1Type_native;
+    void const * y1_native = NULL;
+    cudaDataType y1Type_native;
+    void * param_native = NULL;
+    cudaDataType paramType_native;
+    cudaDataType executiontype_native;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    PointerData *d1_pointerData = initPointerData(env, d1);
+    if (d1_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    d1_native = (void *)d1_pointerData->getPointer(env);
+    d1Type_native = (cudaDataType)d1Type;
+    PointerData *d2_pointerData = initPointerData(env, d2);
+    if (d2_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    d2_native = (void *)d2_pointerData->getPointer(env);
+    d2Type_native = (cudaDataType)d2Type;
+    PointerData *x1_pointerData = initPointerData(env, x1);
+    if (x1_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    x1_native = (void *)x1_pointerData->getPointer(env);
+    x1Type_native = (cudaDataType)x1Type;
+    PointerData *y1_pointerData = initPointerData(env, y1);
+    if (y1_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    y1_native = (void *)y1_pointerData->getPointer(env);
+    y1Type_native = (cudaDataType)y1Type;
+    PointerData *param_pointerData = initPointerData(env, param);
+    if (param_pointerData == NULL)
+    {
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    param_native = (void *)param_pointerData->getPointer(env);
+    paramType_native = (cudaDataType)paramType;
+    executiontype_native = (cudaDataType)executiontype;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasRotmgEx(handle_native, d1_native, d1Type_native, d2_native, d2Type_native, x1_native, x1Type_native, y1_native, y1Type_native, param_native, paramType_native, executiontype_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // If the PointerData is not backed by native memory, then this call has to block
+    if (!isPointerBackedByNativeMemory(env, d1))
+    {
+        cudaDeviceSynchronize();
+    }
+    if (!releasePointerData(env, d1_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // d1Type is primitive
+    // If the PointerData is not backed by native memory, then this call has to block
+    if (!isPointerBackedByNativeMemory(env, d2))
+    {
+        cudaDeviceSynchronize();
+    }
+    if (!releasePointerData(env, d2_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // d2Type is primitive
+    // If the PointerData is not backed by native memory, then this call has to block
+    if (!isPointerBackedByNativeMemory(env, x1))
+    {
+        cudaDeviceSynchronize();
+    }
+    if (!releasePointerData(env, x1_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // x1Type is primitive
+    // If the PointerData is not backed by native memory, then this call has to block
+    if (!isPointerBackedByNativeMemory(env, y1))
+    {
+        cudaDeviceSynchronize();
+    }
+    if (!releasePointerData(env, y1_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // y1Type is primitive
+    // If the PointerData is not backed by native memory, then this call has to block
+    if (!isPointerBackedByNativeMemory(env, param))
+    {
+        cudaDeviceSynchronize();
+    }
+    if (!releasePointerData(env, param_pointerData, 0)) return JCUBLAS_STATUS_INTERNAL_ERROR;
+    // paramType is primitive
+    // executiontype is primitive
 
     // Return the result
     jint jniResult = (jint)jniResult_native;

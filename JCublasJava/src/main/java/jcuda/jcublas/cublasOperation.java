@@ -47,6 +47,16 @@ public class cublasOperation
      * The conjugate transpose operation is selected
      */
     public static final int CUBLAS_OP_C = 2;
+    
+    /**
+     * Synonym if CUBLAS_OP_C
+     */
+    public static final int CUBLAS_OP_HERMITAN = 2;
+    
+    /**
+     * Conjugate 
+     */
+    public static final int CUBLAS_OP_CONJG = 3; 
 
     /**
      * Private constructor to prevent instantiation
@@ -64,7 +74,8 @@ public class cublasOperation
         {
             case CUBLAS_OP_N: return "CUBLAS_OP_N";
             case CUBLAS_OP_T: return "CUBLAS_OP_T";
-            case CUBLAS_OP_C: return "CUBLAS_OP_C";
+            case CUBLAS_OP_C: return "CUBLAS_OP_C/CUBLAS_OP_HERMITAN";
+            case CUBLAS_OP_CONJG: return "CUBLAS_OP_CONJG";
         }
         return "INVALID cublasOperation: "+n;
     }

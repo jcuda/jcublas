@@ -2,7 +2,7 @@
  * JCublas - Java bindings for CUBLAS, the NVIDIA CUDA BLAS library,
  * to be used with JCuda
  *
- * Copyright (c) 2010-2016 Marco Hutter - http://www.jcuda.org
+ * Copyright (c) 2010-2020 Marco Hutter - http://www.jcuda.org
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,13 +27,21 @@
  */
 package jcuda.jcublas;
 
-/**
- * Enum for default math mode/tensor operation
- */
+/**Enum for default math mode/tensor operation*/
 public class cublasMath
 {
     public static final int CUBLAS_DEFAULT_MATH = 0;
+    /** deprecated, same effect as using CUBLAS_COMPUTE_32F_FAST_16F, will be removed in a future release */
+    @Deprecated
     public static final int CUBLAS_TENSOR_OP_MATH = 1;
+    /** same as using matching _PEDANTIC compute type when using cublas-T-routine calls or cublasEx() calls with
+         cudaDataType as compute type */
+    public static final int CUBLAS_PEDANTIC_MATH = 2;
+    /** allow accelerating single precision routines using TF32 tensor cores */
+    public static final int CUBLAS_TF32_TENSOR_OP_MATH = 3;
+    /** flag to force any reductions to use the accumulator type and not output type in case of mixed precision routines
+         with lower size output type */
+    public static final int CUBLAS_MATH_DISALLOW_REDUCED_PRECISION_REDUCTION = 16;
 
     /**
      * Private constructor to prevent instantiation
@@ -54,6 +62,9 @@ public class cublasMath
         {
             case CUBLAS_DEFAULT_MATH: return "CUBLAS_DEFAULT_MATH";
             case CUBLAS_TENSOR_OP_MATH: return "CUBLAS_TENSOR_OP_MATH";
+            case CUBLAS_PEDANTIC_MATH: return "CUBLAS_PEDANTIC_MATH";
+            case CUBLAS_TF32_TENSOR_OP_MATH: return "CUBLAS_TF32_TENSOR_OP_MATH";
+            case CUBLAS_MATH_DISALLOW_REDUCED_PRECISION_REDUCTION: return "CUBLAS_MATH_DISALLOW_REDUCED_PRECISION_REDUCTION";
         }
         return "INVALID cublasMath: "+n;
     }

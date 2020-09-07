@@ -477,6 +477,52 @@ public class JCublas2
         cudaStream_t stream);
     
     
+    private static int cublasMigrateComputeType(cublasHandle handle,
+        int dataType, int computeType[])
+    {
+        int mathMode[] =
+        { cublasMath.CUBLAS_DEFAULT_MATH };
+        int status = cublasStatus.CUBLAS_STATUS_SUCCESS;
+
+        status = cublasGetMathMode(handle, mathMode);
+        if (status != cublasStatus.CUBLAS_STATUS_SUCCESS)
+        {
+            return status;
+        }
+
+        boolean isPedantic =
+            ((mathMode[0] & 0xf) == cublasMath.CUBLAS_PEDANTIC_MATH);
+
+        switch (dataType)
+        {
+            case cudaDataType.CUDA_R_32F:
+            case cudaDataType.CUDA_C_32F:
+                computeType[0] =
+                    isPedantic ? cublasComputeType.CUBLAS_COMPUTE_32F_PEDANTIC
+                        : cublasComputeType.CUBLAS_COMPUTE_32F;
+                return cublasStatus.CUBLAS_STATUS_SUCCESS;
+            case cudaDataType.CUDA_R_64F:
+            case cudaDataType.CUDA_C_64F:
+                computeType[0] =
+                    isPedantic ? cublasComputeType.CUBLAS_COMPUTE_64F_PEDANTIC
+                        : cublasComputeType.CUBLAS_COMPUTE_64F;
+                return cublasStatus.CUBLAS_STATUS_SUCCESS;
+            case cudaDataType.CUDA_R_16F:
+                computeType[0] =
+                    isPedantic ? cublasComputeType.CUBLAS_COMPUTE_16F_PEDANTIC
+                        : cublasComputeType.CUBLAS_COMPUTE_16F;
+                return cublasStatus.CUBLAS_STATUS_SUCCESS;
+            case cudaDataType.CUDA_R_32I:
+                computeType[0] =
+                    isPedantic ? cublasComputeType.CUBLAS_COMPUTE_32I_PEDANTIC
+                        : cublasComputeType.CUBLAS_COMPUTE_32I;
+                return cublasStatus.CUBLAS_STATUS_SUCCESS;
+            default:
+                return cublasStatus.CUBLAS_STATUS_NOT_SUPPORTED;
+        }
+    }
+    
+    
     //=== Auto-generated part ================================================
 
     public static int cublasCreate(
@@ -4231,7 +4277,7 @@ public class JCublas2
         int ldc);
 
 
-    public static int cublasGemmEx(
+    public static int cublasGemmEx_new(
         cublasHandle handle, 
         int transa, 
         int transb, 
@@ -4252,9 +4298,9 @@ public class JCublas2
         int computeType, 
         int algo)
     {
-        return checkResult(cublasGemmExNative(handle, transa, transb, m, n, k, alpha, A, Atype, lda, B, Btype, ldb, beta, C, Ctype, ldc, computeType, algo));
+        return checkResult(cublasGemmEx_newNative(handle, transa, transb, m, n, k, alpha, A, Atype, lda, B, Btype, ldb, beta, C, Ctype, ldc, computeType, algo));
     }
-    private static native int cublasGemmExNative(
+    private static native int cublasGemmEx_newNative(
         cublasHandle handle, 
         int transa, 
         int transb, 
@@ -5666,7 +5712,7 @@ public class JCublas2
         int batchCount);
 
 
-    public static int cublasGemmBatchedEx(
+    public static int cublasGemmBatchedEx_new(
         cublasHandle handle, 
         int transa, 
         int transb, 
@@ -5688,9 +5734,9 @@ public class JCublas2
         int computeType, 
         int algo)
     {
-        return checkResult(cublasGemmBatchedExNative(handle, transa, transb, m, n, k, alpha, Aarray, Atype, lda, Barray, Btype, ldb, beta, Carray, Ctype, ldc, batchCount, computeType, algo));
+        return checkResult(cublasGemmBatchedEx_newNative(handle, transa, transb, m, n, k, alpha, Aarray, Atype, lda, Barray, Btype, ldb, beta, Carray, Ctype, ldc, batchCount, computeType, algo));
     }
-    private static native int cublasGemmBatchedExNative(
+    private static native int cublasGemmBatchedEx_newNative(
         cublasHandle handle, 
         int transa, 
         int transb, 
@@ -5713,7 +5759,7 @@ public class JCublas2
         int algo);
 
 
-    public static int cublasGemmStridedBatchedEx(
+    public static int cublasGemmStridedBatchedEx_new(
         cublasHandle handle, 
         int transa, 
         int transb, 
@@ -5738,9 +5784,9 @@ public class JCublas2
         int computeType, 
         int algo)
     {
-        return checkResult(cublasGemmStridedBatchedExNative(handle, transa, transb, m, n, k, alpha, A, Atype, lda, strideA, B, Btype, ldb, strideB, beta, C, Ctype, ldc, strideC, batchCount, computeType, algo));
+        return checkResult(cublasGemmStridedBatchedEx_newNative(handle, transa, transb, m, n, k, alpha, A, Atype, lda, strideA, B, Btype, ldb, strideB, beta, C, Ctype, ldc, strideC, batchCount, computeType, algo));
     }
-    private static native int cublasGemmStridedBatchedExNative(
+    private static native int cublasGemmStridedBatchedEx_newNative(
         cublasHandle handle, 
         int transa, 
         int transb, 
@@ -7113,6 +7159,101 @@ public class JCublas2
         Pointer AP);
 
 
+    /** wrappers to accept old code with cudaDataType computeType when referenced from c++ code */
+    public static int cublasGemmEx(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        int m, 
+        int n, 
+        int k, 
+        Pointer alpha, /** host or device pointer */
+        Pointer A, 
+        int Atype, 
+        int lda, 
+        Pointer B, 
+        int Btype, 
+        int ldb, 
+        Pointer beta, /** host or device pointer */
+        Pointer C, 
+        int Ctype, 
+        int ldc, 
+        int computeType, 
+        int algo)
+    {
+        int cublasComputeType[] = { 0 };
+        int status = cublasMigrateComputeType(handle, computeType, cublasComputeType);
+        if (status != cublasStatus.CUBLAS_STATUS_SUCCESS) 
+        {
+            return status;
+        }
+        return cublasGemmEx_new(handle, transa, transb, m, n, k, alpha, A, Atype, lda, B, Btype, ldb, beta, C, Ctype, ldc, cublasComputeType[0], algo);
+    }
+
+    public static int cublasGemmBatchedEx(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        int m, 
+        int n, 
+        int k, 
+        Pointer alpha, /** host or device pointer */
+        Pointer Aarray, 
+        int Atype, 
+        int lda, 
+        Pointer Barray, 
+        int Btype, 
+        int ldb, 
+        Pointer beta, /** host or device pointer */
+        Pointer Carray, 
+        int Ctype, 
+        int ldc, 
+        int batchCount, 
+        int computeType, 
+        int algo)
+    {
+        int cublasComputeType[] = { 0 };
+        int status = cublasMigrateComputeType(handle, computeType, cublasComputeType);
+        if (status != cublasStatus.CUBLAS_STATUS_SUCCESS) 
+        {
+            return status;
+        }
+        return cublasGemmBatchedEx_new(handle, transa, transb, m, n, k, alpha, Aarray, Atype, lda, Barray, Btype, ldb, beta, Carray, Ctype, ldc, batchCount, cublasComputeType[0], algo);
+    }
+
+    public static int cublasGemmStridedBatchedEx(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        int m, 
+        int n, 
+        int k, 
+        Pointer alpha, /** host or device pointer */
+        Pointer A, 
+        int Atype, 
+        int lda, 
+        long strideA, /** purposely signed */
+        Pointer B, 
+        int Btype, 
+        int ldb, 
+        long strideB, 
+        Pointer beta, /** host or device pointer */
+        Pointer C, 
+        int Ctype, 
+        int ldc, 
+        long strideC, 
+        int batchCount, 
+        int computeType, 
+        int algo)
+    {
+        int cublasComputeType[] = { 0 };
+        int status = cublasMigrateComputeType(handle, computeType, cublasComputeType);
+        if (status != cublasStatus.CUBLAS_STATUS_SUCCESS) 
+        {
+            return status;
+        }
+        return cublasGemmStridedBatchedEx_new(handle, transa, transb, m, n, k, alpha, A, Atype, lda, strideA, B, Btype, ldb, strideB, beta, C, Ctype, ldc, strideC, batchCount, cublasComputeType[0], algo);
+    }
 
 
 }

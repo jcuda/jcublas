@@ -149,6 +149,14 @@ extern "C" {
 
     /*
      * Class:     jcuda_jcublas_JCublas2
+     * Method:    cublasSetWorkspaceNative
+     * Signature: (Ljcuda/jcublas/cublasHandle;Ljcuda/Pointer;J)I
+     */
+    JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSetWorkspaceNative
+    (JNIEnv*, jclass, jobject, jobject, jlong);
+
+    /*
+     * Class:     jcuda_jcublas_JCublas2
      * Method:    cublasSetStreamNative
      * Signature: (Ljcuda/jcublas/cublasHandle;Ljcuda/runtime/cudaStream_t;)I
      */

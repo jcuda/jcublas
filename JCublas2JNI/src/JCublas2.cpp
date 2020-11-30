@@ -638,6 +638,48 @@ JNIEXPORT jlong JNICALL Java_jcuda_jcublas_JCublas2_cublasGetCudartVersionNative
     return jniResult;
 }
 
+JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSetWorkspaceNative(JNIEnv* env, jclass cls, jobject handle, jobject workspace, jlong workspaceSizeInBytes)
+{
+    // Null-checks for non-primitive arguments
+    if (handle == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'handle' is null for cublasSetWorkspace");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    if (workspace == NULL)
+    {
+        ThrowByName(env, "java/lang/NullPointerException", "Parameter 'workspace' is null for cublasSetWorkspace");
+        return JCUBLAS_STATUS_INTERNAL_ERROR;
+    }
+    // workspaceSizeInBytes is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasSetWorkspace(handle=%p, workspace=%p, workspaceSizeInBytes=%ld)\n",
+        handle, workspace, workspaceSizeInBytes);
+
+    // Native variable declarations
+    cublasHandle_t handle_native;
+    void* workspace_native = NULL;
+    size_t workspaceSizeInBytes_native = 0;
+
+    // Obtain native variable values
+    handle_native = (cublasHandle_t)getNativePointerValue(env, handle);
+    workspace_native = (void*)getPointer(env, workspace);
+    workspaceSizeInBytes_native = (size_t)workspaceSizeInBytes;
+
+    // Native function call
+    cublasStatus_t jniResult_native = cublasSetWorkspace(handle_native, workspace_native, workspaceSizeInBytes_native);
+
+    // Write back native variable values
+    // handle is read-only
+    // workspace is a native pointer
+    // workspaceSizeInBytes is primitive
+
+    // Return the result
+    jint jniResult = (jint)jniResult_native;
+    return jniResult;
+}
+
 JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSetStreamNative(JNIEnv* env, jclass cls, jobject handle, jobject streamId)
 {
     // Null-checks for non-primitive arguments

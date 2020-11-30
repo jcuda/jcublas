@@ -572,6 +572,19 @@ public class JCublas2
     private static native long cublasGetCudartVersionNative();
 
 
+    public static int cublasSetWorkspace(
+        cublasHandle handle, 
+        Pointer workspace, 
+        long workspaceSizeInBytes)
+    {
+        return checkResult(cublasSetWorkspaceNative(handle, workspace, workspaceSizeInBytes));
+    }
+    private static native int cublasSetWorkspaceNative(
+        cublasHandle handle, 
+        Pointer workspace, 
+        long workspaceSizeInBytes);
+
+
     public static int cublasSetStream(
         cublasHandle handle, 
         cudaStream_t streamId)
@@ -7186,7 +7199,7 @@ public class JCublas2
         if (status != cublasStatus.CUBLAS_STATUS_SUCCESS) 
         {
             return status;
-        }
+    }
         return cublasGemmEx_new(handle, transa, transb, m, n, k, alpha, A, Atype, lda, B, Btype, ldb, beta, C, Ctype, ldc, cublasComputeType[0], algo);
     }
 
@@ -7217,7 +7230,7 @@ public class JCublas2
         if (status != cublasStatus.CUBLAS_STATUS_SUCCESS) 
         {
             return status;
-        }
+    }
         return cublasGemmBatchedEx_new(handle, transa, transb, m, n, k, alpha, Aarray, Atype, lda, Barray, Btype, ldb, beta, Carray, Ctype, ldc, batchCount, cublasComputeType[0], algo);
     }
 
@@ -7251,7 +7264,7 @@ public class JCublas2
         if (status != cublasStatus.CUBLAS_STATUS_SUCCESS) 
         {
             return status;
-        }
+    }
         return cublasGemmStridedBatchedEx_new(handle, transa, transb, m, n, k, alpha, A, Atype, lda, strideA, B, Btype, ldb, strideB, beta, C, Ctype, ldc, strideC, batchCount, cublasComputeType[0], algo);
     }
 

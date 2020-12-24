@@ -78,7 +78,7 @@ public class JCublas2
             String libraryBaseName = "JCublas2-" + JCuda.getJCudaVersion();
             String libraryName = 
                 LibUtils.createPlatformLibraryName(libraryBaseName);
-            LibUtils.loadLibrary(libraryName);
+            LibUtilsCuda.loadLibrary(libraryName);
             initialized = true;
         }
     }

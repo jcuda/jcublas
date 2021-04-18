@@ -90,7 +90,7 @@ public class JCublas
     {
         if (!initialized)
         {
-            String libraryBaseName = "JCublas-" + JCuda.getJCudaVersion();
+            String libraryBaseName = "JCublas-" + JCudaVersion.get();
             String libraryName = 
                 LibUtils.createPlatformLibraryName(libraryBaseName);
             LibUtilsCuda.loadLibrary(libraryName);

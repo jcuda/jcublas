@@ -678,6 +678,28 @@ public class JCublas2
         int mode);
 
 
+    public static int cublasGetSmCountTarget(
+        cublasHandle handle, 
+        Pointer smCountTarget)
+    {
+        return checkResult(cublasGetSmCountTargetNative(handle, smCountTarget));
+    }
+    private static native int cublasGetSmCountTargetNative(
+        cublasHandle handle, 
+        Pointer smCountTarget);
+
+
+    public static int cublasSetSmCountTarget(
+        cublasHandle handle, 
+        int smCountTarget)
+    {
+        return checkResult(cublasSetSmCountTargetNative(handle, smCountTarget));
+    }
+    private static native int cublasSetSmCountTargetNative(
+        cublasHandle handle, 
+        int smCountTarget);
+
+
     public static int cublasLoggerConfigure(
         int logIsOn, 
         int logToStdOut, 
@@ -711,6 +733,7 @@ public class JCublas2
         cublasLogCallback[] userCallback);
 
 
+    /** ---------------- CUBLAS BLAS1 functions ---------------- */
     public static int cublasNrm2Ex(
         cublasHandle handle, 
         int n, 
@@ -2087,6 +2110,8 @@ public class JCublas2
         int executiontype);
 
 
+    /** --------------- CUBLAS BLAS2 functions  ---------------- */
+    /** GEMV */
     public static int cublasSgemv(
         cublasHandle handle, 
         int trans, 
@@ -2211,6 +2236,7 @@ public class JCublas2
         int incy);
 
 
+    /** GBMV */
     public static int cublasSgbmv(
         cublasHandle handle, 
         int trans, 
@@ -2351,6 +2377,7 @@ public class JCublas2
         int incy);
 
 
+    /** TRMV */
     public static int cublasStrmv(
         cublasHandle handle, 
         int uplo, 
@@ -2451,6 +2478,7 @@ public class JCublas2
         int incx);
 
 
+    /** TBMV */
     public static int cublasStbmv(
         cublasHandle handle, 
         int uplo, 
@@ -2559,6 +2587,7 @@ public class JCublas2
         int incx);
 
 
+    /** TPMV */
     public static int cublasStpmv(
         cublasHandle handle, 
         int uplo, 
@@ -2651,6 +2680,7 @@ public class JCublas2
         int incx);
 
 
+    /** TRSV */
     public static int cublasStrsv(
         cublasHandle handle, 
         int uplo, 
@@ -2751,6 +2781,7 @@ public class JCublas2
         int incx);
 
 
+    /** TPSV */
     public static int cublasStpsv(
         cublasHandle handle, 
         int uplo, 
@@ -2843,6 +2874,7 @@ public class JCublas2
         int incx);
 
 
+    /** TBSV */
     public static int cublasStbsv(
         cublasHandle handle, 
         int uplo, 
@@ -2951,6 +2983,7 @@ public class JCublas2
         int incx);
 
 
+    /** SYMV/HEMV */
     public static int cublasSsymv(
         cublasHandle handle, 
         int uplo, 
@@ -3125,6 +3158,7 @@ public class JCublas2
         int incy);
 
 
+    /** SBMV/HBMV */
     public static int cublasSsbmv(
         cublasHandle handle, 
         int uplo, 
@@ -3249,6 +3283,7 @@ public class JCublas2
         int incy);
 
 
+    /** SPMV/HPMV */
     public static int cublasSspmv(
         cublasHandle handle, 
         int uplo, 
@@ -3357,6 +3392,7 @@ public class JCublas2
         int incy);
 
 
+    /** GER */
     public static int cublasSger(
         cublasHandle handle, 
         int m, 
@@ -3519,6 +3555,7 @@ public class JCublas2
         int lda);
 
 
+    /** SYR/HER */
     public static int cublasSsyr(
         cublasHandle handle, 
         int uplo, 
@@ -3657,6 +3694,7 @@ public class JCublas2
         int lda);
 
 
+    /** SPR/HPR */
     public static int cublasSspr(
         cublasHandle handle, 
         int uplo, 
@@ -3741,6 +3779,7 @@ public class JCublas2
         Pointer AP);
 
 
+    /** SYR2/HER2 */
     public static int cublasSsyr2(
         cublasHandle handle, 
         int uplo, 
@@ -3903,6 +3942,7 @@ public class JCublas2
         int lda);
 
 
+    /** SPR2/HPR2 */
     public static int cublasSspr2(
         cublasHandle handle, 
         int uplo, 
@@ -4003,6 +4043,8 @@ public class JCublas2
         Pointer AP);
 
 
+    /** ---------------- CUBLAS BLAS3 functions ---------------- */
+    /** GEMM */
     public static int cublasSgemm(
         cublasHandle handle, 
         int transa, 
@@ -4254,6 +4296,7 @@ public class JCublas2
         int ldc);
 
 
+    /** IO in FP16/FP32, computation in float */
     public static int cublasSgemmEx(
         cublasHandle handle, 
         int transa, 
@@ -4340,6 +4383,7 @@ public class JCublas2
         int algo);
 
 
+    /** IO in Int8 complex/cuComplex, computation in cuComplex */
     public static int cublasCgemmEx(
         cublasHandle handle, 
         int transa, 
@@ -4381,6 +4425,7 @@ public class JCublas2
         int ldc);
 
 
+    /** SYRK */
     public static int cublasSsyrk(
         cublasHandle handle, 
         int uplo, 
@@ -4497,6 +4542,7 @@ public class JCublas2
         int ldc);
 
 
+    /** IO in Int8 complex/cuComplex, computation in cuComplex */
     public static int cublasCsyrkEx(
         cublasHandle handle, 
         int uplo, 
@@ -4530,6 +4576,7 @@ public class JCublas2
         int ldc);
 
 
+    /** IO in Int8 complex/cuComplex, computation in cuComplex, Gaussian math */
     public static int cublasCsyrk3mEx(
         cublasHandle handle, 
         int uplo, 
@@ -4563,6 +4610,7 @@ public class JCublas2
         int ldc);
 
 
+    /** HERK */
     public static int cublasCherk(
         cublasHandle handle, 
         int uplo, 
@@ -4621,6 +4669,7 @@ public class JCublas2
         int ldc);
 
 
+    /** IO in Int8 complex/cuComplex, computation in cuComplex */
     public static int cublasCherkEx(
         cublasHandle handle, 
         int uplo, 
@@ -4654,6 +4703,7 @@ public class JCublas2
         int ldc);
 
 
+    /** IO in Int8 complex/cuComplex, computation in cuComplex, Gaussian math */
     public static int cublasCherk3mEx(
         cublasHandle handle, 
         int uplo, 
@@ -4687,6 +4737,7 @@ public class JCublas2
         int ldc);
 
 
+    /** SYR2K */
     public static int cublasSsyr2k(
         cublasHandle handle, 
         int uplo, 
@@ -4819,6 +4870,7 @@ public class JCublas2
         int ldc);
 
 
+    /** HER2K */
     public static int cublasCher2k(
         cublasHandle handle, 
         int uplo, 
@@ -4885,6 +4937,7 @@ public class JCublas2
         int ldc);
 
 
+    /** SYRKX : eXtended SYRK*/
     public static int cublasSsyrkx(
         cublasHandle handle, 
         int uplo, 
@@ -5017,6 +5070,7 @@ public class JCublas2
         int ldc);
 
 
+    /** HERKX : eXtended HERK */
     public static int cublasCherkx(
         cublasHandle handle, 
         int uplo, 
@@ -5083,6 +5137,7 @@ public class JCublas2
         int ldc);
 
 
+    /** SYMM */
     public static int cublasSsymm(
         cublasHandle handle, 
         int side, 
@@ -5215,6 +5270,7 @@ public class JCublas2
         int ldc);
 
 
+    /** HEMM */
     public static int cublasChemm(
         cublasHandle handle, 
         int side, 
@@ -5281,6 +5337,7 @@ public class JCublas2
         int ldc);
 
 
+    /** TRSM */
     public static int cublasStrsm(
         cublasHandle handle, 
         int side, 
@@ -5405,6 +5462,7 @@ public class JCublas2
         int ldb);
 
 
+    /** TRMM */
     public static int cublasStrmm(
         cublasHandle handle, 
         int side, 
@@ -6045,6 +6103,8 @@ public class JCublas2
         int batchCount);
 
 
+    /** ---------------- CUBLAS BLAS-like extension ---------------- */
+    /** GEAM */
     public static int cublasSgeam(
         cublasHandle handle, 
         int transa, 
@@ -6177,6 +6237,7 @@ public class JCublas2
         int ldc);
 
 
+    /** Batched LU - GETRF*/
     public static int cublasSgetrfBatched(
         cublasHandle handle, 
         int n, 
@@ -6261,6 +6322,7 @@ public class JCublas2
         int batchSize);
 
 
+    /** Batched inversion based on LU factorization from getrf */
     public static int cublasSgetriBatched(
         cublasHandle handle, 
         int n, 
@@ -6361,6 +6423,7 @@ public class JCublas2
         int batchSize);
 
 
+    /** Batched solver based on LU factorization from getrf */
     public static int cublasSgetrsBatched(
         cublasHandle handle, 
         int trans, 
@@ -6477,6 +6540,7 @@ public class JCublas2
         int batchSize);
 
 
+    /** TRSM - Batched Triangular Solver */
     public static int cublasStrsmBatched(
         cublasHandle handle, 
         int side, 
@@ -6609,6 +6673,7 @@ public class JCublas2
         int batchCount);
 
 
+    /** Batched - MATINV*/
     public static int cublasSmatinvBatched(
         cublasHandle handle, 
         int n, 
@@ -6701,6 +6766,7 @@ public class JCublas2
         int batchSize);
 
 
+    /** Batch QR Factorization */
     public static int cublasSgeqrfBatched(
         cublasHandle handle, 
         int m, 
@@ -6793,6 +6859,7 @@ public class JCublas2
         int batchSize);
 
 
+    /** Least Square Min only m >= n and Non-transpose supported */
     public static int cublasSgelsBatched(
         cublasHandle handle, 
         int trans, 
@@ -6917,6 +6984,7 @@ public class JCublas2
         int batchSize);
 
 
+    /** DGMM */
     public static int cublasSdgmm(
         cublasHandle handle, 
         int mode, 
@@ -7025,6 +7093,7 @@ public class JCublas2
         int ldc);
 
 
+    /** TPTTR : Triangular Pack format to Triangular format */
     public static int cublasStpttr(
         cublasHandle handle, 
         int uplo, 
@@ -7101,6 +7170,7 @@ public class JCublas2
         int lda);
 
 
+    /** TRTTP : Triangular format to Triangular Pack format */
     public static int cublasStrttp(
         cublasHandle handle, 
         int uplo, 
@@ -7204,7 +7274,7 @@ public class JCublas2
         if (status != cublasStatus.CUBLAS_STATUS_SUCCESS) 
         {
             return status;
-    }
+        }
         return cublasGemmEx_new(handle, transa, transb, m, n, k, alpha, A, Atype, lda, B, Btype, ldb, beta, C, Ctype, ldc, cublasComputeType[0], algo);
     }
 
@@ -7235,7 +7305,7 @@ public class JCublas2
         if (status != cublasStatus.CUBLAS_STATUS_SUCCESS) 
         {
             return status;
-    }
+        }
         return cublasGemmBatchedEx_new(handle, transa, transb, m, n, k, alpha, Aarray, Atype, lda, Barray, Btype, ldb, beta, Carray, Ctype, ldc, batchCount, cublasComputeType[0], algo);
     }
 
@@ -7269,7 +7339,7 @@ public class JCublas2
         if (status != cublasStatus.CUBLAS_STATUS_SUCCESS) 
         {
             return status;
-    }
+        }
         return cublasGemmStridedBatchedEx_new(handle, transa, transb, m, n, k, alpha, A, Atype, lda, strideA, B, Btype, ldb, strideB, beta, C, Ctype, ldc, strideC, batchCount, cublasComputeType[0], algo);
     }
 

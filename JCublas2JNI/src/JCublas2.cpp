@@ -1040,6 +1040,56 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSetSmCountTargetNative(
     return jniResult;
 }
 
+JNIEXPORT jstring JNICALL Java_jcuda_jcublas_JCublas2_cublasGetStatusNameNative(JNIEnv *env, jclass cls, jint status)
+{
+    // Null-checks for non-primitive arguments
+    // status is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasGetStatusName(status=%d)\n",
+        status);
+
+    // Native variable declarations
+    cublasStatus_t status_native = CUBLAS_STATUS_SUCCESS;
+
+    // Obtain native variable values
+    status_native = (cublasStatus_t)status;
+
+    // Native function call
+    char const * jniResult_native = cublasGetStatusName(status_native);
+
+    // Write back native variable values
+    // status is primitive
+
+    // Return the result
+    return env->NewStringUTF(jniResult_native);
+}
+
+JNIEXPORT jstring JNICALL Java_jcuda_jcublas_JCublas2_cublasGetStatusStringNative(JNIEnv *env, jclass cls, jint status)
+{
+    // Null-checks for non-primitive arguments
+    // status is primitive
+
+    // Log message
+    Logger::log(LOG_TRACE, "Executing cublasGetStatusString(status=%d)\n",
+        status);
+
+    // Native variable declarations
+    cublasStatus_t status_native = CUBLAS_STATUS_SUCCESS;
+
+    // Obtain native variable values
+    status_native = (cublasStatus_t)status;
+
+    // Native function call
+    char const * jniResult_native = cublasGetStatusString(status_native);
+
+    // Write back native variable values
+    // status is primitive
+
+    // Return the result
+    return env->NewStringUTF(jniResult_native);
+}
+
 JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasLoggerConfigureNative(JNIEnv *env, jclass cls, jint logIsOn, jint logToStdOut, jint logToStdErr, jstring logFileName)
 {
     // XXX Logging in JCublas is not supported yet

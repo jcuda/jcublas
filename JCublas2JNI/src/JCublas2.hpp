@@ -237,6 +237,22 @@ JNIEXPORT jint JNICALL Java_jcuda_jcublas_JCublas2_cublasSetSmCountTargetNative
 
 /*
  * Class:     jcuda_jcublas_JCublas2
+ * Method:    cublasGetStatusNameNative
+ * Signature: (I)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_jcuda_jcublas_JCublas2_cublasGetStatusNameNative
+  (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     jcuda_jcublas_JCublas2
+ * Method:    cublasGetStatusStringNative
+ * Signature: (I)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_jcuda_jcublas_JCublas2_cublasGetStatusStringNative
+  (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     jcuda_jcublas_JCublas2
  * Method:    cublasLoggerConfigureNative
  * Signature: (IIILjava/lang/String;)I
  */

@@ -527,6 +527,104 @@ public class JCublas2
         }
     }
     
+    /** wrappers to accept old code with cudaDataType computeType when referenced from c++ code */
+    public static int cublasGemmEx(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        int m, 
+        int n, 
+        int k, 
+        Pointer alpha, /** host or device pointer */
+        Pointer A, 
+        int Atype, 
+        int lda, 
+        Pointer B, 
+        int Btype, 
+        int ldb, 
+        Pointer beta, /** host or device pointer */
+        Pointer C, 
+        int Ctype, 
+        int ldc, 
+        int computeType, 
+        int algo)
+    {
+        int cublasComputeType[] = { 0 };
+        int status = cublasMigrateComputeType(handle, computeType, cublasComputeType);
+        if (status != cublasStatus.CUBLAS_STATUS_SUCCESS) 
+        {
+            return status;
+    }
+        return cublasGemmEx_new(handle, transa, transb, m, n, k, alpha, A, Atype, lda, B, Btype, ldb, beta, C, Ctype, ldc, cublasComputeType[0], algo);
+    }
+
+    public static int cublasGemmBatchedEx(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        int m, 
+        int n, 
+        int k, 
+        Pointer alpha, /** host or device pointer */
+        Pointer Aarray, 
+        int Atype, 
+        int lda, 
+        Pointer Barray, 
+        int Btype, 
+        int ldb, 
+        Pointer beta, /** host or device pointer */
+        Pointer Carray, 
+        int Ctype, 
+        int ldc, 
+        int batchCount, 
+        int computeType, 
+        int algo)
+    {
+        int cublasComputeType[] = { 0 };
+        int status = cublasMigrateComputeType(handle, computeType, cublasComputeType);
+        if (status != cublasStatus.CUBLAS_STATUS_SUCCESS) 
+        {
+            return status;
+    }
+        return cublasGemmBatchedEx_new(handle, transa, transb, m, n, k, alpha, Aarray, Atype, lda, Barray, Btype, ldb, beta, Carray, Ctype, ldc, batchCount, cublasComputeType[0], algo);
+    }
+
+    public static int cublasGemmStridedBatchedEx(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        int m, 
+        int n, 
+        int k, 
+        Pointer alpha, /** host or device pointer */
+        Pointer A, 
+        int Atype, 
+        int lda, 
+        long strideA, /** purposely signed */
+        Pointer B, 
+        int Btype, 
+        int ldb, 
+        long strideB, 
+        Pointer beta, /** host or device pointer */
+        Pointer C, 
+        int Ctype, 
+        int ldc, 
+        long strideC, 
+        int batchCount, 
+        int computeType, 
+        int algo)
+    {
+        int cublasComputeType[] = { 0 };
+        int status = cublasMigrateComputeType(handle, computeType, cublasComputeType);
+        if (status != cublasStatus.CUBLAS_STATUS_SUCCESS) 
+        {
+            return status;
+    }
+        return cublasGemmStridedBatchedEx_new(handle, transa, transb, m, n, k, alpha, A, Atype, lda, strideA, B, Btype, ldb, strideB, beta, C, Ctype, ldc, strideC, batchCount, cublasComputeType[0], algo);
+    }
+
+    
+    
     
     //=== Auto-generated part ================================================
 
@@ -7263,165 +7361,6 @@ public class JCublas2
         Pointer A, 
         int lda, 
         Pointer AP);
-
-
-    public static int cublasMigrateComputeType_new(
-        cublasHandle handle, 
-        int dataType, 
-        int[] computeType)
-    {
-        return checkResult(cublasMigrateComputeType_newNative(handle, dataType, computeType));
-    }
-    private static native int cublasMigrateComputeType_newNative(
-        cublasHandle handle, 
-        int dataType, 
-        int[] computeType);
-
-
-    /** wrappers to accept old code with cudaDataType computeType when referenced from c++ code */
-    public static int cublasGemmEx(
-        cublasHandle handle, 
-        int transa, 
-        int transb, 
-        int m, 
-        int n, 
-        int k, 
-        Pointer alpha, /** host or device pointer */
-        Pointer A, 
-        int Atype, 
-        int lda, 
-        Pointer B, 
-        int Btype, 
-        int ldb, 
-        Pointer beta, /** host or device pointer */
-        Pointer C, 
-        int Ctype, 
-        int ldc, 
-        int computeType, 
-        int algo)
-    {
-        return checkResult(cublasGemmExNative(handle, transa, transb, m, n, k, alpha, A, Atype, lda, B, Btype, ldb, beta, C, Ctype, ldc, computeType, algo));
-    }
-    private static native int cublasGemmExNative(
-        cublasHandle handle, 
-        int transa, 
-        int transb, 
-        int m, 
-        int n, 
-        int k, 
-        Pointer alpha, /** host or device pointer */
-        Pointer A, 
-        int Atype, 
-        int lda, 
-        Pointer B, 
-        int Btype, 
-        int ldb, 
-        Pointer beta, /** host or device pointer */
-        Pointer C, 
-        int Ctype, 
-        int ldc, 
-        int computeType, 
-        int algo);
-
-
-    public static int cublasGemmBatchedEx(
-        cublasHandle handle, 
-        int transa, 
-        int transb, 
-        int m, 
-        int n, 
-        int k, 
-        Pointer alpha, /** host or device pointer */
-        Pointer Aarray, 
-        int Atype, 
-        int lda, 
-        Pointer Barray, 
-        int Btype, 
-        int ldb, 
-        Pointer beta, /** host or device pointer */
-        Pointer Carray, 
-        int Ctype, 
-        int ldc, 
-        int batchCount, 
-        int computeType, 
-        int algo)
-    {
-        return checkResult(cublasGemmBatchedExNative(handle, transa, transb, m, n, k, alpha, Aarray, Atype, lda, Barray, Btype, ldb, beta, Carray, Ctype, ldc, batchCount, computeType, algo));
-    }
-    private static native int cublasGemmBatchedExNative(
-        cublasHandle handle, 
-        int transa, 
-        int transb, 
-        int m, 
-        int n, 
-        int k, 
-        Pointer alpha, /** host or device pointer */
-        Pointer Aarray, 
-        int Atype, 
-        int lda, 
-        Pointer Barray, 
-        int Btype, 
-        int ldb, 
-        Pointer beta, /** host or device pointer */
-        Pointer Carray, 
-        int Ctype, 
-        int ldc, 
-        int batchCount, 
-        int computeType, 
-        int algo);
-
-
-    public static int cublasGemmStridedBatchedEx(
-        cublasHandle handle, 
-        int transa, 
-        int transb, 
-        int m, 
-        int n, 
-        int k, 
-        Pointer alpha, /** host or device pointer */
-        Pointer A, 
-        int Atype, 
-        int lda, 
-        long strideA, /** purposely signed */
-        Pointer B, 
-        int Btype, 
-        int ldb, 
-        long strideB, 
-        Pointer beta, /** host or device pointer */
-        Pointer C, 
-        int Ctype, 
-        int ldc, 
-        long strideC, 
-        int batchCount, 
-        int computeType, 
-        int algo)
-    {
-        return checkResult(cublasGemmStridedBatchedExNative(handle, transa, transb, m, n, k, alpha, A, Atype, lda, strideA, B, Btype, ldb, strideB, beta, C, Ctype, ldc, strideC, batchCount, computeType, algo));
-    }
-    private static native int cublasGemmStridedBatchedExNative(
-        cublasHandle handle, 
-        int transa, 
-        int transb, 
-        int m, 
-        int n, 
-        int k, 
-        Pointer alpha, /** host or device pointer */
-        Pointer A, 
-        int Atype, 
-        int lda, 
-        long strideA, /** purposely signed */
-        Pointer B, 
-        int Btype, 
-        int ldb, 
-        long strideB, 
-        Pointer beta, /** host or device pointer */
-        Pointer C, 
-        int Ctype, 
-        int ldc, 
-        long strideC, 
-        int batchCount, 
-        int computeType, 
-        int algo);
 
 
 }

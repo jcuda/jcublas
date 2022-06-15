@@ -4159,6 +4159,295 @@ public class JCublas2
         Pointer AP);
 
 
+    /** BATCH GEMV */
+    public static int cublasSgemvBatched(
+        cublasHandle handle, 
+        int trans, 
+        int m, 
+        int n, 
+        Pointer alpha, /** host or device pointer */
+        Pointer Aarray, 
+        int lda, 
+        Pointer xarray, 
+        int incx, 
+        Pointer beta, /** host or device pointer */
+        Pointer yarray, 
+        int incy, 
+        int batchCount)
+    {
+        return checkResult(cublasSgemvBatchedNative(handle, trans, m, n, alpha, Aarray, lda, xarray, incx, beta, yarray, incy, batchCount));
+    }
+    private static native int cublasSgemvBatchedNative(
+        cublasHandle handle, 
+        int trans, 
+        int m, 
+        int n, 
+        Pointer alpha, /** host or device pointer */
+        Pointer Aarray, 
+        int lda, 
+        Pointer xarray, 
+        int incx, 
+        Pointer beta, /** host or device pointer */
+        Pointer yarray, 
+        int incy, 
+        int batchCount);
+
+
+    public static int cublasDgemvBatched(
+        cublasHandle handle, 
+        int trans, 
+        int m, 
+        int n, 
+        Pointer alpha, /** host or device pointer */
+        Pointer Aarray, 
+        int lda, 
+        Pointer xarray, 
+        int incx, 
+        Pointer beta, /** host or device pointer */
+        Pointer yarray, 
+        int incy, 
+        int batchCount)
+    {
+        return checkResult(cublasDgemvBatchedNative(handle, trans, m, n, alpha, Aarray, lda, xarray, incx, beta, yarray, incy, batchCount));
+    }
+    private static native int cublasDgemvBatchedNative(
+        cublasHandle handle, 
+        int trans, 
+        int m, 
+        int n, 
+        Pointer alpha, /** host or device pointer */
+        Pointer Aarray, 
+        int lda, 
+        Pointer xarray, 
+        int incx, 
+        Pointer beta, /** host or device pointer */
+        Pointer yarray, 
+        int incy, 
+        int batchCount);
+
+
+    public static int cublasCgemvBatched(
+        cublasHandle handle, 
+        int trans, 
+        int m, 
+        int n, 
+        Pointer alpha, /** host or device pointer */
+        Pointer Aarray, 
+        int lda, 
+        Pointer xarray, 
+        int incx, 
+        Pointer beta, /** host or device pointer */
+        Pointer yarray, 
+        int incy, 
+        int batchCount)
+    {
+        return checkResult(cublasCgemvBatchedNative(handle, trans, m, n, alpha, Aarray, lda, xarray, incx, beta, yarray, incy, batchCount));
+    }
+    private static native int cublasCgemvBatchedNative(
+        cublasHandle handle, 
+        int trans, 
+        int m, 
+        int n, 
+        Pointer alpha, /** host or device pointer */
+        Pointer Aarray, 
+        int lda, 
+        Pointer xarray, 
+        int incx, 
+        Pointer beta, /** host or device pointer */
+        Pointer yarray, 
+        int incy, 
+        int batchCount);
+
+
+    public static int cublasZgemvBatched(
+        cublasHandle handle, 
+        int trans, 
+        int m, 
+        int n, 
+        Pointer alpha, /** host or device pointer */
+        Pointer Aarray, 
+        int lda, 
+        Pointer xarray, 
+        int incx, 
+        Pointer beta, /** host or device pointer */
+        Pointer yarray, 
+        int incy, 
+        int batchCount)
+    {
+        return checkResult(cublasZgemvBatchedNative(handle, trans, m, n, alpha, Aarray, lda, xarray, incx, beta, yarray, incy, batchCount));
+    }
+    private static native int cublasZgemvBatchedNative(
+        cublasHandle handle, 
+        int trans, 
+        int m, 
+        int n, 
+        Pointer alpha, /** host or device pointer */
+        Pointer Aarray, 
+        int lda, 
+        Pointer xarray, 
+        int incx, 
+        Pointer beta, /** host or device pointer */
+        Pointer yarray, 
+        int incy, 
+        int batchCount);
+
+
+    public static int cublasSgemvStridedBatched(
+        cublasHandle handle, 
+        int trans, 
+        int m, 
+        int n, 
+        Pointer alpha, /** host or device pointer */
+        Pointer A, 
+        int lda, 
+        long strideA, /** purposely signed */
+        Pointer x, 
+        int incx, 
+        long stridex, 
+        Pointer beta, /** host or device pointer */
+        Pointer y, 
+        int incy, 
+        long stridey, 
+        int batchCount)
+    {
+        return checkResult(cublasSgemvStridedBatchedNative(handle, trans, m, n, alpha, A, lda, strideA, x, incx, stridex, beta, y, incy, stridey, batchCount));
+    }
+    private static native int cublasSgemvStridedBatchedNative(
+        cublasHandle handle, 
+        int trans, 
+        int m, 
+        int n, 
+        Pointer alpha, /** host or device pointer */
+        Pointer A, 
+        int lda, 
+        long strideA, /** purposely signed */
+        Pointer x, 
+        int incx, 
+        long stridex, 
+        Pointer beta, /** host or device pointer */
+        Pointer y, 
+        int incy, 
+        long stridey, 
+        int batchCount);
+
+
+    public static int cublasDgemvStridedBatched(
+        cublasHandle handle, 
+        int trans, 
+        int m, 
+        int n, 
+        Pointer alpha, /** host or device pointer */
+        Pointer A, 
+        int lda, 
+        long strideA, /** purposely signed */
+        Pointer x, 
+        int incx, 
+        long stridex, 
+        Pointer beta, /** host or device pointer */
+        Pointer y, 
+        int incy, 
+        long stridey, 
+        int batchCount)
+    {
+        return checkResult(cublasDgemvStridedBatchedNative(handle, trans, m, n, alpha, A, lda, strideA, x, incx, stridex, beta, y, incy, stridey, batchCount));
+    }
+    private static native int cublasDgemvStridedBatchedNative(
+        cublasHandle handle, 
+        int trans, 
+        int m, 
+        int n, 
+        Pointer alpha, /** host or device pointer */
+        Pointer A, 
+        int lda, 
+        long strideA, /** purposely signed */
+        Pointer x, 
+        int incx, 
+        long stridex, 
+        Pointer beta, /** host or device pointer */
+        Pointer y, 
+        int incy, 
+        long stridey, 
+        int batchCount);
+
+
+    public static int cublasCgemvStridedBatched(
+        cublasHandle handle, 
+        int trans, 
+        int m, 
+        int n, 
+        Pointer alpha, /** host or device pointer */
+        Pointer A, 
+        int lda, 
+        long strideA, /** purposely signed */
+        Pointer x, 
+        int incx, 
+        long stridex, 
+        Pointer beta, /** host or device pointer */
+        Pointer y, 
+        int incy, 
+        long stridey, 
+        int batchCount)
+    {
+        return checkResult(cublasCgemvStridedBatchedNative(handle, trans, m, n, alpha, A, lda, strideA, x, incx, stridex, beta, y, incy, stridey, batchCount));
+    }
+    private static native int cublasCgemvStridedBatchedNative(
+        cublasHandle handle, 
+        int trans, 
+        int m, 
+        int n, 
+        Pointer alpha, /** host or device pointer */
+        Pointer A, 
+        int lda, 
+        long strideA, /** purposely signed */
+        Pointer x, 
+        int incx, 
+        long stridex, 
+        Pointer beta, /** host or device pointer */
+        Pointer y, 
+        int incy, 
+        long stridey, 
+        int batchCount);
+
+
+    public static int cublasZgemvStridedBatched(
+        cublasHandle handle, 
+        int trans, 
+        int m, 
+        int n, 
+        Pointer alpha, /** host or device pointer */
+        Pointer A, 
+        int lda, 
+        long strideA, /** purposely signed */
+        Pointer x, 
+        int incx, 
+        long stridex, 
+        Pointer beta, /** host or device pointer */
+        Pointer y, 
+        int incy, 
+        long stridey, 
+        int batchCount)
+    {
+        return checkResult(cublasZgemvStridedBatchedNative(handle, trans, m, n, alpha, A, lda, strideA, x, incx, stridex, beta, y, incy, stridey, batchCount));
+    }
+    private static native int cublasZgemvStridedBatchedNative(
+        cublasHandle handle, 
+        int trans, 
+        int m, 
+        int n, 
+        Pointer alpha, /** host or device pointer */
+        Pointer A, 
+        int lda, 
+        long strideA, /** purposely signed */
+        Pointer x, 
+        int incx, 
+        long stridex, 
+        Pointer beta, /** host or device pointer */
+        Pointer y, 
+        int incy, 
+        long stridey, 
+        int batchCount);
+
+
     /** ---------------- CUBLAS BLAS3 functions ---------------- */
     /** GEMM */
     public static int cublasSgemm(

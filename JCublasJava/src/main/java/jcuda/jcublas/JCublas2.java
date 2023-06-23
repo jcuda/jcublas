@@ -144,7 +144,8 @@ public class JCublas2
         return result;
     }
     
-    //=== Memory management ==================================================
+    //=========================================================================
+    // Memory management functions
     
     /**
      * <pre>
@@ -480,6 +481,350 @@ public class JCublas2
         Pointer B,
         int ldb,
         cudaStream_t stream);
+    
+
+    
+    //=========================================================================
+    // Memory management functions, 64 bits
+    
+    /**
+     * <pre>
+     * cublasStatus_t
+     * cublasSetVector (int n, int elemSize, const void *x, int incx,
+     *                  void *y, int incy)
+     *
+     * copies n elements from a vector x in CPU memory space to a vector y
+     * in GPU memory space. Elements in both vectors are assumed to have a
+     * size of elemSize bytes. Storage spacing between consecutive elements
+     * is incx for the source vector x and incy for the destination vector
+     * y. In general, y points to an object, or part of an object, allocated
+     * via cublasAlloc(). Column major format for two-dimensional matrices
+     * is assumed throughout CUBLAS. Therefore, if the increment for a vector
+     * is equal to 1, this access a column vector while using an increment
+     * equal to the leading dimension of the respective matrix accesses a
+     * row vector.
+     *
+     * Return Values
+     * -------------
+     * CUBLAS_STATUS_NOT_INITIALIZED  if CUBLAS library not been initialized
+     * CUBLAS_STATUS_INVALID_VALUE    if incx, incy, or elemSize <= 0
+     * CUBLAS_STATUS_MAPPING_ERROR    if an error occurred accessing GPU memory
+     * CUBLAS_STATUS_SUCCESS          if the operation completed successfully
+     * </pre>
+     */
+    public static int cublasSetVector_64(
+        long n,
+        long elemSize,
+        Pointer x,
+        long incx,
+        Pointer devicePtr,
+        long incy)
+    {
+        return checkResult(cublasSetVector_64Native(n, elemSize, x, incx, devicePtr, incy));
+    }
+    private static native int cublasSetVector_64Native(
+        long n,
+        long elemSize,
+        Pointer x,
+        long incx,
+        Pointer devicePtr,
+        long incy);
+
+
+    /**
+     * <pre>
+     * cublasStatus_t
+     * cublasGetVector (int n, int elemSize, const void *x, int incx,
+     *                  void *y, int incy)
+     *
+     * copies n elements from a vector x in GPU memory space to a vector y
+     * in CPU memory space. Elements in both vectors are assumed to have a
+     * size of elemSize bytes. Storage spacing between consecutive elements
+     * is incx for the source vector x and incy for the destination vector
+     * y. In general, x points to an object, or part of an object, allocated
+     * via cublasAlloc(). Column major format for two-dimensional matrices
+     * is assumed throughout CUBLAS. Therefore, if the increment for a vector
+     * is equal to 1, this access a column vector while using an increment
+     * equal to the leading dimension of the respective matrix accesses a
+     * row vector.
+     *
+     * Return Values
+     * -------------
+     * CUBLAS_STATUS_NOT_INITIALIZED  if CUBLAS library not been initialized
+     * CUBLAS_STATUS_INVALID_VALUE    if incx, incy, or elemSize <= 0
+     * CUBLAS_STATUS_MAPPING_ERROR    if an error occurred accessing GPU memory
+     * CUBLAS_STATUS_SUCCESS          if the operation completed successfully
+     * </pre>
+     */
+    public static int cublasGetVector_64(
+        long n,
+        long elemSize,
+        Pointer x,
+        long incx,
+        Pointer y,
+        long incy)
+    {
+        return checkResult(cublasGetVector_64Native(n, elemSize, x, incx, y, incy));
+    }
+    private static native int cublasGetVector_64Native(
+        long n,
+        long elemSize,
+        Pointer x,
+        long incx,
+        Pointer y,
+        long incy);
+
+
+    /**
+     * <pre>
+     * cublasStatus_t
+     * cublasSetMatrix (int rows, int cols, int elemSize, const void *A,
+     *                  int lda, void *B, int ldb)
+     *
+     * copies a tile of rows x cols elements from a matrix A in CPU memory
+     * space to a matrix B in GPU memory space. Each element requires storage
+     * of elemSize bytes. Both matrices are assumed to be stored in column
+     * major format, with the leading dimension (i.e. number of rows) of
+     * source matrix A provided in lda, and the leading dimension of matrix B
+     * provided in ldb. In general, B points to an object, or part of an
+     * object, that was allocated via cublasAlloc().
+     *
+     * Return Values
+     * -------------
+     * CUBLAS_STATUS_NOT_INITIALIZED  if CUBLAS library has not been initialized
+     * CUBLAS_STATUS_INVALID_VALUE    if rows or cols < 0, or elemSize, lda, or
+     *                                ldb <= 0
+     * CUBLAS_STATUS_MAPPING_ERROR    if error occurred accessing GPU memory
+     * CUBLAS_STATUS_SUCCESS          if the operation completed successfully
+     * </pre>
+     */
+    public static int cublasSetMatrix_64(
+        long rows,
+        long cols,
+        long elemSize,
+        Pointer A,
+        long lda,
+        Pointer B,
+        long ldb)
+    {
+        return checkResult(cublasSetMatrix_64Native(rows, cols, elemSize, A, lda, B, ldb));
+    }
+    private static native int cublasSetMatrix_64Native(
+        long rows,
+        long cols,
+        long elemSize,
+        Pointer A,
+        long lda,
+        Pointer B,
+        long ldb);
+
+
+    /**
+     * <pre>
+     * cublasStatus_t
+     * cublasGetMatrix (int rows, int cols, int elemSize, const void *A,
+     *                  int lda, void *B, int ldb)
+     *
+     * copies a tile of rows x cols elements from a matrix A in GPU memory
+     * space to a matrix B in CPU memory space. Each element requires storage
+     * of elemSize bytes. Both matrices are assumed to be stored in column
+     * major format, with the leading dimension (i.e. number of rows) of
+     * source matrix A provided in lda, and the leading dimension of matrix B
+     * provided in ldb. In general, A points to an object, or part of an
+     * object, that was allocated via cublasAlloc().
+     *
+     * Return Values
+     * -------------
+     * CUBLAS_STATUS_NOT_INITIALIZED  if CUBLAS library has not been initialized
+     * CUBLAS_STATUS_INVALID_VALUE    if rows, cols, eleSize, lda, or ldb <= 0
+     * CUBLAS_STATUS_MAPPING_ERROR    if error occurred accessing GPU memory
+     * CUBLAS_STATUS_SUCCESS          if the operation completed successfully
+     * </pre>
+     */
+    public static int cublasGetMatrix_64(
+        long rows,
+        long cols,
+        long elemSize,
+        Pointer A,
+        long lda,
+        Pointer B,
+        long ldb)
+    {
+        return checkResult(cublasGetMatrix_64Native(rows, cols, elemSize, A, lda, B, ldb));
+    }
+    private static native int cublasGetMatrix_64Native(
+        long rows,
+        long cols,
+        long elemSize,
+        Pointer A,
+        long lda,
+        Pointer B,
+        long ldb);
+
+
+    /**
+     * <pre>
+     * cublasStatus
+     * cublasSetVectorAsync ( int n, int elemSize, const void *x, int incx,
+     *                       void *y, int incy, cudaStream_t stream );
+     *
+     * cublasSetVectorAsync has the same functionnality as cublasSetVector
+     * but the transfer is done asynchronously within the CUDA stream passed
+     * in parameter.
+     *
+     * Return Values
+     * -------------
+     * CUBLAS_STATUS_NOT_INITIALIZED  if CUBLAS library not been initialized
+     * CUBLAS_STATUS_INVALID_VALUE    if incx, incy, or elemSize <= 0
+     * CUBLAS_STATUS_MAPPING_ERROR    if an error occurred accessing GPU memory
+     * CUBLAS_STATUS_SUCCESS          if the operation completed successfully
+     * </pre>
+     */
+    public static int cublasSetVectorAsync_64(
+        long n,
+        long elemSize,
+        Pointer hostPtr,
+        long incx,
+        Pointer devicePtr,
+        long incy,
+        cudaStream_t stream)
+    {
+        return checkResult(cublasSetVectorAsync_64Native(n, elemSize, hostPtr, incx, devicePtr, incy, stream));
+    }
+    private static native int cublasSetVectorAsync_64Native(
+        long n,
+        long elemSize,
+        Pointer hostPtr,
+        long incx,
+        Pointer devicePtr,
+        long incy,
+        cudaStream_t stream);
+
+
+    /**
+     * <pre>
+     * cublasStatus
+     * cublasGetVectorAsync( int n, int elemSize, const void *x, int incx,
+     *                       void *y, int incy, cudaStream_t stream)
+     *
+     * cublasGetVectorAsync has the same functionnality as cublasGetVector
+     * but the transfer is done asynchronously within the CUDA stream passed
+     * in parameter.
+     *
+     * Return Values
+     * -------------
+     * CUBLAS_STATUS_NOT_INITIALIZED  if CUBLAS library not been initialized
+     * CUBLAS_STATUS_INVALID_VALUE    if incx, incy, or elemSize <= 0
+     * CUBLAS_STATUS_MAPPING_ERROR    if an error occurred accessing GPU memory
+     * CUBLAS_STATUS_SUCCESS          if the operation completed successfully
+     * </pre>
+     */
+    public static int cublasGetVectorAsync_64(
+        int n,
+        int elemSize,
+        Pointer devicePtr,
+        int incx,
+        Pointer hostPtr,
+        int incy,
+        cudaStream_t stream)
+    {
+        return checkResult(cublasGetVectorAsync_64Native(n, elemSize, devicePtr, incx, hostPtr, incy, stream));
+    }
+    private static native int cublasGetVectorAsync_64Native(
+        long n,
+        long elemSize,
+        Pointer devicePtr,
+        long incx,
+        Pointer hostPtr,
+        long incy,
+        cudaStream_t stream);
+
+
+    /**
+     * <pre>
+     * cublasStatus_t
+     * cublasSetMatrixAsync (int rows, int cols, int elemSize, const void *A,
+     *                       int lda, void *B, int ldb, cudaStream_t stream)
+     *
+     * cublasSetMatrixAsync has the same functionnality as cublasSetMatrix
+     * but the transfer is done asynchronously within the CUDA stream passed
+     * in parameter.
+     *
+     * Return Values
+     * -------------
+     * CUBLAS_STATUS_NOT_INITIALIZED  if CUBLAS library has not been initialized
+     * CUBLAS_STATUS_INVALID_VALUE    if rows or cols < 0, or elemSize, lda, or
+     *                                ldb <= 0
+     * CUBLAS_STATUS_MAPPING_ERROR    if error occurred accessing GPU memory
+     * CUBLAS_STATUS_SUCCESS          if the operation completed successfully
+     * </pre>
+     */
+    public static int cublasSetMatrixAsync_64(
+        long rows,
+        long cols,
+        long elemSize,
+        Pointer A,
+        long lda,
+        Pointer B,
+        long ldb,
+        cudaStream_t stream)
+    {
+        return checkResult(cublasSetMatrixAsync_64Native(rows, cols, elemSize, A, lda, B, ldb, stream));
+    }
+    private static native int cublasSetMatrixAsync_64Native(
+        long rows,
+        long cols,
+        long elemSize,
+        Pointer A,
+        long lda,
+        Pointer B,
+        long ldb,
+        cudaStream_t stream);
+
+
+    /**
+     * <pre>
+     * cublasStatus_t
+     * cublasGetMatrixAsync (int rows, int cols, int elemSize, const void *A,
+     *                       int lda, void *B, int ldb, cudaStream_t stream)
+     *
+     * cublasGetMatrixAsync has the same functionnality as cublasGetMatrix
+     * but the transfer is done asynchronously within the CUDA stream passed
+     * in parameter.
+     *
+     * Return Values
+     * -------------
+     * CUBLAS_STATUS_NOT_INITIALIZED  if CUBLAS library has not been initialized
+     * CUBLAS_STATUS_INVALID_VALUE    if rows, cols, eleSize, lda, or ldb <= 0
+     * CUBLAS_STATUS_MAPPING_ERROR    if error occurred accessing GPU memory
+     * CUBLAS_STATUS_SUCCESS          if the operation completed successfully
+     * </pre>
+     */
+    public static int cublasGetMatrixAsync_64(
+        long rows,
+        long cols,
+        long elemSize,
+        Pointer A,
+        long lda,
+        Pointer B,
+        long ldb,
+        cudaStream_t stream)
+    {
+        return checkResult(cublasGetMatrixAsync_64Native(rows, cols, elemSize, A, lda, B, ldb, stream));
+    }
+    private static native int cublasGetMatrixAsync_64Native(
+        long rows,
+        long cols,
+        long elemSize,
+        Pointer A,
+        long lda,
+        Pointer B,
+        long ldb,
+        cudaStream_t stream);
+    
+    
+    
+    
     
     
     private static int cublasMigrateComputeType(cublasHandle handle,
@@ -849,7 +1194,7 @@ public class JCublas2
         cublasLogCallback[] userCallback);
 
 
-    /** ---------------- CUBLAS BLAS1 functions ---------------- */
+    /** --------------- CUBLAS BLAS1 Functions  ---------------- */
     public static int cublasNrm2Ex(
         cublasHandle handle, 
         int n, 
@@ -858,7 +1203,7 @@ public class JCublas2
         int incx, 
         Pointer result, 
         int resultType, 
-        int executionType)/** host or device pointer */
+        int executionType)
     {
         return checkResult(cublasNrm2ExNative(handle, n, x, xType, incx, result, resultType, executionType));
     }
@@ -870,7 +1215,30 @@ public class JCublas2
         int incx, 
         Pointer result, 
         int resultType, 
-        int executionType);/** host or device pointer */
+        int executionType);
+
+
+    public static int cublasNrm2Ex_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        int xType, 
+        long incx, 
+        Pointer result, 
+        int resultType, 
+        int executionType)
+    {
+        return checkResult(cublasNrm2Ex_64Native(handle, n, x, xType, incx, result, resultType, executionType));
+    }
+    private static native int cublasNrm2Ex_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        int xType, 
+        long incx, 
+        Pointer result, 
+        int resultType, 
+        int executionType);
 
 
     public static int cublasSnrm2(
@@ -878,7 +1246,7 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result)/** host or device pointer */
+        Pointer result)
     {
         return checkResult(cublasSnrm2Native(handle, n, x, incx, result));
     }
@@ -887,7 +1255,24 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result);/** host or device pointer */
+        Pointer result);
+
+
+    public static int cublasSnrm2_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer result)
+    {
+        return checkResult(cublasSnrm2_v2_64Native(handle, n, x, incx, result));
+    }
+    private static native int cublasSnrm2_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer result);
 
 
     public static int cublasDnrm2(
@@ -895,7 +1280,7 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result)/** host or device pointer */
+        Pointer result)
     {
         return checkResult(cublasDnrm2Native(handle, n, x, incx, result));
     }
@@ -904,7 +1289,24 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result);/** host or device pointer */
+        Pointer result);
+
+
+    public static int cublasDnrm2_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer result)
+    {
+        return checkResult(cublasDnrm2_v2_64Native(handle, n, x, incx, result));
+    }
+    private static native int cublasDnrm2_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer result);
 
 
     public static int cublasScnrm2(
@@ -912,7 +1314,7 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result)/** host or device pointer */
+        Pointer result)
     {
         return checkResult(cublasScnrm2Native(handle, n, x, incx, result));
     }
@@ -921,7 +1323,24 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result);/** host or device pointer */
+        Pointer result);
+
+
+    public static int cublasScnrm2_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer result)
+    {
+        return checkResult(cublasScnrm2_v2_64Native(handle, n, x, incx, result));
+    }
+    private static native int cublasScnrm2_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer result);
 
 
     public static int cublasDznrm2(
@@ -929,7 +1348,7 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result)/** host or device pointer */
+        Pointer result)
     {
         return checkResult(cublasDznrm2Native(handle, n, x, incx, result));
     }
@@ -938,7 +1357,24 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result);/** host or device pointer */
+        Pointer result);
+
+
+    public static int cublasDznrm2_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer result)
+    {
+        return checkResult(cublasDznrm2_v2_64Native(handle, n, x, incx, result));
+    }
+    private static native int cublasDznrm2_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer result);
 
 
     public static int cublasDotEx(
@@ -965,6 +1401,35 @@ public class JCublas2
         Pointer y, 
         int yType, 
         int incy, 
+        Pointer result, 
+        int resultType, 
+        int executionType);
+
+
+    public static int cublasDotEx_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        int xType, 
+        long incx, 
+        Pointer y, 
+        int yType, 
+        long incy, 
+        Pointer result, 
+        int resultType, 
+        int executionType)
+    {
+        return checkResult(cublasDotEx_64Native(handle, n, x, xType, incx, y, yType, incy, result, resultType, executionType));
+    }
+    private static native int cublasDotEx_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        int xType, 
+        long incx, 
+        Pointer y, 
+        int yType, 
+        long incy, 
         Pointer result, 
         int resultType, 
         int executionType);
@@ -999,6 +1464,35 @@ public class JCublas2
         int executionType);
 
 
+    public static int cublasDotcEx_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        int xType, 
+        long incx, 
+        Pointer y, 
+        int yType, 
+        long incy, 
+        Pointer result, 
+        int resultType, 
+        int executionType)
+    {
+        return checkResult(cublasDotcEx_64Native(handle, n, x, xType, incx, y, yType, incy, result, resultType, executionType));
+    }
+    private static native int cublasDotcEx_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        int xType, 
+        long incx, 
+        Pointer y, 
+        int yType, 
+        long incy, 
+        Pointer result, 
+        int resultType, 
+        int executionType);
+
+
     public static int cublasSdot(
         cublasHandle handle, 
         int n, 
@@ -1006,7 +1500,7 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer result)/** host or device pointer */
+        Pointer result)
     {
         return checkResult(cublasSdotNative(handle, n, x, incx, y, incy, result));
     }
@@ -1017,7 +1511,28 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer result);/** host or device pointer */
+        Pointer result);
+
+
+    public static int cublasSdot_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer result)
+    {
+        return checkResult(cublasSdot_v2_64Native(handle, n, x, incx, y, incy, result));
+    }
+    private static native int cublasSdot_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer result);
 
 
     public static int cublasDdot(
@@ -1027,7 +1542,7 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer result)/** host or device pointer */
+        Pointer result)
     {
         return checkResult(cublasDdotNative(handle, n, x, incx, y, incy, result));
     }
@@ -1038,7 +1553,28 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer result);/** host or device pointer */
+        Pointer result);
+
+
+    public static int cublasDdot_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer result)
+    {
+        return checkResult(cublasDdot_v2_64Native(handle, n, x, incx, y, incy, result));
+    }
+    private static native int cublasDdot_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer result);
 
 
     public static int cublasCdotu(
@@ -1048,7 +1584,7 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer result)/** host or device pointer */
+        Pointer result)
     {
         return checkResult(cublasCdotuNative(handle, n, x, incx, y, incy, result));
     }
@@ -1059,7 +1595,28 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer result);/** host or device pointer */
+        Pointer result);
+
+
+    public static int cublasCdotu_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer result)
+    {
+        return checkResult(cublasCdotu_v2_64Native(handle, n, x, incx, y, incy, result));
+    }
+    private static native int cublasCdotu_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer result);
 
 
     public static int cublasCdotc(
@@ -1069,7 +1626,7 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer result)/** host or device pointer */
+        Pointer result)
     {
         return checkResult(cublasCdotcNative(handle, n, x, incx, y, incy, result));
     }
@@ -1080,7 +1637,28 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer result);/** host or device pointer */
+        Pointer result);
+
+
+    public static int cublasCdotc_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer result)
+    {
+        return checkResult(cublasCdotc_v2_64Native(handle, n, x, incx, y, incy, result));
+    }
+    private static native int cublasCdotc_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer result);
 
 
     public static int cublasZdotu(
@@ -1090,7 +1668,7 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer result)/** host or device pointer */
+        Pointer result)
     {
         return checkResult(cublasZdotuNative(handle, n, x, incx, y, incy, result));
     }
@@ -1101,7 +1679,28 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer result);/** host or device pointer */
+        Pointer result);
+
+
+    public static int cublasZdotu_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer result)
+    {
+        return checkResult(cublasZdotu_v2_64Native(handle, n, x, incx, y, incy, result));
+    }
+    private static native int cublasZdotu_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer result);
 
 
     public static int cublasZdotc(
@@ -1111,7 +1710,7 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer result)/** host or device pointer */
+        Pointer result)
     {
         return checkResult(cublasZdotcNative(handle, n, x, incx, y, incy, result));
     }
@@ -1122,13 +1721,34 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer result);/** host or device pointer */
+        Pointer result);
+
+
+    public static int cublasZdotc_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer result)
+    {
+        return checkResult(cublasZdotc_v2_64Native(handle, n, x, incx, y, incy, result));
+    }
+    private static native int cublasZdotc_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer result);
 
 
     public static int cublasScalEx(
         cublasHandle handle, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         int alphaType, 
         Pointer x, 
         int xType, 
@@ -1140,7 +1760,7 @@ public class JCublas2
     private static native int cublasScalExNative(
         cublasHandle handle, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         int alphaType, 
         Pointer x, 
         int xType, 
@@ -1148,10 +1768,33 @@ public class JCublas2
         int executionType);
 
 
+    public static int cublasScalEx_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer alpha, 
+        int alphaType, 
+        Pointer x, 
+        int xType, 
+        long incx, 
+        int executionType)
+    {
+        return checkResult(cublasScalEx_64Native(handle, n, alpha, alphaType, x, xType, incx, executionType));
+    }
+    private static native int cublasScalEx_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer alpha, 
+        int alphaType, 
+        Pointer x, 
+        int xType, 
+        long incx, 
+        int executionType);
+
+
     public static int cublasSscal(
         cublasHandle handle, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx)
     {
@@ -1160,15 +1803,32 @@ public class JCublas2
     private static native int cublasSscalNative(
         cublasHandle handle, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx);
+
+
+    public static int cublasSscal_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasSscal_v2_64Native(handle, n, alpha, x, incx));
+    }
+    private static native int cublasSscal_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx);
 
 
     public static int cublasDscal(
         cublasHandle handle, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx)
     {
@@ -1177,15 +1837,32 @@ public class JCublas2
     private static native int cublasDscalNative(
         cublasHandle handle, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx);
+
+
+    public static int cublasDscal_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasDscal_v2_64Native(handle, n, alpha, x, incx));
+    }
+    private static native int cublasDscal_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx);
 
 
     public static int cublasCscal(
         cublasHandle handle, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx)
     {
@@ -1194,15 +1871,32 @@ public class JCublas2
     private static native int cublasCscalNative(
         cublasHandle handle, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx);
+
+
+    public static int cublasCscal_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasCscal_v2_64Native(handle, n, alpha, x, incx));
+    }
+    private static native int cublasCscal_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx);
 
 
     public static int cublasCsscal(
         cublasHandle handle, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx)
     {
@@ -1211,15 +1905,32 @@ public class JCublas2
     private static native int cublasCsscalNative(
         cublasHandle handle, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx);
+
+
+    public static int cublasCsscal_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasCsscal_v2_64Native(handle, n, alpha, x, incx));
+    }
+    private static native int cublasCsscal_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx);
 
 
     public static int cublasZscal(
         cublasHandle handle, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx)
     {
@@ -1228,15 +1939,32 @@ public class JCublas2
     private static native int cublasZscalNative(
         cublasHandle handle, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx);
+
+
+    public static int cublasZscal_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasZscal_v2_64Native(handle, n, alpha, x, incx));
+    }
+    private static native int cublasZscal_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx);
 
 
     public static int cublasZdscal(
         cublasHandle handle, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx)
     {
@@ -1245,15 +1973,32 @@ public class JCublas2
     private static native int cublasZdscalNative(
         cublasHandle handle, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx);
+
+
+    public static int cublasZdscal_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasZdscal_v2_64Native(handle, n, alpha, x, incx));
+    }
+    private static native int cublasZdscal_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx);
 
 
     public static int cublasAxpyEx(
         cublasHandle handle, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         int alphaType, 
         Pointer x, 
         int xType, 
@@ -1268,7 +2013,7 @@ public class JCublas2
     private static native int cublasAxpyExNative(
         cublasHandle handle, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         int alphaType, 
         Pointer x, 
         int xType, 
@@ -1279,10 +2024,39 @@ public class JCublas2
         int executiontype);
 
 
+    public static int cublasAxpyEx_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer alpha, 
+        int alphaType, 
+        Pointer x, 
+        int xType, 
+        long incx, 
+        Pointer y, 
+        int yType, 
+        long incy, 
+        int executiontype)
+    {
+        return checkResult(cublasAxpyEx_64Native(handle, n, alpha, alphaType, x, xType, incx, y, yType, incy, executiontype));
+    }
+    private static native int cublasAxpyEx_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer alpha, 
+        int alphaType, 
+        Pointer x, 
+        int xType, 
+        long incx, 
+        Pointer y, 
+        int yType, 
+        long incy, 
+        int executiontype);
+
+
     public static int cublasSaxpy(
         cublasHandle handle, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -1293,17 +2067,38 @@ public class JCublas2
     private static native int cublasSaxpyNative(
         cublasHandle handle, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
         int incy);
 
 
+    public static int cublasSaxpy_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasSaxpy_v2_64Native(handle, n, alpha, x, incx, y, incy));
+    }
+    private static native int cublasSaxpy_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy);
+
+
     public static int cublasDaxpy(
         cublasHandle handle, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -1314,17 +2109,38 @@ public class JCublas2
     private static native int cublasDaxpyNative(
         cublasHandle handle, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
         int incy);
 
 
+    public static int cublasDaxpy_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasDaxpy_v2_64Native(handle, n, alpha, x, incx, y, incy));
+    }
+    private static native int cublasDaxpy_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy);
+
+
     public static int cublasCaxpy(
         cublasHandle handle, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -1335,17 +2151,38 @@ public class JCublas2
     private static native int cublasCaxpyNative(
         cublasHandle handle, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
         int incy);
 
 
+    public static int cublasCaxpy_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasCaxpy_v2_64Native(handle, n, alpha, x, incx, y, incy));
+    }
+    private static native int cublasCaxpy_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy);
+
+
     public static int cublasZaxpy(
         cublasHandle handle, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -1356,11 +2193,32 @@ public class JCublas2
     private static native int cublasZaxpyNative(
         cublasHandle handle, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasZaxpy_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasZaxpy_v2_64Native(handle, n, alpha, x, incx, y, incy));
+    }
+    private static native int cublasZaxpy_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy);
 
 
     public static int cublasCopyEx(
@@ -1386,6 +2244,29 @@ public class JCublas2
         int incy);
 
 
+    public static int cublasCopyEx_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        int xType, 
+        long incx, 
+        Pointer y, 
+        int yType, 
+        long incy)
+    {
+        return checkResult(cublasCopyEx_64Native(handle, n, x, xType, incx, y, yType, incy));
+    }
+    private static native int cublasCopyEx_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        int xType, 
+        long incx, 
+        Pointer y, 
+        int yType, 
+        long incy);
+
+
     public static int cublasScopy(
         cublasHandle handle, 
         int n, 
@@ -1403,6 +2284,25 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasScopy_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasScopy_v2_64Native(handle, n, x, incx, y, incy));
+    }
+    private static native int cublasScopy_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy);
 
 
     public static int cublasDcopy(
@@ -1424,6 +2324,25 @@ public class JCublas2
         int incy);
 
 
+    public static int cublasDcopy_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasDcopy_v2_64Native(handle, n, x, incx, y, incy));
+    }
+    private static native int cublasDcopy_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy);
+
+
     public static int cublasCcopy(
         cublasHandle handle, 
         int n, 
@@ -1441,6 +2360,25 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasCcopy_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasCcopy_v2_64Native(handle, n, x, incx, y, incy));
+    }
+    private static native int cublasCcopy_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy);
 
 
     public static int cublasZcopy(
@@ -1462,6 +2400,25 @@ public class JCublas2
         int incy);
 
 
+    public static int cublasZcopy_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasZcopy_v2_64Native(handle, n, x, incx, y, incy));
+    }
+    private static native int cublasZcopy_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy);
+
+
     public static int cublasSswap(
         cublasHandle handle, 
         int n, 
@@ -1479,6 +2436,25 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasSswap_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasSswap_v2_64Native(handle, n, x, incx, y, incy));
+    }
+    private static native int cublasSswap_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy);
 
 
     public static int cublasDswap(
@@ -1500,6 +2476,25 @@ public class JCublas2
         int incy);
 
 
+    public static int cublasDswap_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasDswap_v2_64Native(handle, n, x, incx, y, incy));
+    }
+    private static native int cublasDswap_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy);
+
+
     public static int cublasCswap(
         cublasHandle handle, 
         int n, 
@@ -1519,6 +2514,25 @@ public class JCublas2
         int incy);
 
 
+    public static int cublasCswap_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasCswap_v2_64Native(handle, n, x, incx, y, incy));
+    }
+    private static native int cublasCswap_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy);
+
+
     public static int cublasZswap(
         cublasHandle handle, 
         int n, 
@@ -1536,6 +2550,25 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasZswap_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasZswap_v2_64Native(handle, n, x, incx, y, incy));
+    }
+    private static native int cublasZswap_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy);
 
 
     public static int cublasSwapEx(
@@ -1561,12 +2594,35 @@ public class JCublas2
         int incy);
 
 
+    public static int cublasSwapEx_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        int xType, 
+        long incx, 
+        Pointer y, 
+        int yType, 
+        long incy)
+    {
+        return checkResult(cublasSwapEx_64Native(handle, n, x, xType, incx, y, yType, incy));
+    }
+    private static native int cublasSwapEx_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        int xType, 
+        long incx, 
+        Pointer y, 
+        int yType, 
+        long incy);
+
+
     public static int cublasIsamax(
         cublasHandle handle, 
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result)/** host or device pointer */
+        Pointer result)
     {
         return checkResult(cublasIsamaxNative(handle, n, x, incx, result));
     }
@@ -1575,7 +2631,24 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result);/** host or device pointer */
+        Pointer result);
+
+
+    public static int cublasIsamax_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        long[] result)
+    {
+        return checkResult(cublasIsamax_v2_64Native(handle, n, x, incx, result));
+    }
+    private static native int cublasIsamax_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        long[] result);
 
 
     public static int cublasIdamax(
@@ -1583,7 +2656,7 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result)/** host or device pointer */
+        Pointer result)
     {
         return checkResult(cublasIdamaxNative(handle, n, x, incx, result));
     }
@@ -1592,7 +2665,24 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result);/** host or device pointer */
+        Pointer result);
+
+
+    public static int cublasIdamax_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        long[] result)
+    {
+        return checkResult(cublasIdamax_v2_64Native(handle, n, x, incx, result));
+    }
+    private static native int cublasIdamax_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        long[] result);
 
 
     public static int cublasIcamax(
@@ -1600,7 +2690,7 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result)/** host or device pointer */
+        Pointer result)
     {
         return checkResult(cublasIcamaxNative(handle, n, x, incx, result));
     }
@@ -1609,7 +2699,24 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result);/** host or device pointer */
+        Pointer result);
+
+
+    public static int cublasIcamax_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        long[] result)
+    {
+        return checkResult(cublasIcamax_v2_64Native(handle, n, x, incx, result));
+    }
+    private static native int cublasIcamax_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        long[] result);
 
 
     public static int cublasIzamax(
@@ -1617,7 +2724,7 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result)/** host or device pointer */
+        Pointer result)
     {
         return checkResult(cublasIzamaxNative(handle, n, x, incx, result));
     }
@@ -1626,7 +2733,24 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result);/** host or device pointer */
+        Pointer result);
+
+
+    public static int cublasIzamax_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        long[] result)
+    {
+        return checkResult(cublasIzamax_v2_64Native(handle, n, x, incx, result));
+    }
+    private static native int cublasIzamax_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        long[] result);
 
 
     public static int cublasIamaxEx(
@@ -1635,7 +2759,7 @@ public class JCublas2
         Pointer x, 
         int xType, 
         int incx, 
-        Pointer result)/** host or device pointer */
+        Pointer result)
     {
         return checkResult(cublasIamaxExNative(handle, n, x, xType, incx, result));
     }
@@ -1645,7 +2769,26 @@ public class JCublas2
         Pointer x, 
         int xType, 
         int incx, 
-        Pointer result);/** host or device pointer */
+        Pointer result);
+
+
+    public static int cublasIamaxEx_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        int xType, 
+        long incx, 
+        long[] result)
+    {
+        return checkResult(cublasIamaxEx_64Native(handle, n, x, xType, incx, result));
+    }
+    private static native int cublasIamaxEx_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        int xType, 
+        long incx, 
+        long[] result);
 
 
     public static int cublasIsamin(
@@ -1653,7 +2796,7 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result)/** host or device pointer */
+        Pointer result)
     {
         return checkResult(cublasIsaminNative(handle, n, x, incx, result));
     }
@@ -1662,7 +2805,24 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result);/** host or device pointer */
+        Pointer result);
+
+
+    public static int cublasIsamin_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        long[] result)
+    {
+        return checkResult(cublasIsamin_v2_64Native(handle, n, x, incx, result));
+    }
+    private static native int cublasIsamin_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        long[] result);
 
 
     public static int cublasIdamin(
@@ -1670,7 +2830,7 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result)/** host or device pointer */
+        Pointer result)
     {
         return checkResult(cublasIdaminNative(handle, n, x, incx, result));
     }
@@ -1679,7 +2839,24 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result);/** host or device pointer */
+        Pointer result);
+
+
+    public static int cublasIdamin_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        long[] result)
+    {
+        return checkResult(cublasIdamin_v2_64Native(handle, n, x, incx, result));
+    }
+    private static native int cublasIdamin_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        long[] result);
 
 
     public static int cublasIcamin(
@@ -1687,7 +2864,7 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result)/** host or device pointer */
+        Pointer result)
     {
         return checkResult(cublasIcaminNative(handle, n, x, incx, result));
     }
@@ -1696,7 +2873,24 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result);/** host or device pointer */
+        Pointer result);
+
+
+    public static int cublasIcamin_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        long[] result)
+    {
+        return checkResult(cublasIcamin_v2_64Native(handle, n, x, incx, result));
+    }
+    private static native int cublasIcamin_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        long[] result);
 
 
     public static int cublasIzamin(
@@ -1704,7 +2898,7 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result)/** host or device pointer */
+        Pointer result)
     {
         return checkResult(cublasIzaminNative(handle, n, x, incx, result));
     }
@@ -1713,7 +2907,24 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result);/** host or device pointer */
+        Pointer result);
+
+
+    public static int cublasIzamin_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        long[] result)
+    {
+        return checkResult(cublasIzamin_v2_64Native(handle, n, x, incx, result));
+    }
+    private static native int cublasIzamin_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        long[] result);
 
 
     public static int cublasIaminEx(
@@ -1722,7 +2933,7 @@ public class JCublas2
         Pointer x, 
         int xType, 
         int incx, 
-        Pointer result)/** host or device pointer */
+        Pointer result)
     {
         return checkResult(cublasIaminExNative(handle, n, x, xType, incx, result));
     }
@@ -1732,7 +2943,26 @@ public class JCublas2
         Pointer x, 
         int xType, 
         int incx, 
-        Pointer result);/** host or device pointer */
+        Pointer result);
+
+
+    public static int cublasIaminEx_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        int xType, 
+        long incx, 
+        long[] result)
+    {
+        return checkResult(cublasIaminEx_64Native(handle, n, x, xType, incx, result));
+    }
+    private static native int cublasIaminEx_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        int xType, 
+        long incx, 
+        long[] result);
 
 
     public static int cublasAsumEx(
@@ -1742,7 +2972,7 @@ public class JCublas2
         int xType, 
         int incx, 
         Pointer result, 
-        int resultType, /** host or device pointer */
+        int resultType, 
         int executiontype)
     {
         return checkResult(cublasAsumExNative(handle, n, x, xType, incx, result, resultType, executiontype));
@@ -1754,7 +2984,30 @@ public class JCublas2
         int xType, 
         int incx, 
         Pointer result, 
-        int resultType, /** host or device pointer */
+        int resultType, 
+        int executiontype);
+
+
+    public static int cublasAsumEx_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        int xType, 
+        long incx, 
+        Pointer result, 
+        int resultType, 
+        int executiontype)
+    {
+        return checkResult(cublasAsumEx_64Native(handle, n, x, xType, incx, result, resultType, executiontype));
+    }
+    private static native int cublasAsumEx_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        int xType, 
+        long incx, 
+        Pointer result, 
+        int resultType, 
         int executiontype);
 
 
@@ -1763,7 +3016,7 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result)/** host or device pointer */
+        Pointer result)
     {
         return checkResult(cublasSasumNative(handle, n, x, incx, result));
     }
@@ -1772,7 +3025,24 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result);/** host or device pointer */
+        Pointer result);
+
+
+    public static int cublasSasum_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer result)
+    {
+        return checkResult(cublasSasum_v2_64Native(handle, n, x, incx, result));
+    }
+    private static native int cublasSasum_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer result);
 
 
     public static int cublasDasum(
@@ -1780,7 +3050,7 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result)/** host or device pointer */
+        Pointer result)
     {
         return checkResult(cublasDasumNative(handle, n, x, incx, result));
     }
@@ -1789,7 +3059,24 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result);/** host or device pointer */
+        Pointer result);
+
+
+    public static int cublasDasum_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer result)
+    {
+        return checkResult(cublasDasum_v2_64Native(handle, n, x, incx, result));
+    }
+    private static native int cublasDasum_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer result);
 
 
     public static int cublasScasum(
@@ -1797,7 +3084,7 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result)/** host or device pointer */
+        Pointer result)
     {
         return checkResult(cublasScasumNative(handle, n, x, incx, result));
     }
@@ -1806,7 +3093,24 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result);/** host or device pointer */
+        Pointer result);
+
+
+    public static int cublasScasum_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer result)
+    {
+        return checkResult(cublasScasum_v2_64Native(handle, n, x, incx, result));
+    }
+    private static native int cublasScasum_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer result);
 
 
     public static int cublasDzasum(
@@ -1814,7 +3118,7 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result)/** host or device pointer */
+        Pointer result)
     {
         return checkResult(cublasDzasumNative(handle, n, x, incx, result));
     }
@@ -1823,7 +3127,24 @@ public class JCublas2
         int n, 
         Pointer x, 
         int incx, 
-        Pointer result);/** host or device pointer */
+        Pointer result);
+
+
+    public static int cublasDzasum_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer result)
+    {
+        return checkResult(cublasDzasum_v2_64Native(handle, n, x, incx, result));
+    }
+    private static native int cublasDzasum_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer result);
 
 
     public static int cublasSrot(
@@ -1833,8 +3154,8 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer c, /** host or device pointer */
-        Pointer s)/** host or device pointer */
+        Pointer c, 
+        Pointer s)
     {
         return checkResult(cublasSrotNative(handle, n, x, incx, y, incy, c, s));
     }
@@ -1845,8 +3166,31 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer c, /** host or device pointer */
-        Pointer s);/** host or device pointer */
+        Pointer c, 
+        Pointer s);
+
+
+    public static int cublasSrot_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer c, 
+        Pointer s)
+    {
+        return checkResult(cublasSrot_v2_64Native(handle, n, x, incx, y, incy, c, s));
+    }
+    private static native int cublasSrot_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer c, 
+        Pointer s);
 
 
     public static int cublasDrot(
@@ -1856,8 +3200,8 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer c, /** host or device pointer */
-        Pointer s)/** host or device pointer */
+        Pointer c, 
+        Pointer s)
     {
         return checkResult(cublasDrotNative(handle, n, x, incx, y, incy, c, s));
     }
@@ -1868,8 +3212,31 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer c, /** host or device pointer */
-        Pointer s);/** host or device pointer */
+        Pointer c, 
+        Pointer s);
+
+
+    public static int cublasDrot_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer c, 
+        Pointer s)
+    {
+        return checkResult(cublasDrot_v2_64Native(handle, n, x, incx, y, incy, c, s));
+    }
+    private static native int cublasDrot_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer c, 
+        Pointer s);
 
 
     public static int cublasCrot(
@@ -1879,8 +3246,8 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer c, /** host or device pointer */
-        Pointer s)/** host or device pointer */
+        Pointer c, 
+        Pointer s)
     {
         return checkResult(cublasCrotNative(handle, n, x, incx, y, incy, c, s));
     }
@@ -1891,8 +3258,31 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer c, /** host or device pointer */
-        Pointer s);/** host or device pointer */
+        Pointer c, 
+        Pointer s);
+
+
+    public static int cublasCrot_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer c, 
+        Pointer s)
+    {
+        return checkResult(cublasCrot_v2_64Native(handle, n, x, incx, y, incy, c, s));
+    }
+    private static native int cublasCrot_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer c, 
+        Pointer s);
 
 
     public static int cublasCsrot(
@@ -1902,8 +3292,8 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer c, /** host or device pointer */
-        Pointer s)/** host or device pointer */
+        Pointer c, 
+        Pointer s)
     {
         return checkResult(cublasCsrotNative(handle, n, x, incx, y, incy, c, s));
     }
@@ -1914,8 +3304,31 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer c, /** host or device pointer */
-        Pointer s);/** host or device pointer */
+        Pointer c, 
+        Pointer s);
+
+
+    public static int cublasCsrot_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer c, 
+        Pointer s)
+    {
+        return checkResult(cublasCsrot_v2_64Native(handle, n, x, incx, y, incy, c, s));
+    }
+    private static native int cublasCsrot_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer c, 
+        Pointer s);
 
 
     public static int cublasZrot(
@@ -1925,8 +3338,8 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer c, /** host or device pointer */
-        Pointer s)/** host or device pointer */
+        Pointer c, 
+        Pointer s)
     {
         return checkResult(cublasZrotNative(handle, n, x, incx, y, incy, c, s));
     }
@@ -1937,8 +3350,31 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer c, /** host or device pointer */
-        Pointer s);/** host or device pointer */
+        Pointer c, 
+        Pointer s);
+
+
+    public static int cublasZrot_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer c, 
+        Pointer s)
+    {
+        return checkResult(cublasZrot_v2_64Native(handle, n, x, incx, y, incy, c, s));
+    }
+    private static native int cublasZrot_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer c, 
+        Pointer s);
 
 
     public static int cublasZdrot(
@@ -1948,8 +3384,8 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer c, /** host or device pointer */
-        Pointer s)/** host or device pointer */
+        Pointer c, 
+        Pointer s)
     {
         return checkResult(cublasZdrotNative(handle, n, x, incx, y, incy, c, s));
     }
@@ -1960,8 +3396,31 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer c, /** host or device pointer */
-        Pointer s);/** host or device pointer */
+        Pointer c, 
+        Pointer s);
+
+
+    public static int cublasZdrot_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer c, 
+        Pointer s)
+    {
+        return checkResult(cublasZdrot_v2_64Native(handle, n, x, incx, y, incy, c, s));
+    }
+    private static native int cublasZdrot_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer c, 
+        Pointer s);
 
 
     public static int cublasRotEx(
@@ -1973,7 +3432,7 @@ public class JCublas2
         Pointer y, 
         int yType, 
         int incy, 
-        Pointer c, /** host or device pointer */
+        Pointer c, 
         Pointer s, 
         int csType, 
         int executiontype)
@@ -1989,7 +3448,38 @@ public class JCublas2
         Pointer y, 
         int yType, 
         int incy, 
-        Pointer c, /** host or device pointer */
+        Pointer c, 
+        Pointer s, 
+        int csType, 
+        int executiontype);
+
+
+    public static int cublasRotEx_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        int xType, 
+        long incx, 
+        Pointer y, 
+        int yType, 
+        long incy, 
+        Pointer c, 
+        Pointer s, 
+        int csType, 
+        int executiontype)
+    {
+        return checkResult(cublasRotEx_64Native(handle, n, x, xType, incx, y, yType, incy, c, s, csType, executiontype));
+    }
+    private static native int cublasRotEx_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        int xType, 
+        long incx, 
+        Pointer y, 
+        int yType, 
+        long incy, 
+        Pointer c, 
         Pointer s, 
         int csType, 
         int executiontype);
@@ -1997,79 +3487,79 @@ public class JCublas2
 
     public static int cublasSrotg(
         cublasHandle handle, 
-        Pointer a, /** host or device pointer */
-        Pointer b, /** host or device pointer */
-        Pointer c, /** host or device pointer */
-        Pointer s)/** host or device pointer */
+        Pointer a, 
+        Pointer b, 
+        Pointer c, 
+        Pointer s)
     {
         return checkResult(cublasSrotgNative(handle, a, b, c, s));
     }
     private static native int cublasSrotgNative(
         cublasHandle handle, 
-        Pointer a, /** host or device pointer */
-        Pointer b, /** host or device pointer */
-        Pointer c, /** host or device pointer */
-        Pointer s);/** host or device pointer */
+        Pointer a, 
+        Pointer b, 
+        Pointer c, 
+        Pointer s);
 
 
     public static int cublasDrotg(
         cublasHandle handle, 
-        Pointer a, /** host or device pointer */
-        Pointer b, /** host or device pointer */
-        Pointer c, /** host or device pointer */
-        Pointer s)/** host or device pointer */
+        Pointer a, 
+        Pointer b, 
+        Pointer c, 
+        Pointer s)
     {
         return checkResult(cublasDrotgNative(handle, a, b, c, s));
     }
     private static native int cublasDrotgNative(
         cublasHandle handle, 
-        Pointer a, /** host or device pointer */
-        Pointer b, /** host or device pointer */
-        Pointer c, /** host or device pointer */
-        Pointer s);/** host or device pointer */
+        Pointer a, 
+        Pointer b, 
+        Pointer c, 
+        Pointer s);
 
 
     public static int cublasCrotg(
         cublasHandle handle, 
-        Pointer a, /** host or device pointer */
-        Pointer b, /** host or device pointer */
-        Pointer c, /** host or device pointer */
-        Pointer s)/** host or device pointer */
+        Pointer a, 
+        Pointer b, 
+        Pointer c, 
+        Pointer s)
     {
         return checkResult(cublasCrotgNative(handle, a, b, c, s));
     }
     private static native int cublasCrotgNative(
         cublasHandle handle, 
-        Pointer a, /** host or device pointer */
-        Pointer b, /** host or device pointer */
-        Pointer c, /** host or device pointer */
-        Pointer s);/** host or device pointer */
+        Pointer a, 
+        Pointer b, 
+        Pointer c, 
+        Pointer s);
 
 
     public static int cublasZrotg(
         cublasHandle handle, 
-        Pointer a, /** host or device pointer */
-        Pointer b, /** host or device pointer */
-        Pointer c, /** host or device pointer */
-        Pointer s)/** host or device pointer */
+        Pointer a, 
+        Pointer b, 
+        Pointer c, 
+        Pointer s)
     {
         return checkResult(cublasZrotgNative(handle, a, b, c, s));
     }
     private static native int cublasZrotgNative(
         cublasHandle handle, 
-        Pointer a, /** host or device pointer */
-        Pointer b, /** host or device pointer */
-        Pointer c, /** host or device pointer */
-        Pointer s);/** host or device pointer */
+        Pointer a, 
+        Pointer b, 
+        Pointer c, 
+        Pointer s);
 
 
     public static int cublasRotgEx(
         cublasHandle handle, 
-        Pointer a, /** host or device pointer */
-        Pointer b, /** host or device pointer */
+        Pointer a, 
+        Pointer b, 
         int abType, 
-        Pointer c, /** host or device pointer */
-        Pointer s, /** host or device pointer */
+        Pointer c, 
+        Pointer s, 
         int csType, 
         int executiontype)
     {
@@ -2077,11 +3567,11 @@ public class JCublas2
     }
     private static native int cublasRotgExNative(
         cublasHandle handle, 
-        Pointer a, /** host or device pointer */
-        Pointer b, /** host or device pointer */
+        Pointer a, 
+        Pointer b, 
         int abType, 
-        Pointer c, /** host or device pointer */
-        Pointer s, /** host or device pointer */
+        Pointer c, 
+        Pointer s, 
         int csType, 
         int executiontype);
 
@@ -2093,7 +3583,7 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer param)/** host or device pointer */
+        Pointer param)
     {
         return checkResult(cublasSrotmNative(handle, n, x, incx, y, incy, param));
     }
@@ -2104,7 +3594,28 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer param);/** host or device pointer */
+        Pointer param);
+
+
+    public static int cublasSrotm_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer param)
+    {
+        return checkResult(cublasSrotm_v2_64Native(handle, n, x, incx, y, incy, param));
+    }
+    private static native int cublasSrotm_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer param);
 
 
     public static int cublasDrotm(
@@ -2114,7 +3625,7 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer param)/** host or device pointer */
+        Pointer param)
     {
         return checkResult(cublasDrotmNative(handle, n, x, incx, y, incy, param));
     }
@@ -2125,7 +3636,28 @@ public class JCublas2
         int incx, 
         Pointer y, 
         int incy, 
-        Pointer param);/** host or device pointer */
+        Pointer param);
+
+
+    public static int cublasDrotm_v2_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer param)
+    {
+        return checkResult(cublasDrotm_v2_64Native(handle, n, x, incx, y, incy, param));
+    }
+    private static native int cublasDrotm_v2_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer param);
 
 
     public static int cublasRotmEx(
@@ -2137,7 +3669,7 @@ public class JCublas2
         Pointer y, 
         int yType, 
         int incy, 
-        Pointer param, /** host or device pointer */
+        Pointer param, 
         int paramType, 
         int executiontype)
     {
@@ -2152,60 +3684,89 @@ public class JCublas2
         Pointer y, 
         int yType, 
         int incy, 
-        Pointer param, /** host or device pointer */
+        Pointer param, 
+        int paramType, 
+        int executiontype);
+
+
+    public static int cublasRotmEx_64(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        int xType, 
+        long incx, 
+        Pointer y, 
+        int yType, 
+        long incy, 
+        Pointer param, 
+        int paramType, 
+        int executiontype)
+    {
+        return checkResult(cublasRotmEx_64Native(handle, n, x, xType, incx, y, yType, incy, param, paramType, executiontype));
+    }
+    private static native int cublasRotmEx_64Native(
+        cublasHandle handle, 
+        long n, 
+        Pointer x, 
+        int xType, 
+        long incx, 
+        Pointer y, 
+        int yType, 
+        long incy, 
+        Pointer param, 
         int paramType, 
         int executiontype);
 
 
     public static int cublasSrotmg(
         cublasHandle handle, 
-        Pointer d1, /** host or device pointer */
-        Pointer d2, /** host or device pointer */
-        Pointer x1, /** host or device pointer */
-        Pointer y1, /** host or device pointer */
-        Pointer param)/** host or device pointer */
+        Pointer d1, 
+        Pointer d2, 
+        Pointer x1, 
+        Pointer y1, 
+        Pointer param)
     {
         return checkResult(cublasSrotmgNative(handle, d1, d2, x1, y1, param));
     }
     private static native int cublasSrotmgNative(
         cublasHandle handle, 
-        Pointer d1, /** host or device pointer */
-        Pointer d2, /** host or device pointer */
-        Pointer x1, /** host or device pointer */
-        Pointer y1, /** host or device pointer */
-        Pointer param);/** host or device pointer */
+        Pointer d1, 
+        Pointer d2, 
+        Pointer x1, 
+        Pointer y1, 
+        Pointer param);
 
 
     public static int cublasDrotmg(
         cublasHandle handle, 
-        Pointer d1, /** host or device pointer */
-        Pointer d2, /** host or device pointer */
-        Pointer x1, /** host or device pointer */
-        Pointer y1, /** host or device pointer */
-        Pointer param)/** host or device pointer */
+        Pointer d1, 
+        Pointer d2, 
+        Pointer x1, 
+        Pointer y1, 
+        Pointer param)
     {
         return checkResult(cublasDrotmgNative(handle, d1, d2, x1, y1, param));
     }
     private static native int cublasDrotmgNative(
         cublasHandle handle, 
-        Pointer d1, /** host or device pointer */
-        Pointer d2, /** host or device pointer */
-        Pointer x1, /** host or device pointer */
-        Pointer y1, /** host or device pointer */
-        Pointer param);/** host or device pointer */
+        Pointer d1, 
+        Pointer d2, 
+        Pointer x1, 
+        Pointer y1, 
+        Pointer param);
 
 
     public static int cublasRotmgEx(
         cublasHandle handle, 
-        Pointer d1, /** host or device pointer */
+        Pointer d1, 
         int d1Type, 
-        Pointer d2, /** host or device pointer */
+        Pointer d2, 
         int d2Type, 
-        Pointer x1, /** host or device pointer */
+        Pointer x1, 
         int x1Type, 
-        Pointer y1, /** host or device pointer */
+        Pointer y1, 
         int y1Type, 
-        Pointer param, /** host or device pointer */
+        Pointer param, 
         int paramType, 
         int executiontype)
     {
@@ -2213,32 +3774,32 @@ public class JCublas2
     }
     private static native int cublasRotmgExNative(
         cublasHandle handle, 
-        Pointer d1, /** host or device pointer */
+        Pointer d1, 
         int d1Type, 
-        Pointer d2, /** host or device pointer */
+        Pointer d2, 
         int d2Type, 
-        Pointer x1, /** host or device pointer */
+        Pointer x1, 
         int x1Type, 
-        Pointer y1, /** host or device pointer */
+        Pointer y1, 
         int y1Type, 
-        Pointer param, /** host or device pointer */
+        Pointer param, 
         int paramType, 
         int executiontype);
 
 
-    /** --------------- CUBLAS BLAS2 functions  ---------------- */
+    /** --------------- CUBLAS BLAS2 Functions  ---------------- */
     /** GEMV */
     public static int cublasSgemv(
         cublasHandle handle, 
         int trans, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy)
     {
@@ -2249,14 +3810,45 @@ public class JCublas2
         int trans, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasSgemv_v2_64(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasSgemv_v2_64Native(handle, trans, m, n, alpha, A, lda, x, incx, beta, y, incy));
+    }
+    private static native int cublasSgemv_v2_64Native(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy);
 
 
     public static int cublasDgemv(
@@ -2264,12 +3856,12 @@ public class JCublas2
         int trans, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy)
     {
@@ -2280,14 +3872,45 @@ public class JCublas2
         int trans, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasDgemv_v2_64(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasDgemv_v2_64Native(handle, trans, m, n, alpha, A, lda, x, incx, beta, y, incy));
+    }
+    private static native int cublasDgemv_v2_64Native(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy);
 
 
     public static int cublasCgemv(
@@ -2295,12 +3918,12 @@ public class JCublas2
         int trans, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy)
     {
@@ -2311,14 +3934,45 @@ public class JCublas2
         int trans, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasCgemv_v2_64(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasCgemv_v2_64Native(handle, trans, m, n, alpha, A, lda, x, incx, beta, y, incy));
+    }
+    private static native int cublasCgemv_v2_64Native(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy);
 
 
     public static int cublasZgemv(
@@ -2326,12 +3980,12 @@ public class JCublas2
         int trans, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy)
     {
@@ -2342,14 +3996,45 @@ public class JCublas2
         int trans, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasZgemv_v2_64(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasZgemv_v2_64Native(handle, trans, m, n, alpha, A, lda, x, incx, beta, y, incy));
+    }
+    private static native int cublasZgemv_v2_64Native(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy);
 
 
     /** GBMV */
@@ -2360,12 +4045,12 @@ public class JCublas2
         int n, 
         int kl, 
         int ku, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy)
     {
@@ -2378,14 +4063,49 @@ public class JCublas2
         int n, 
         int kl, 
         int ku, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasSgbmv_v2_64(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        long kl, 
+        long ku, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasSgbmv_v2_64Native(handle, trans, m, n, kl, ku, alpha, A, lda, x, incx, beta, y, incy));
+    }
+    private static native int cublasSgbmv_v2_64Native(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        long kl, 
+        long ku, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy);
 
 
     public static int cublasDgbmv(
@@ -2395,12 +4115,12 @@ public class JCublas2
         int n, 
         int kl, 
         int ku, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy)
     {
@@ -2413,14 +4133,49 @@ public class JCublas2
         int n, 
         int kl, 
         int ku, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasDgbmv_v2_64(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        long kl, 
+        long ku, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasDgbmv_v2_64Native(handle, trans, m, n, kl, ku, alpha, A, lda, x, incx, beta, y, incy));
+    }
+    private static native int cublasDgbmv_v2_64Native(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        long kl, 
+        long ku, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy);
 
 
     public static int cublasCgbmv(
@@ -2430,12 +4185,12 @@ public class JCublas2
         int n, 
         int kl, 
         int ku, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy)
     {
@@ -2448,14 +4203,49 @@ public class JCublas2
         int n, 
         int kl, 
         int ku, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasCgbmv_v2_64(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        long kl, 
+        long ku, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasCgbmv_v2_64Native(handle, trans, m, n, kl, ku, alpha, A, lda, x, incx, beta, y, incy));
+    }
+    private static native int cublasCgbmv_v2_64Native(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        long kl, 
+        long ku, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy);
 
 
     public static int cublasZgbmv(
@@ -2465,12 +4255,12 @@ public class JCublas2
         int n, 
         int kl, 
         int ku, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy)
     {
@@ -2483,14 +4273,49 @@ public class JCublas2
         int n, 
         int kl, 
         int ku, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasZgbmv_v2_64(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        long kl, 
+        long ku, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasZgbmv_v2_64Native(handle, trans, m, n, kl, ku, alpha, A, lda, x, incx, beta, y, incy));
+    }
+    private static native int cublasZgbmv_v2_64Native(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        long kl, 
+        long ku, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy);
 
 
     /** TRMV */
@@ -2519,6 +4344,31 @@ public class JCublas2
         int incx);
 
 
+    public static int cublasStrmv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasStrmv_v2_64Native(handle, uplo, trans, diag, n, A, lda, x, incx));
+    }
+    private static native int cublasStrmv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx);
+
+
     public static int cublasDtrmv(
         cublasHandle handle, 
         int uplo, 
@@ -2542,6 +4392,31 @@ public class JCublas2
         int lda, 
         Pointer x, 
         int incx);
+
+
+    public static int cublasDtrmv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasDtrmv_v2_64Native(handle, uplo, trans, diag, n, A, lda, x, incx));
+    }
+    private static native int cublasDtrmv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx);
 
 
     public static int cublasCtrmv(
@@ -2569,6 +4444,31 @@ public class JCublas2
         int incx);
 
 
+    public static int cublasCtrmv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasCtrmv_v2_64Native(handle, uplo, trans, diag, n, A, lda, x, incx));
+    }
+    private static native int cublasCtrmv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx);
+
+
     public static int cublasZtrmv(
         cublasHandle handle, 
         int uplo, 
@@ -2592,6 +4492,31 @@ public class JCublas2
         int lda, 
         Pointer x, 
         int incx);
+
+
+    public static int cublasZtrmv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasZtrmv_v2_64Native(handle, uplo, trans, diag, n, A, lda, x, incx));
+    }
+    private static native int cublasZtrmv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx);
 
 
     /** TBMV */
@@ -2622,6 +4547,33 @@ public class JCublas2
         int incx);
 
 
+    public static int cublasStbmv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        long k, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasStbmv_v2_64Native(handle, uplo, trans, diag, n, k, A, lda, x, incx));
+    }
+    private static native int cublasStbmv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        long k, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx);
+
+
     public static int cublasDtbmv(
         cublasHandle handle, 
         int uplo, 
@@ -2647,6 +4599,33 @@ public class JCublas2
         int lda, 
         Pointer x, 
         int incx);
+
+
+    public static int cublasDtbmv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        long k, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasDtbmv_v2_64Native(handle, uplo, trans, diag, n, k, A, lda, x, incx));
+    }
+    private static native int cublasDtbmv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        long k, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx);
 
 
     public static int cublasCtbmv(
@@ -2676,6 +4655,33 @@ public class JCublas2
         int incx);
 
 
+    public static int cublasCtbmv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        long k, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasCtbmv_v2_64Native(handle, uplo, trans, diag, n, k, A, lda, x, incx));
+    }
+    private static native int cublasCtbmv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        long k, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx);
+
+
     public static int cublasZtbmv(
         cublasHandle handle, 
         int uplo, 
@@ -2703,6 +4709,33 @@ public class JCublas2
         int incx);
 
 
+    public static int cublasZtbmv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        long k, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasZtbmv_v2_64Native(handle, uplo, trans, diag, n, k, A, lda, x, incx));
+    }
+    private static native int cublasZtbmv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        long k, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx);
+
+
     /** TPMV */
     public static int cublasStpmv(
         cublasHandle handle, 
@@ -2725,6 +4758,29 @@ public class JCublas2
         Pointer AP, 
         Pointer x, 
         int incx);
+
+
+    public static int cublasStpmv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer AP, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasStpmv_v2_64Native(handle, uplo, trans, diag, n, AP, x, incx));
+    }
+    private static native int cublasStpmv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer AP, 
+        Pointer x, 
+        long incx);
 
 
     public static int cublasDtpmv(
@@ -2750,6 +4806,29 @@ public class JCublas2
         int incx);
 
 
+    public static int cublasDtpmv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer AP, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasDtpmv_v2_64Native(handle, uplo, trans, diag, n, AP, x, incx));
+    }
+    private static native int cublasDtpmv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer AP, 
+        Pointer x, 
+        long incx);
+
+
     public static int cublasCtpmv(
         cublasHandle handle, 
         int uplo, 
@@ -2773,6 +4852,29 @@ public class JCublas2
         int incx);
 
 
+    public static int cublasCtpmv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer AP, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasCtpmv_v2_64Native(handle, uplo, trans, diag, n, AP, x, incx));
+    }
+    private static native int cublasCtpmv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer AP, 
+        Pointer x, 
+        long incx);
+
+
     public static int cublasZtpmv(
         cublasHandle handle, 
         int uplo, 
@@ -2794,6 +4896,29 @@ public class JCublas2
         Pointer AP, 
         Pointer x, 
         int incx);
+
+
+    public static int cublasZtpmv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer AP, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasZtpmv_v2_64Native(handle, uplo, trans, diag, n, AP, x, incx));
+    }
+    private static native int cublasZtpmv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer AP, 
+        Pointer x, 
+        long incx);
 
 
     /** TRSV */
@@ -2822,6 +4947,31 @@ public class JCublas2
         int incx);
 
 
+    public static int cublasStrsv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasStrsv_v2_64Native(handle, uplo, trans, diag, n, A, lda, x, incx));
+    }
+    private static native int cublasStrsv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx);
+
+
     public static int cublasDtrsv(
         cublasHandle handle, 
         int uplo, 
@@ -2845,6 +4995,31 @@ public class JCublas2
         int lda, 
         Pointer x, 
         int incx);
+
+
+    public static int cublasDtrsv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasDtrsv_v2_64Native(handle, uplo, trans, diag, n, A, lda, x, incx));
+    }
+    private static native int cublasDtrsv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx);
 
 
     public static int cublasCtrsv(
@@ -2872,6 +5047,31 @@ public class JCublas2
         int incx);
 
 
+    public static int cublasCtrsv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasCtrsv_v2_64Native(handle, uplo, trans, diag, n, A, lda, x, incx));
+    }
+    private static native int cublasCtrsv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx);
+
+
     public static int cublasZtrsv(
         cublasHandle handle, 
         int uplo, 
@@ -2895,6 +5095,31 @@ public class JCublas2
         int lda, 
         Pointer x, 
         int incx);
+
+
+    public static int cublasZtrsv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasZtrsv_v2_64Native(handle, uplo, trans, diag, n, A, lda, x, incx));
+    }
+    private static native int cublasZtrsv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx);
 
 
     /** TPSV */
@@ -2921,6 +5146,29 @@ public class JCublas2
         int incx);
 
 
+    public static int cublasStpsv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer AP, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasStpsv_v2_64Native(handle, uplo, trans, diag, n, AP, x, incx));
+    }
+    private static native int cublasStpsv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer AP, 
+        Pointer x, 
+        long incx);
+
+
     public static int cublasDtpsv(
         cublasHandle handle, 
         int uplo, 
@@ -2942,6 +5190,29 @@ public class JCublas2
         Pointer AP, 
         Pointer x, 
         int incx);
+
+
+    public static int cublasDtpsv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer AP, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasDtpsv_v2_64Native(handle, uplo, trans, diag, n, AP, x, incx));
+    }
+    private static native int cublasDtpsv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer AP, 
+        Pointer x, 
+        long incx);
 
 
     public static int cublasCtpsv(
@@ -2967,6 +5238,29 @@ public class JCublas2
         int incx);
 
 
+    public static int cublasCtpsv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer AP, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasCtpsv_v2_64Native(handle, uplo, trans, diag, n, AP, x, incx));
+    }
+    private static native int cublasCtpsv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer AP, 
+        Pointer x, 
+        long incx);
+
+
     public static int cublasZtpsv(
         cublasHandle handle, 
         int uplo, 
@@ -2988,6 +5282,29 @@ public class JCublas2
         Pointer AP, 
         Pointer x, 
         int incx);
+
+
+    public static int cublasZtpsv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer AP, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasZtpsv_v2_64Native(handle, uplo, trans, diag, n, AP, x, incx));
+    }
+    private static native int cublasZtpsv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        Pointer AP, 
+        Pointer x, 
+        long incx);
 
 
     /** TBSV */
@@ -3018,6 +5335,33 @@ public class JCublas2
         int incx);
 
 
+    public static int cublasStbsv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        long k, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasStbsv_v2_64Native(handle, uplo, trans, diag, n, k, A, lda, x, incx));
+    }
+    private static native int cublasStbsv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        long k, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx);
+
+
     public static int cublasDtbsv(
         cublasHandle handle, 
         int uplo, 
@@ -3043,6 +5387,33 @@ public class JCublas2
         int lda, 
         Pointer x, 
         int incx);
+
+
+    public static int cublasDtbsv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        long k, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasDtbsv_v2_64Native(handle, uplo, trans, diag, n, k, A, lda, x, incx));
+    }
+    private static native int cublasDtbsv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        long k, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx);
 
 
     public static int cublasCtbsv(
@@ -3072,6 +5443,33 @@ public class JCublas2
         int incx);
 
 
+    public static int cublasCtbsv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        long k, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasCtbsv_v2_64Native(handle, uplo, trans, diag, n, k, A, lda, x, incx));
+    }
+    private static native int cublasCtbsv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        long k, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx);
+
+
     public static int cublasZtbsv(
         cublasHandle handle, 
         int uplo, 
@@ -3099,17 +5497,44 @@ public class JCublas2
         int incx);
 
 
+    public static int cublasZtbsv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        long k, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx)
+    {
+        return checkResult(cublasZtbsv_v2_64Native(handle, uplo, trans, diag, n, k, A, lda, x, incx));
+    }
+    private static native int cublasZtbsv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long n, 
+        long k, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx);
+
+
     /** SYMV/HEMV */
     public static int cublasSsymv(
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy)
     {
@@ -3119,26 +5544,55 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasSsymv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasSsymv_v2_64Native(handle, uplo, n, alpha, A, lda, x, incx, beta, y, incy));
+    }
+    private static native int cublasSsymv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy);
 
 
     public static int cublasDsymv(
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy)
     {
@@ -3148,26 +5602,55 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasDsymv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasDsymv_v2_64Native(handle, uplo, n, alpha, A, lda, x, incx, beta, y, incy));
+    }
+    private static native int cublasDsymv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy);
 
 
     public static int cublasCsymv(
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy)
     {
@@ -3177,26 +5660,55 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasCsymv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasCsymv_v2_64Native(handle, uplo, n, alpha, A, lda, x, incx, beta, y, incy));
+    }
+    private static native int cublasCsymv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy);
 
 
     public static int cublasZsymv(
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy)
     {
@@ -3206,26 +5718,55 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasZsymv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasZsymv_v2_64Native(handle, uplo, n, alpha, A, lda, x, incx, beta, y, incy));
+    }
+    private static native int cublasZsymv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy);
 
 
     public static int cublasChemv(
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy)
     {
@@ -3235,26 +5776,55 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasChemv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasChemv_v2_64Native(handle, uplo, n, alpha, A, lda, x, incx, beta, y, incy));
+    }
+    private static native int cublasChemv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy);
 
 
     public static int cublasZhemv(
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy)
     {
@@ -3264,14 +5834,43 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasZhemv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasZhemv_v2_64Native(handle, uplo, n, alpha, A, lda, x, incx, beta, y, incy));
+    }
+    private static native int cublasZhemv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy);
 
 
     /** SBMV/HBMV */
@@ -3280,12 +5879,12 @@ public class JCublas2
         int uplo, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy)
     {
@@ -3296,14 +5895,45 @@ public class JCublas2
         int uplo, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasSsbmv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasSsbmv_v2_64Native(handle, uplo, n, k, alpha, A, lda, x, incx, beta, y, incy));
+    }
+    private static native int cublasSsbmv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy);
 
 
     public static int cublasDsbmv(
@@ -3311,12 +5941,12 @@ public class JCublas2
         int uplo, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy)
     {
@@ -3327,14 +5957,45 @@ public class JCublas2
         int uplo, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasDsbmv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasDsbmv_v2_64Native(handle, uplo, n, k, alpha, A, lda, x, incx, beta, y, incy));
+    }
+    private static native int cublasDsbmv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy);
 
 
     public static int cublasChbmv(
@@ -3342,12 +6003,12 @@ public class JCublas2
         int uplo, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy)
     {
@@ -3358,14 +6019,45 @@ public class JCublas2
         int uplo, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasChbmv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasChbmv_v2_64Native(handle, uplo, n, k, alpha, A, lda, x, incx, beta, y, incy));
+    }
+    private static native int cublasChbmv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy);
 
 
     public static int cublasZhbmv(
@@ -3373,12 +6065,12 @@ public class JCublas2
         int uplo, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy)
     {
@@ -3389,14 +6081,45 @@ public class JCublas2
         int uplo, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasZhbmv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasZhbmv_v2_64Native(handle, uplo, n, k, alpha, A, lda, x, incx, beta, y, incy));
+    }
+    private static native int cublasZhbmv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy);
 
 
     /** SPMV/HPMV */
@@ -3404,11 +6127,11 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer AP, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy)
     {
@@ -3418,24 +6141,51 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer AP, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasSspmv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer AP, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasSspmv_v2_64Native(handle, uplo, n, alpha, AP, x, incx, beta, y, incy));
+    }
+    private static native int cublasSspmv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer AP, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy);
 
 
     public static int cublasDspmv(
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer AP, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy)
     {
@@ -3445,24 +6195,51 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer AP, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasDspmv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer AP, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasDspmv_v2_64Native(handle, uplo, n, alpha, AP, x, incx, beta, y, incy));
+    }
+    private static native int cublasDspmv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer AP, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy);
 
 
     public static int cublasChpmv(
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer AP, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy)
     {
@@ -3472,24 +6249,51 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer AP, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasChpmv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer AP, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasChpmv_v2_64Native(handle, uplo, n, alpha, AP, x, incx, beta, y, incy));
+    }
+    private static native int cublasChpmv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer AP, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy);
 
 
     public static int cublasZhpmv(
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer AP, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy)
     {
@@ -3499,13 +6303,40 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer AP, 
         Pointer x, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy);
+
+
+    public static int cublasZhpmv_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer AP, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy)
+    {
+        return checkResult(cublasZhpmv_v2_64Native(handle, uplo, n, alpha, AP, x, incx, beta, y, incy));
+    }
+    private static native int cublasZhpmv_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer AP, 
+        Pointer x, 
+        long incx, 
+        Pointer beta, 
+        Pointer y, 
+        long incy);
 
 
     /** GER */
@@ -3513,7 +6344,7 @@ public class JCublas2
         cublasHandle handle, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -3527,7 +6358,7 @@ public class JCublas2
         cublasHandle handle, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -3536,11 +6367,38 @@ public class JCublas2
         int lda);
 
 
+    public static int cublasSger_v2_64(
+        cublasHandle handle, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer A, 
+        long lda)
+    {
+        return checkResult(cublasSger_v2_64Native(handle, m, n, alpha, x, incx, y, incy, A, lda));
+    }
+    private static native int cublasSger_v2_64Native(
+        cublasHandle handle, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer A, 
+        long lda);
+
+
     public static int cublasDger(
         cublasHandle handle, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -3554,7 +6412,7 @@ public class JCublas2
         cublasHandle handle, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -3563,11 +6421,38 @@ public class JCublas2
         int lda);
 
 
+    public static int cublasDger_v2_64(
+        cublasHandle handle, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer A, 
+        long lda)
+    {
+        return checkResult(cublasDger_v2_64Native(handle, m, n, alpha, x, incx, y, incy, A, lda));
+    }
+    private static native int cublasDger_v2_64Native(
+        cublasHandle handle, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer A, 
+        long lda);
+
+
     public static int cublasCgeru(
         cublasHandle handle, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -3581,7 +6466,7 @@ public class JCublas2
         cublasHandle handle, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -3590,11 +6475,38 @@ public class JCublas2
         int lda);
 
 
+    public static int cublasCgeru_v2_64(
+        cublasHandle handle, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer A, 
+        long lda)
+    {
+        return checkResult(cublasCgeru_v2_64Native(handle, m, n, alpha, x, incx, y, incy, A, lda));
+    }
+    private static native int cublasCgeru_v2_64Native(
+        cublasHandle handle, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer A, 
+        long lda);
+
+
     public static int cublasCgerc(
         cublasHandle handle, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -3608,7 +6520,7 @@ public class JCublas2
         cublasHandle handle, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -3617,11 +6529,38 @@ public class JCublas2
         int lda);
 
 
+    public static int cublasCgerc_v2_64(
+        cublasHandle handle, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer A, 
+        long lda)
+    {
+        return checkResult(cublasCgerc_v2_64Native(handle, m, n, alpha, x, incx, y, incy, A, lda));
+    }
+    private static native int cublasCgerc_v2_64Native(
+        cublasHandle handle, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer A, 
+        long lda);
+
+
     public static int cublasZgeru(
         cublasHandle handle, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -3635,7 +6574,7 @@ public class JCublas2
         cublasHandle handle, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -3644,11 +6583,38 @@ public class JCublas2
         int lda);
 
 
+    public static int cublasZgeru_v2_64(
+        cublasHandle handle, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer A, 
+        long lda)
+    {
+        return checkResult(cublasZgeru_v2_64Native(handle, m, n, alpha, x, incx, y, incy, A, lda));
+    }
+    private static native int cublasZgeru_v2_64Native(
+        cublasHandle handle, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer A, 
+        long lda);
+
+
     public static int cublasZgerc(
         cublasHandle handle, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -3662,7 +6628,7 @@ public class JCublas2
         cublasHandle handle, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -3671,12 +6637,39 @@ public class JCublas2
         int lda);
 
 
+    public static int cublasZgerc_v2_64(
+        cublasHandle handle, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer A, 
+        long lda)
+    {
+        return checkResult(cublasZgerc_v2_64Native(handle, m, n, alpha, x, incx, y, incy, A, lda));
+    }
+    private static native int cublasZgerc_v2_64Native(
+        cublasHandle handle, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer A, 
+        long lda);
+
+
     /** SYR/HER */
     public static int cublasSsyr(
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer A, 
@@ -3688,18 +6681,41 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer A, 
         int lda);
 
 
+    public static int cublasSsyr_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer A, 
+        long lda)
+    {
+        return checkResult(cublasSsyr_v2_64Native(handle, uplo, n, alpha, x, incx, A, lda));
+    }
+    private static native int cublasSsyr_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer A, 
+        long lda);
+
+
     public static int cublasDsyr(
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer A, 
@@ -3711,18 +6727,41 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer A, 
         int lda);
 
 
+    public static int cublasDsyr_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer A, 
+        long lda)
+    {
+        return checkResult(cublasDsyr_v2_64Native(handle, uplo, n, alpha, x, incx, A, lda));
+    }
+    private static native int cublasDsyr_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer A, 
+        long lda);
+
+
     public static int cublasCsyr(
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer A, 
@@ -3734,18 +6773,41 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer A, 
         int lda);
 
 
+    public static int cublasCsyr_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer A, 
+        long lda)
+    {
+        return checkResult(cublasCsyr_v2_64Native(handle, uplo, n, alpha, x, incx, A, lda));
+    }
+    private static native int cublasCsyr_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer A, 
+        long lda);
+
+
     public static int cublasZsyr(
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer A, 
@@ -3757,18 +6819,41 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer A, 
         int lda);
 
 
+    public static int cublasZsyr_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer A, 
+        long lda)
+    {
+        return checkResult(cublasZsyr_v2_64Native(handle, uplo, n, alpha, x, incx, A, lda));
+    }
+    private static native int cublasZsyr_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer A, 
+        long lda);
+
+
     public static int cublasCher(
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer A, 
@@ -3780,18 +6865,41 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer A, 
         int lda);
 
 
+    public static int cublasCher_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer A, 
+        long lda)
+    {
+        return checkResult(cublasCher_v2_64Native(handle, uplo, n, alpha, x, incx, A, lda));
+    }
+    private static native int cublasCher_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer A, 
+        long lda);
+
+
     public static int cublasZher(
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer A, 
@@ -3803,11 +6911,34 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer A, 
         int lda);
+
+
+    public static int cublasZher_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer A, 
+        long lda)
+    {
+        return checkResult(cublasZher_v2_64Native(handle, uplo, n, alpha, x, incx, A, lda));
+    }
+    private static native int cublasZher_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer A, 
+        long lda);
 
 
     /** SPR/HPR */
@@ -3815,7 +6946,7 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer AP)
@@ -3826,9 +6957,30 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
+        Pointer AP);
+
+
+    public static int cublasSspr_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer AP)
+    {
+        return checkResult(cublasSspr_v2_64Native(handle, uplo, n, alpha, x, incx, AP));
+    }
+    private static native int cublasSspr_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
         Pointer AP);
 
 
@@ -3836,7 +6988,7 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer AP)
@@ -3847,9 +6999,30 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
+        Pointer AP);
+
+
+    public static int cublasDspr_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer AP)
+    {
+        return checkResult(cublasDspr_v2_64Native(handle, uplo, n, alpha, x, incx, AP));
+    }
+    private static native int cublasDspr_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
         Pointer AP);
 
 
@@ -3857,7 +7030,7 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer AP)
@@ -3868,9 +7041,30 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
+        Pointer AP);
+
+
+    public static int cublasChpr_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer AP)
+    {
+        return checkResult(cublasChpr_v2_64Native(handle, uplo, n, alpha, x, incx, AP));
+    }
+    private static native int cublasChpr_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
         Pointer AP);
 
 
@@ -3878,7 +7072,7 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer AP)
@@ -3889,9 +7083,30 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
+        Pointer AP);
+
+
+    public static int cublasZhpr_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer AP)
+    {
+        return checkResult(cublasZhpr_v2_64Native(handle, uplo, n, alpha, x, incx, AP));
+    }
+    private static native int cublasZhpr_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
         Pointer AP);
 
 
@@ -3900,7 +7115,7 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -3914,7 +7129,7 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -3923,11 +7138,38 @@ public class JCublas2
         int lda);
 
 
+    public static int cublasSsyr2_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer A, 
+        long lda)
+    {
+        return checkResult(cublasSsyr2_v2_64Native(handle, uplo, n, alpha, x, incx, y, incy, A, lda));
+    }
+    private static native int cublasSsyr2_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer A, 
+        long lda);
+
+
     public static int cublasDsyr2(
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -3941,7 +7183,7 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -3950,11 +7192,38 @@ public class JCublas2
         int lda);
 
 
+    public static int cublasDsyr2_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer A, 
+        long lda)
+    {
+        return checkResult(cublasDsyr2_v2_64Native(handle, uplo, n, alpha, x, incx, y, incy, A, lda));
+    }
+    private static native int cublasDsyr2_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer A, 
+        long lda);
+
+
     public static int cublasCsyr2(
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -3968,7 +7237,7 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -3977,11 +7246,38 @@ public class JCublas2
         int lda);
 
 
+    public static int cublasCsyr2_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer A, 
+        long lda)
+    {
+        return checkResult(cublasCsyr2_v2_64Native(handle, uplo, n, alpha, x, incx, y, incy, A, lda));
+    }
+    private static native int cublasCsyr2_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer A, 
+        long lda);
+
+
     public static int cublasZsyr2(
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -3995,7 +7291,7 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -4004,11 +7300,38 @@ public class JCublas2
         int lda);
 
 
+    public static int cublasZsyr2_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer A, 
+        long lda)
+    {
+        return checkResult(cublasZsyr2_v2_64Native(handle, uplo, n, alpha, x, incx, y, incy, A, lda));
+    }
+    private static native int cublasZsyr2_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer A, 
+        long lda);
+
+
     public static int cublasCher2(
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -4022,7 +7345,7 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -4031,11 +7354,38 @@ public class JCublas2
         int lda);
 
 
+    public static int cublasCher2_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer A, 
+        long lda)
+    {
+        return checkResult(cublasCher2_v2_64Native(handle, uplo, n, alpha, x, incx, y, incy, A, lda));
+    }
+    private static native int cublasCher2_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer A, 
+        long lda);
+
+
     public static int cublasZher2(
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -4049,7 +7399,7 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -4058,12 +7408,39 @@ public class JCublas2
         int lda);
 
 
+    public static int cublasZher2_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer A, 
+        long lda)
+    {
+        return checkResult(cublasZher2_v2_64Native(handle, uplo, n, alpha, x, incx, y, incy, A, lda));
+    }
+    private static native int cublasZher2_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer A, 
+        long lda);
+
+
     /** SPR2/HPR2 */
     public static int cublasSspr2(
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -4076,7 +7453,7 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -4084,11 +7461,36 @@ public class JCublas2
         Pointer AP);
 
 
+    public static int cublasSspr2_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer AP)
+    {
+        return checkResult(cublasSspr2_v2_64Native(handle, uplo, n, alpha, x, incx, y, incy, AP));
+    }
+    private static native int cublasSspr2_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer AP);
+
+
     public static int cublasDspr2(
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -4101,7 +7503,7 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -4109,11 +7511,36 @@ public class JCublas2
         Pointer AP);
 
 
+    public static int cublasDspr2_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer AP)
+    {
+        return checkResult(cublasDspr2_v2_64Native(handle, uplo, n, alpha, x, incx, y, incy, AP));
+    }
+    private static native int cublasDspr2_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer AP);
+
+
     public static int cublasChpr2(
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -4126,7 +7553,7 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -4134,11 +7561,36 @@ public class JCublas2
         Pointer AP);
 
 
+    public static int cublasChpr2_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer AP)
+    {
+        return checkResult(cublasChpr2_v2_64Native(handle, uplo, n, alpha, x, incx, y, incy, AP));
+    }
+    private static native int cublasChpr2_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer AP);
+
+
     public static int cublasZhpr2(
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
@@ -4151,11 +7603,36 @@ public class JCublas2
         cublasHandle handle, 
         int uplo, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer x, 
         int incx, 
         Pointer y, 
         int incy, 
+        Pointer AP);
+
+
+    public static int cublasZhpr2_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
+        Pointer AP)
+    {
+        return checkResult(cublasZhpr2_v2_64Native(handle, uplo, n, alpha, x, incx, y, incy, AP));
+    }
+    private static native int cublasZhpr2_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        long n, 
+        Pointer alpha, 
+        Pointer x, 
+        long incx, 
+        Pointer y, 
+        long incy, 
         Pointer AP);
 
 
@@ -4165,12 +7642,12 @@ public class JCublas2
         int trans, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer Aarray, 
         int lda, 
         Pointer xarray, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer yarray, 
         int incy, 
         int batchCount)
@@ -4182,15 +7659,48 @@ public class JCublas2
         int trans, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer Aarray, 
         int lda, 
         Pointer xarray, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer yarray, 
         int incy, 
         int batchCount);
+
+
+    public static int cublasSgemvBatched_64(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer Aarray, 
+        long lda, 
+        Pointer xarray, 
+        long incx, 
+        Pointer beta, 
+        Pointer yarray, 
+        long incy, 
+        long batchCount)
+    {
+        return checkResult(cublasSgemvBatched_64Native(handle, trans, m, n, alpha, Aarray, lda, xarray, incx, beta, yarray, incy, batchCount));
+    }
+    private static native int cublasSgemvBatched_64Native(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer Aarray, 
+        long lda, 
+        Pointer xarray, 
+        long incx, 
+        Pointer beta, 
+        Pointer yarray, 
+        long incy, 
+        long batchCount);
 
 
     public static int cublasDgemvBatched(
@@ -4198,12 +7708,12 @@ public class JCublas2
         int trans, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer Aarray, 
         int lda, 
         Pointer xarray, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer yarray, 
         int incy, 
         int batchCount)
@@ -4215,15 +7725,48 @@ public class JCublas2
         int trans, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer Aarray, 
         int lda, 
         Pointer xarray, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer yarray, 
         int incy, 
         int batchCount);
+
+
+    public static int cublasDgemvBatched_64(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer Aarray, 
+        long lda, 
+        Pointer xarray, 
+        long incx, 
+        Pointer beta, 
+        Pointer yarray, 
+        long incy, 
+        long batchCount)
+    {
+        return checkResult(cublasDgemvBatched_64Native(handle, trans, m, n, alpha, Aarray, lda, xarray, incx, beta, yarray, incy, batchCount));
+    }
+    private static native int cublasDgemvBatched_64Native(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer Aarray, 
+        long lda, 
+        Pointer xarray, 
+        long incx, 
+        Pointer beta, 
+        Pointer yarray, 
+        long incy, 
+        long batchCount);
 
 
     public static int cublasCgemvBatched(
@@ -4231,12 +7774,12 @@ public class JCublas2
         int trans, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer Aarray, 
         int lda, 
         Pointer xarray, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer yarray, 
         int incy, 
         int batchCount)
@@ -4248,15 +7791,48 @@ public class JCublas2
         int trans, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer Aarray, 
         int lda, 
         Pointer xarray, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer yarray, 
         int incy, 
         int batchCount);
+
+
+    public static int cublasCgemvBatched_64(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer Aarray, 
+        long lda, 
+        Pointer xarray, 
+        long incx, 
+        Pointer beta, 
+        Pointer yarray, 
+        long incy, 
+        long batchCount)
+    {
+        return checkResult(cublasCgemvBatched_64Native(handle, trans, m, n, alpha, Aarray, lda, xarray, incx, beta, yarray, incy, batchCount));
+    }
+    private static native int cublasCgemvBatched_64Native(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer Aarray, 
+        long lda, 
+        Pointer xarray, 
+        long incx, 
+        Pointer beta, 
+        Pointer yarray, 
+        long incy, 
+        long batchCount);
 
 
     public static int cublasZgemvBatched(
@@ -4264,12 +7840,12 @@ public class JCublas2
         int trans, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer Aarray, 
         int lda, 
         Pointer xarray, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer yarray, 
         int incy, 
         int batchCount)
@@ -4281,15 +7857,48 @@ public class JCublas2
         int trans, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer Aarray, 
         int lda, 
         Pointer xarray, 
         int incx, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer yarray, 
         int incy, 
         int batchCount);
+
+
+    public static int cublasZgemvBatched_64(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer Aarray, 
+        long lda, 
+        Pointer xarray, 
+        long incx, 
+        Pointer beta, 
+        Pointer yarray, 
+        long incy, 
+        long batchCount)
+    {
+        return checkResult(cublasZgemvBatched_64Native(handle, trans, m, n, alpha, Aarray, lda, xarray, incx, beta, yarray, incy, batchCount));
+    }
+    private static native int cublasZgemvBatched_64Native(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer Aarray, 
+        long lda, 
+        Pointer xarray, 
+        long incx, 
+        Pointer beta, 
+        Pointer yarray, 
+        long incy, 
+        long batchCount);
 
 
     public static int cublasSgemvStridedBatched(
@@ -4297,14 +7906,14 @@ public class JCublas2
         int trans, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        long strideA, /** purposely signed */
+        long strideA, 
         Pointer x, 
         int incx, 
         long stridex, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy, 
         long stridey, 
@@ -4317,18 +7926,57 @@ public class JCublas2
         int trans, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        long strideA, /** purposely signed */
+        long strideA, 
         Pointer x, 
         int incx, 
         long stridex, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy, 
         long stridey, 
         int batchCount);
+
+
+    public static int cublasSgemvStridedBatched_64(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        long strideA, 
+        Pointer x, 
+        long incx, 
+        long stridex, 
+        Pointer beta, 
+        Pointer y, 
+        long incy, 
+        long stridey, 
+        long batchCount)
+    {
+        return checkResult(cublasSgemvStridedBatched_64Native(handle, trans, m, n, alpha, A, lda, strideA, x, incx, stridex, beta, y, incy, stridey, batchCount));
+    }
+    private static native int cublasSgemvStridedBatched_64Native(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        long strideA, 
+        Pointer x, 
+        long incx, 
+        long stridex, 
+        Pointer beta, 
+        Pointer y, 
+        long incy, 
+        long stridey, 
+        long batchCount);
 
 
     public static int cublasDgemvStridedBatched(
@@ -4336,14 +7984,14 @@ public class JCublas2
         int trans, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        long strideA, /** purposely signed */
+        long strideA, 
         Pointer x, 
         int incx, 
         long stridex, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy, 
         long stridey, 
@@ -4356,18 +8004,57 @@ public class JCublas2
         int trans, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        long strideA, /** purposely signed */
+        long strideA, 
         Pointer x, 
         int incx, 
         long stridex, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy, 
         long stridey, 
         int batchCount);
+
+
+    public static int cublasDgemvStridedBatched_64(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        long strideA, 
+        Pointer x, 
+        long incx, 
+        long stridex, 
+        Pointer beta, 
+        Pointer y, 
+        long incy, 
+        long stridey, 
+        long batchCount)
+    {
+        return checkResult(cublasDgemvStridedBatched_64Native(handle, trans, m, n, alpha, A, lda, strideA, x, incx, stridex, beta, y, incy, stridey, batchCount));
+    }
+    private static native int cublasDgemvStridedBatched_64Native(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        long strideA, 
+        Pointer x, 
+        long incx, 
+        long stridex, 
+        Pointer beta, 
+        Pointer y, 
+        long incy, 
+        long stridey, 
+        long batchCount);
 
 
     public static int cublasCgemvStridedBatched(
@@ -4375,14 +8062,14 @@ public class JCublas2
         int trans, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        long strideA, /** purposely signed */
+        long strideA, 
         Pointer x, 
         int incx, 
         long stridex, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy, 
         long stridey, 
@@ -4395,18 +8082,57 @@ public class JCublas2
         int trans, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        long strideA, /** purposely signed */
+        long strideA, 
         Pointer x, 
         int incx, 
         long stridex, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy, 
         long stridey, 
         int batchCount);
+
+
+    public static int cublasCgemvStridedBatched_64(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        long strideA, 
+        Pointer x, 
+        long incx, 
+        long stridex, 
+        Pointer beta, 
+        Pointer y, 
+        long incy, 
+        long stridey, 
+        long batchCount)
+    {
+        return checkResult(cublasCgemvStridedBatched_64Native(handle, trans, m, n, alpha, A, lda, strideA, x, incx, stridex, beta, y, incy, stridey, batchCount));
+    }
+    private static native int cublasCgemvStridedBatched_64Native(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        long strideA, 
+        Pointer x, 
+        long incx, 
+        long stridex, 
+        Pointer beta, 
+        Pointer y, 
+        long incy, 
+        long stridey, 
+        long batchCount);
 
 
     public static int cublasZgemvStridedBatched(
@@ -4414,14 +8140,14 @@ public class JCublas2
         int trans, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        long strideA, /** purposely signed */
+        long strideA, 
         Pointer x, 
         int incx, 
         long stridex, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy, 
         long stridey, 
@@ -4434,21 +8160,60 @@ public class JCublas2
         int trans, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        long strideA, /** purposely signed */
+        long strideA, 
         Pointer x, 
         int incx, 
         long stridex, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer y, 
         int incy, 
         long stridey, 
         int batchCount);
 
 
-    /** ---------------- CUBLAS BLAS3 functions ---------------- */
+    public static int cublasZgemvStridedBatched_64(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        long strideA, 
+        Pointer x, 
+        long incx, 
+        long stridex, 
+        Pointer beta, 
+        Pointer y, 
+        long incy, 
+        long stridey, 
+        long batchCount)
+    {
+        return checkResult(cublasZgemvStridedBatched_64Native(handle, trans, m, n, alpha, A, lda, strideA, x, incx, stridex, beta, y, incy, stridey, batchCount));
+    }
+    private static native int cublasZgemvStridedBatched_64Native(
+        cublasHandle handle, 
+        int trans, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        long strideA, 
+        Pointer x, 
+        long incx, 
+        long stridex, 
+        Pointer beta, 
+        Pointer y, 
+        long incy, 
+        long stridey, 
+        long batchCount);
+
+
+    /** ---------------- CUBLAS BLAS3 Functions ---------------- */
     /** GEMM */
     public static int cublasSgemm(
         cublasHandle handle, 
@@ -4457,12 +8222,12 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -4475,14 +8240,49 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasSgemm_v2_64(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasSgemm_v2_64Native(handle, transa, transb, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc));
+    }
+    private static native int cublasSgemm_v2_64Native(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasDgemm(
@@ -4492,12 +8292,12 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -4510,14 +8310,49 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasDgemm_v2_64(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasDgemm_v2_64Native(handle, transa, transb, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc));
+    }
+    private static native int cublasDgemm_v2_64Native(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasCgemm(
@@ -4527,12 +8362,12 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -4545,14 +8380,49 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasCgemm_v2_64(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasCgemm_v2_64Native(handle, transa, transb, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc));
+    }
+    private static native int cublasCgemm_v2_64Native(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasCgemm3m(
@@ -4562,12 +8432,12 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -4580,14 +8450,49 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasCgemm3m_64(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasCgemm3m_64Native(handle, transa, transb, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc));
+    }
+    private static native int cublasCgemm3m_64Native(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasCgemm3mEx(
@@ -4631,6 +8536,47 @@ public class JCublas2
         int ldc);
 
 
+    public static int cublasCgemm3mEx_64(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        int Atype, 
+        long lda, 
+        Pointer B, 
+        int Btype, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        int Ctype, 
+        long ldc)
+    {
+        return checkResult(cublasCgemm3mEx_64Native(handle, transa, transb, m, n, k, alpha, A, Atype, lda, B, Btype, ldb, beta, C, Ctype, ldc));
+    }
+    private static native int cublasCgemm3mEx_64Native(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        int Atype, 
+        long lda, 
+        Pointer B, 
+        int Btype, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        int Ctype, 
+        long ldc);
+
+
     public static int cublasZgemm(
         cublasHandle handle, 
         int transa, 
@@ -4638,12 +8584,12 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -4656,14 +8602,49 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasZgemm_v2_64(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasZgemm_v2_64Native(handle, transa, transb, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc));
+    }
+    private static native int cublasZgemm_v2_64Native(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasZgemm3m(
@@ -4673,12 +8654,12 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -4691,17 +8672,51 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
 
 
-    /** IO in FP16/FP32, computation in float */
+    public static int cublasZgemm3m_64(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasZgemm3m_64Native(handle, transa, transb, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc));
+    }
+    private static native int cublasZgemm3m_64Native(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
+
+
     public static int cublasSgemmEx(
         cublasHandle handle, 
         int transa, 
@@ -4709,14 +8724,14 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int Atype, 
         int lda, 
         Pointer B, 
         int Btype, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int Ctype, 
         int ldc)
@@ -4730,17 +8745,58 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int Atype, 
         int lda, 
         Pointer B, 
         int Btype, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int Ctype, 
         int ldc);
+
+
+    public static int cublasSgemmEx_64(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        int Atype, 
+        long lda, 
+        Pointer B, 
+        int Btype, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        int Ctype, 
+        long ldc)
+    {
+        return checkResult(cublasSgemmEx_64Native(handle, transa, transb, m, n, k, alpha, A, Atype, lda, B, Btype, ldb, beta, C, Ctype, ldc));
+    }
+    private static native int cublasSgemmEx_64Native(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        int Atype, 
+        long lda, 
+        Pointer B, 
+        int Btype, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        int Ctype, 
+        long ldc);
 
 
     public static int cublasGemmEx_new(
@@ -4750,14 +8806,14 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int Atype, 
         int lda, 
         Pointer B, 
         int Btype, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int Ctype, 
         int ldc, 
@@ -4773,14 +8829,14 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int Atype, 
         int lda, 
         Pointer B, 
         int Btype, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int Ctype, 
         int ldc, 
@@ -4788,7 +8844,51 @@ public class JCublas2
         int algo);
 
 
-    /** IO in Int8 complex/cuComplex, computation in cuComplex */
+    public static int cublasGemmEx_64_new(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        int Atype, 
+        long lda, 
+        Pointer B, 
+        int Btype, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        int Ctype, 
+        long ldc, 
+        int computeType, 
+        int algo)
+    {
+        return checkResult(cublasGemmEx_64_newNative(handle, transa, transb, m, n, k, alpha, A, Atype, lda, B, Btype, ldb, beta, C, Ctype, ldc, computeType, algo));
+    }
+    private static native int cublasGemmEx_64_newNative(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        int Atype, 
+        long lda, 
+        Pointer B, 
+        int Btype, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        int Ctype, 
+        long ldc, 
+        int computeType, 
+        int algo);
+
+
     public static int cublasCgemmEx(
         cublasHandle handle, 
         int transa, 
@@ -4830,6 +8930,47 @@ public class JCublas2
         int ldc);
 
 
+    public static int cublasCgemmEx_64(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        int Atype, 
+        long lda, 
+        Pointer B, 
+        int Btype, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        int Ctype, 
+        long ldc)
+    {
+        return checkResult(cublasCgemmEx_64Native(handle, transa, transb, m, n, k, alpha, A, Atype, lda, B, Btype, ldb, beta, C, Ctype, ldc));
+    }
+    private static native int cublasCgemmEx_64Native(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        int Atype, 
+        long lda, 
+        Pointer B, 
+        int Btype, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        int Ctype, 
+        long ldc);
+
+
     /** SYRK */
     public static int cublasSsyrk(
         cublasHandle handle, 
@@ -4837,10 +8978,10 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -4852,12 +8993,41 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasSsyrk_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasSsyrk_v2_64Native(handle, uplo, trans, n, k, alpha, A, lda, beta, C, ldc));
+    }
+    private static native int cublasSsyrk_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasDsyrk(
@@ -4866,10 +9036,10 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -4881,12 +9051,41 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasDsyrk_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasDsyrk_v2_64Native(handle, uplo, trans, n, k, alpha, A, lda, beta, C, ldc));
+    }
+    private static native int cublasDsyrk_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasCsyrk(
@@ -4895,10 +9094,10 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -4910,12 +9109,41 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasCsyrk_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasCsyrk_v2_64Native(handle, uplo, trans, n, k, alpha, A, lda, beta, C, ldc));
+    }
+    private static native int cublasCsyrk_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasZsyrk(
@@ -4924,10 +9152,10 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -4939,26 +9167,54 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
 
 
-    /** IO in Int8 complex/cuComplex, computation in cuComplex */
+    public static int cublasZsyrk_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasZsyrk_v2_64Native(handle, uplo, trans, n, k, alpha, A, lda, beta, C, ldc));
+    }
+    private static native int cublasZsyrk_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
+
+
     public static int cublasCsyrkEx(
         cublasHandle handle, 
         int uplo, 
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int Atype, 
         int lda, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int Ctype, 
         int ldc)
@@ -4971,17 +9227,49 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int Atype, 
         int lda, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int Ctype, 
         int ldc);
 
 
-    /** IO in Int8 complex/cuComplex, computation in cuComplex, Gaussian math */
+    public static int cublasCsyrkEx_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        int Atype, 
+        long lda, 
+        Pointer beta, 
+        Pointer C, 
+        int Ctype, 
+        long ldc)
+    {
+        return checkResult(cublasCsyrkEx_64Native(handle, uplo, trans, n, k, alpha, A, Atype, lda, beta, C, Ctype, ldc));
+    }
+    private static native int cublasCsyrkEx_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        int Atype, 
+        long lda, 
+        Pointer beta, 
+        Pointer C, 
+        int Ctype, 
+        long ldc);
+
+
     public static int cublasCsyrk3mEx(
         cublasHandle handle, 
         int uplo, 
@@ -5015,6 +9303,39 @@ public class JCublas2
         int ldc);
 
 
+    public static int cublasCsyrk3mEx_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        int Atype, 
+        long lda, 
+        Pointer beta, 
+        Pointer C, 
+        int Ctype, 
+        long ldc)
+    {
+        return checkResult(cublasCsyrk3mEx_64Native(handle, uplo, trans, n, k, alpha, A, Atype, lda, beta, C, Ctype, ldc));
+    }
+    private static native int cublasCsyrk3mEx_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        int Atype, 
+        long lda, 
+        Pointer beta, 
+        Pointer C, 
+        int Ctype, 
+        long ldc);
+
+
     /** HERK */
     public static int cublasCherk(
         cublasHandle handle, 
@@ -5022,10 +9343,10 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -5037,12 +9358,41 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasCherk_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasCherk_v2_64Native(handle, uplo, trans, n, k, alpha, A, lda, beta, C, ldc));
+    }
+    private static native int cublasCherk_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasZherk(
@@ -5051,10 +9401,10 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -5066,26 +9416,54 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
 
 
-    /** IO in Int8 complex/cuComplex, computation in cuComplex */
+    public static int cublasZherk_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasZherk_v2_64Native(handle, uplo, trans, n, k, alpha, A, lda, beta, C, ldc));
+    }
+    private static native int cublasZherk_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
+
+
     public static int cublasCherkEx(
         cublasHandle handle, 
         int uplo, 
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int Atype, 
         int lda, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int Ctype, 
         int ldc)
@@ -5098,17 +9476,49 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int Atype, 
         int lda, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int Ctype, 
         int ldc);
 
 
-    /** IO in Int8 complex/cuComplex, computation in cuComplex, Gaussian math */
+    public static int cublasCherkEx_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        int Atype, 
+        long lda, 
+        Pointer beta, 
+        Pointer C, 
+        int Ctype, 
+        long ldc)
+    {
+        return checkResult(cublasCherkEx_64Native(handle, uplo, trans, n, k, alpha, A, Atype, lda, beta, C, Ctype, ldc));
+    }
+    private static native int cublasCherkEx_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        int Atype, 
+        long lda, 
+        Pointer beta, 
+        Pointer C, 
+        int Ctype, 
+        long ldc);
+
+
     public static int cublasCherk3mEx(
         cublasHandle handle, 
         int uplo, 
@@ -5142,19 +9552,52 @@ public class JCublas2
         int ldc);
 
 
-    /** SYR2K */
+    public static int cublasCherk3mEx_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        int Atype, 
+        long lda, 
+        Pointer beta, 
+        Pointer C, 
+        int Ctype, 
+        long ldc)
+    {
+        return checkResult(cublasCherk3mEx_64Native(handle, uplo, trans, n, k, alpha, A, Atype, lda, beta, C, Ctype, ldc));
+    }
+    private static native int cublasCherk3mEx_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        int Atype, 
+        long lda, 
+        Pointer beta, 
+        Pointer C, 
+        int Ctype, 
+        long ldc);
+
+
+    /** SYR2K / HER2K */
     public static int cublasSsyr2k(
         cublasHandle handle, 
         int uplo, 
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -5166,14 +9609,47 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasSsyr2k_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasSsyr2k_v2_64Native(handle, uplo, trans, n, k, alpha, A, lda, B, ldb, beta, C, ldc));
+    }
+    private static native int cublasSsyr2k_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasDsyr2k(
@@ -5182,12 +9658,12 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -5199,14 +9675,47 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasDsyr2k_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasDsyr2k_v2_64Native(handle, uplo, trans, n, k, alpha, A, lda, B, ldb, beta, C, ldc));
+    }
+    private static native int cublasDsyr2k_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasCsyr2k(
@@ -5215,12 +9724,12 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -5232,14 +9741,47 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasCsyr2k_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasCsyr2k_v2_64Native(handle, uplo, trans, n, k, alpha, A, lda, B, ldb, beta, C, ldc));
+    }
+    private static native int cublasCsyr2k_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasZsyr2k(
@@ -5248,12 +9790,12 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -5265,29 +9807,61 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
 
 
-    /** HER2K */
+    public static int cublasZsyr2k_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasZsyr2k_v2_64Native(handle, uplo, trans, n, k, alpha, A, lda, B, ldb, beta, C, ldc));
+    }
+    private static native int cublasZsyr2k_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
+
+
     public static int cublasCher2k(
         cublasHandle handle, 
         int uplo, 
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -5299,14 +9873,47 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasCher2k_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasCher2k_v2_64Native(handle, uplo, trans, n, k, alpha, A, lda, B, ldb, beta, C, ldc));
+    }
+    private static native int cublasCher2k_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasZher2k(
@@ -5315,12 +9922,12 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -5332,29 +9939,62 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
 
 
-    /** SYRKX : eXtended SYRK*/
+    public static int cublasZher2k_v2_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasZher2k_v2_64Native(handle, uplo, trans, n, k, alpha, A, lda, B, ldb, beta, C, ldc));
+    }
+    private static native int cublasZher2k_v2_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
+
+
+    /** SYRKX / HERKX */
     public static int cublasSsyrkx(
         cublasHandle handle, 
         int uplo, 
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -5366,14 +10006,47 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasSsyrkx_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasSsyrkx_64Native(handle, uplo, trans, n, k, alpha, A, lda, B, ldb, beta, C, ldc));
+    }
+    private static native int cublasSsyrkx_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasDsyrkx(
@@ -5382,12 +10055,12 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -5399,14 +10072,47 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasDsyrkx_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasDsyrkx_64Native(handle, uplo, trans, n, k, alpha, A, lda, B, ldb, beta, C, ldc));
+    }
+    private static native int cublasDsyrkx_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasCsyrkx(
@@ -5415,12 +10121,12 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -5432,14 +10138,47 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasCsyrkx_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasCsyrkx_64Native(handle, uplo, trans, n, k, alpha, A, lda, B, ldb, beta, C, ldc));
+    }
+    private static native int cublasCsyrkx_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasZsyrkx(
@@ -5448,12 +10187,12 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -5465,29 +10204,61 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
 
 
-    /** HERKX : eXtended HERK */
+    public static int cublasZsyrkx_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasZsyrkx_64Native(handle, uplo, trans, n, k, alpha, A, lda, B, ldb, beta, C, ldc));
+    }
+    private static native int cublasZsyrkx_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
+
+
     public static int cublasCherkx(
         cublasHandle handle, 
         int uplo, 
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -5499,14 +10270,47 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasCherkx_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasCherkx_64Native(handle, uplo, trans, n, k, alpha, A, lda, B, ldb, beta, C, ldc));
+    }
+    private static native int cublasCherkx_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasZherkx(
@@ -5515,12 +10319,12 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -5532,14 +10336,47 @@ public class JCublas2
         int trans, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasZherkx_64(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasZherkx_64Native(handle, uplo, trans, n, k, alpha, A, lda, B, ldb, beta, C, ldc));
+    }
+    private static native int cublasZherkx_64Native(
+        cublasHandle handle, 
+        int uplo, 
+        int trans, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
 
 
     /** SYMM */
@@ -5549,12 +10386,12 @@ public class JCublas2
         int uplo, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -5566,14 +10403,47 @@ public class JCublas2
         int uplo, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasSsymm_v2_64(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasSsymm_v2_64Native(handle, side, uplo, m, n, alpha, A, lda, B, ldb, beta, C, ldc));
+    }
+    private static native int cublasSsymm_v2_64Native(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasDsymm(
@@ -5582,12 +10452,12 @@ public class JCublas2
         int uplo, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -5599,14 +10469,47 @@ public class JCublas2
         int uplo, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasDsymm_v2_64(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasDsymm_v2_64Native(handle, side, uplo, m, n, alpha, A, lda, B, ldb, beta, C, ldc));
+    }
+    private static native int cublasDsymm_v2_64Native(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasCsymm(
@@ -5615,12 +10518,12 @@ public class JCublas2
         int uplo, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -5632,14 +10535,47 @@ public class JCublas2
         int uplo, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasCsymm_v2_64(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasCsymm_v2_64Native(handle, side, uplo, m, n, alpha, A, lda, B, ldb, beta, C, ldc));
+    }
+    private static native int cublasCsymm_v2_64Native(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasZsymm(
@@ -5648,12 +10584,12 @@ public class JCublas2
         int uplo, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -5665,14 +10601,47 @@ public class JCublas2
         int uplo, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasZsymm_v2_64(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasZsymm_v2_64Native(handle, side, uplo, m, n, alpha, A, lda, B, ldb, beta, C, ldc));
+    }
+    private static native int cublasZsymm_v2_64Native(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
 
 
     /** HEMM */
@@ -5682,12 +10651,12 @@ public class JCublas2
         int uplo, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -5699,14 +10668,47 @@ public class JCublas2
         int uplo, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasChemm_v2_64(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasChemm_v2_64Native(handle, side, uplo, m, n, alpha, A, lda, B, ldb, beta, C, ldc));
+    }
+    private static native int cublasChemm_v2_64Native(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasZhemm(
@@ -5715,12 +10717,12 @@ public class JCublas2
         int uplo, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc)
     {
@@ -5732,14 +10734,47 @@ public class JCublas2
         int uplo, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasZhemm_v2_64(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasZhemm_v2_64Native(handle, side, uplo, m, n, alpha, A, lda, B, ldb, beta, C, ldc));
+    }
+    private static native int cublasZhemm_v2_64Native(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc);
 
 
     /** TRSM */
@@ -5751,7 +10786,7 @@ public class JCublas2
         int diag, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
@@ -5767,11 +10802,42 @@ public class JCublas2
         int diag, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb);
+
+
+    public static int cublasStrsm_v2_64(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb)
+    {
+        return checkResult(cublasStrsm_v2_64Native(handle, side, uplo, trans, diag, m, n, alpha, A, lda, B, ldb));
+    }
+    private static native int cublasStrsm_v2_64Native(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb);
 
 
     public static int cublasDtrsm(
@@ -5782,7 +10848,7 @@ public class JCublas2
         int diag, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
@@ -5798,11 +10864,42 @@ public class JCublas2
         int diag, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb);
+
+
+    public static int cublasDtrsm_v2_64(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb)
+    {
+        return checkResult(cublasDtrsm_v2_64Native(handle, side, uplo, trans, diag, m, n, alpha, A, lda, B, ldb));
+    }
+    private static native int cublasDtrsm_v2_64Native(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb);
 
 
     public static int cublasCtrsm(
@@ -5813,7 +10910,7 @@ public class JCublas2
         int diag, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
@@ -5829,11 +10926,42 @@ public class JCublas2
         int diag, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb);
+
+
+    public static int cublasCtrsm_v2_64(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb)
+    {
+        return checkResult(cublasCtrsm_v2_64Native(handle, side, uplo, trans, diag, m, n, alpha, A, lda, B, ldb));
+    }
+    private static native int cublasCtrsm_v2_64Native(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb);
 
 
     public static int cublasZtrsm(
@@ -5844,7 +10972,7 @@ public class JCublas2
         int diag, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
@@ -5860,11 +10988,42 @@ public class JCublas2
         int diag, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb);
+
+
+    public static int cublasZtrsm_v2_64(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb)
+    {
+        return checkResult(cublasZtrsm_v2_64Native(handle, side, uplo, trans, diag, m, n, alpha, A, lda, B, ldb));
+    }
+    private static native int cublasZtrsm_v2_64Native(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb);
 
 
     /** TRMM */
@@ -5876,7 +11035,7 @@ public class JCublas2
         int diag, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
@@ -5894,13 +11053,48 @@ public class JCublas2
         int diag, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasStrmm_v2_64(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasStrmm_v2_64Native(handle, side, uplo, trans, diag, m, n, alpha, A, lda, B, ldb, C, ldc));
+    }
+    private static native int cublasStrmm_v2_64Native(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasDtrmm(
@@ -5911,7 +11105,7 @@ public class JCublas2
         int diag, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
@@ -5929,13 +11123,48 @@ public class JCublas2
         int diag, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasDtrmm_v2_64(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasDtrmm_v2_64Native(handle, side, uplo, trans, diag, m, n, alpha, A, lda, B, ldb, C, ldc));
+    }
+    private static native int cublasDtrmm_v2_64Native(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasCtrmm(
@@ -5946,7 +11175,7 @@ public class JCublas2
         int diag, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
@@ -5964,13 +11193,48 @@ public class JCublas2
         int diag, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasCtrmm_v2_64(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasCtrmm_v2_64Native(handle, side, uplo, trans, diag, m, n, alpha, A, lda, B, ldb, C, ldc));
+    }
+    private static native int cublasCtrmm_v2_64Native(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasZtrmm(
@@ -5981,7 +11245,7 @@ public class JCublas2
         int diag, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
@@ -5999,13 +11263,48 @@ public class JCublas2
         int diag, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasZtrmm_v2_64(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasZtrmm_v2_64Native(handle, side, uplo, trans, diag, m, n, alpha, A, lda, B, ldb, C, ldc));
+    }
+    private static native int cublasZtrmm_v2_64Native(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasSgemmBatched(
@@ -6015,12 +11314,12 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer Aarray, 
         int lda, 
         Pointer Barray, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer Carray, 
         int ldc, 
         int batchCount)
@@ -6034,15 +11333,52 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer Aarray, 
         int lda, 
         Pointer Barray, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer Carray, 
         int ldc, 
         int batchCount);
+
+
+    public static int cublasSgemmBatched_64(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer Aarray, 
+        long lda, 
+        Pointer Barray, 
+        long ldb, 
+        Pointer beta, 
+        Pointer Carray, 
+        long ldc, 
+        long batchCount)
+    {
+        return checkResult(cublasSgemmBatched_64Native(handle, transa, transb, m, n, k, alpha, Aarray, lda, Barray, ldb, beta, Carray, ldc, batchCount));
+    }
+    private static native int cublasSgemmBatched_64Native(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer Aarray, 
+        long lda, 
+        Pointer Barray, 
+        long ldb, 
+        Pointer beta, 
+        Pointer Carray, 
+        long ldc, 
+        long batchCount);
 
 
     public static int cublasDgemmBatched(
@@ -6052,12 +11388,12 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer Aarray, 
         int lda, 
         Pointer Barray, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer Carray, 
         int ldc, 
         int batchCount)
@@ -6071,15 +11407,52 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer Aarray, 
         int lda, 
         Pointer Barray, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer Carray, 
         int ldc, 
         int batchCount);
+
+
+    public static int cublasDgemmBatched_64(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer Aarray, 
+        long lda, 
+        Pointer Barray, 
+        long ldb, 
+        Pointer beta, 
+        Pointer Carray, 
+        long ldc, 
+        long batchCount)
+    {
+        return checkResult(cublasDgemmBatched_64Native(handle, transa, transb, m, n, k, alpha, Aarray, lda, Barray, ldb, beta, Carray, ldc, batchCount));
+    }
+    private static native int cublasDgemmBatched_64Native(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer Aarray, 
+        long lda, 
+        Pointer Barray, 
+        long ldb, 
+        Pointer beta, 
+        Pointer Carray, 
+        long ldc, 
+        long batchCount);
 
 
     public static int cublasCgemmBatched(
@@ -6089,12 +11462,12 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer Aarray, 
         int lda, 
         Pointer Barray, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer Carray, 
         int ldc, 
         int batchCount)
@@ -6108,15 +11481,52 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer Aarray, 
         int lda, 
         Pointer Barray, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer Carray, 
         int ldc, 
         int batchCount);
+
+
+    public static int cublasCgemmBatched_64(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer Aarray, 
+        long lda, 
+        Pointer Barray, 
+        long ldb, 
+        Pointer beta, 
+        Pointer Carray, 
+        long ldc, 
+        long batchCount)
+    {
+        return checkResult(cublasCgemmBatched_64Native(handle, transa, transb, m, n, k, alpha, Aarray, lda, Barray, ldb, beta, Carray, ldc, batchCount));
+    }
+    private static native int cublasCgemmBatched_64Native(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer Aarray, 
+        long lda, 
+        Pointer Barray, 
+        long ldb, 
+        Pointer beta, 
+        Pointer Carray, 
+        long ldc, 
+        long batchCount);
 
 
     public static int cublasCgemm3mBatched(
@@ -6126,12 +11536,12 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer Aarray, 
         int lda, 
         Pointer Barray, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer Carray, 
         int ldc, 
         int batchCount)
@@ -6145,15 +11555,52 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer Aarray, 
         int lda, 
         Pointer Barray, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer Carray, 
         int ldc, 
         int batchCount);
+
+
+    public static int cublasCgemm3mBatched_64(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer Aarray, 
+        long lda, 
+        Pointer Barray, 
+        long ldb, 
+        Pointer beta, 
+        Pointer Carray, 
+        long ldc, 
+        long batchCount)
+    {
+        return checkResult(cublasCgemm3mBatched_64Native(handle, transa, transb, m, n, k, alpha, Aarray, lda, Barray, ldb, beta, Carray, ldc, batchCount));
+    }
+    private static native int cublasCgemm3mBatched_64Native(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer Aarray, 
+        long lda, 
+        Pointer Barray, 
+        long ldb, 
+        Pointer beta, 
+        Pointer Carray, 
+        long ldc, 
+        long batchCount);
 
 
     public static int cublasZgemmBatched(
@@ -6163,12 +11610,12 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer Aarray, 
         int lda, 
         Pointer Barray, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer Carray, 
         int ldc, 
         int batchCount)
@@ -6182,15 +11629,482 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer Aarray, 
         int lda, 
         Pointer Barray, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer Carray, 
         int ldc, 
         int batchCount);
+
+
+    public static int cublasZgemmBatched_64(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer Aarray, 
+        long lda, 
+        Pointer Barray, 
+        long ldb, 
+        Pointer beta, 
+        Pointer Carray, 
+        long ldc, 
+        long batchCount)
+    {
+        return checkResult(cublasZgemmBatched_64Native(handle, transa, transb, m, n, k, alpha, Aarray, lda, Barray, ldb, beta, Carray, ldc, batchCount));
+    }
+    private static native int cublasZgemmBatched_64Native(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer Aarray, 
+        long lda, 
+        Pointer Barray, 
+        long ldb, 
+        Pointer beta, 
+        Pointer Carray, 
+        long ldc, 
+        long batchCount);
+
+
+    public static int cublasSgemmStridedBatched(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        int m, 
+        int n, 
+        int k, 
+        Pointer alpha, 
+        Pointer A, 
+        int lda, 
+        long strideA, 
+        Pointer B, 
+        int ldb, 
+        long strideB, 
+        Pointer beta, 
+        Pointer C, 
+        int ldc, 
+        long strideC, 
+        int batchCount)
+    {
+        return checkResult(cublasSgemmStridedBatchedNative(handle, transa, transb, m, n, k, alpha, A, lda, strideA, B, ldb, strideB, beta, C, ldc, strideC, batchCount));
+    }
+    private static native int cublasSgemmStridedBatchedNative(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        int m, 
+        int n, 
+        int k, 
+        Pointer alpha, 
+        Pointer A, 
+        int lda, 
+        long strideA, 
+        Pointer B, 
+        int ldb, 
+        long strideB, 
+        Pointer beta, 
+        Pointer C, 
+        int ldc, 
+        long strideC, 
+        int batchCount);
+
+
+    public static int cublasSgemmStridedBatched_64(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        long strideA, 
+        Pointer B, 
+        long ldb, 
+        long strideB, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc, 
+        long strideC, 
+        long batchCount)
+    {
+        return checkResult(cublasSgemmStridedBatched_64Native(handle, transa, transb, m, n, k, alpha, A, lda, strideA, B, ldb, strideB, beta, C, ldc, strideC, batchCount));
+    }
+    private static native int cublasSgemmStridedBatched_64Native(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        long strideA, 
+        Pointer B, 
+        long ldb, 
+        long strideB, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc, 
+        long strideC, 
+        long batchCount);
+
+
+    public static int cublasDgemmStridedBatched(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        int m, 
+        int n, 
+        int k, 
+        Pointer alpha, 
+        Pointer A, 
+        int lda, 
+        long strideA, 
+        Pointer B, 
+        int ldb, 
+        long strideB, 
+        Pointer beta, 
+        Pointer C, 
+        int ldc, 
+        long strideC, 
+        int batchCount)
+    {
+        return checkResult(cublasDgemmStridedBatchedNative(handle, transa, transb, m, n, k, alpha, A, lda, strideA, B, ldb, strideB, beta, C, ldc, strideC, batchCount));
+    }
+    private static native int cublasDgemmStridedBatchedNative(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        int m, 
+        int n, 
+        int k, 
+        Pointer alpha, 
+        Pointer A, 
+        int lda, 
+        long strideA, 
+        Pointer B, 
+        int ldb, 
+        long strideB, 
+        Pointer beta, 
+        Pointer C, 
+        int ldc, 
+        long strideC, 
+        int batchCount);
+
+
+    public static int cublasDgemmStridedBatched_64(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        long strideA, 
+        Pointer B, 
+        long ldb, 
+        long strideB, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc, 
+        long strideC, 
+        long batchCount)
+    {
+        return checkResult(cublasDgemmStridedBatched_64Native(handle, transa, transb, m, n, k, alpha, A, lda, strideA, B, ldb, strideB, beta, C, ldc, strideC, batchCount));
+    }
+    private static native int cublasDgemmStridedBatched_64Native(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        long strideA, 
+        Pointer B, 
+        long ldb, 
+        long strideB, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc, 
+        long strideC, 
+        long batchCount);
+
+
+    public static int cublasCgemmStridedBatched(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        int m, 
+        int n, 
+        int k, 
+        Pointer alpha, 
+        Pointer A, 
+        int lda, 
+        long strideA, 
+        Pointer B, 
+        int ldb, 
+        long strideB, 
+        Pointer beta, 
+        Pointer C, 
+        int ldc, 
+        long strideC, 
+        int batchCount)
+    {
+        return checkResult(cublasCgemmStridedBatchedNative(handle, transa, transb, m, n, k, alpha, A, lda, strideA, B, ldb, strideB, beta, C, ldc, strideC, batchCount));
+    }
+    private static native int cublasCgemmStridedBatchedNative(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        int m, 
+        int n, 
+        int k, 
+        Pointer alpha, 
+        Pointer A, 
+        int lda, 
+        long strideA, 
+        Pointer B, 
+        int ldb, 
+        long strideB, 
+        Pointer beta, 
+        Pointer C, 
+        int ldc, 
+        long strideC, 
+        int batchCount);
+
+
+    public static int cublasCgemmStridedBatched_64(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        long strideA, 
+        Pointer B, 
+        long ldb, 
+        long strideB, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc, 
+        long strideC, 
+        long batchCount)
+    {
+        return checkResult(cublasCgemmStridedBatched_64Native(handle, transa, transb, m, n, k, alpha, A, lda, strideA, B, ldb, strideB, beta, C, ldc, strideC, batchCount));
+    }
+    private static native int cublasCgemmStridedBatched_64Native(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        long strideA, 
+        Pointer B, 
+        long ldb, 
+        long strideB, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc, 
+        long strideC, 
+        long batchCount);
+
+
+    public static int cublasCgemm3mStridedBatched(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        int m, 
+        int n, 
+        int k, 
+        Pointer alpha, 
+        Pointer A, 
+        int lda, 
+        long strideA, 
+        Pointer B, 
+        int ldb, 
+        long strideB, 
+        Pointer beta, 
+        Pointer C, 
+        int ldc, 
+        long strideC, 
+        int batchCount)
+    {
+        return checkResult(cublasCgemm3mStridedBatchedNative(handle, transa, transb, m, n, k, alpha, A, lda, strideA, B, ldb, strideB, beta, C, ldc, strideC, batchCount));
+    }
+    private static native int cublasCgemm3mStridedBatchedNative(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        int m, 
+        int n, 
+        int k, 
+        Pointer alpha, 
+        Pointer A, 
+        int lda, 
+        long strideA, 
+        Pointer B, 
+        int ldb, 
+        long strideB, 
+        Pointer beta, 
+        Pointer C, 
+        int ldc, 
+        long strideC, 
+        int batchCount);
+
+
+    public static int cublasCgemm3mStridedBatched_64(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        long strideA, 
+        Pointer B, 
+        long ldb, 
+        long strideB, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc, 
+        long strideC, 
+        long batchCount)
+    {
+        return checkResult(cublasCgemm3mStridedBatched_64Native(handle, transa, transb, m, n, k, alpha, A, lda, strideA, B, ldb, strideB, beta, C, ldc, strideC, batchCount));
+    }
+    private static native int cublasCgemm3mStridedBatched_64Native(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        long strideA, 
+        Pointer B, 
+        long ldb, 
+        long strideB, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc, 
+        long strideC, 
+        long batchCount);
+
+
+    public static int cublasZgemmStridedBatched(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        int m, 
+        int n, 
+        int k, 
+        Pointer alpha, 
+        Pointer A, 
+        int lda, 
+        long strideA, 
+        Pointer B, 
+        int ldb, 
+        long strideB, 
+        Pointer beta, 
+        Pointer C, 
+        int ldc, 
+        long strideC, 
+        int batchCount)
+    {
+        return checkResult(cublasZgemmStridedBatchedNative(handle, transa, transb, m, n, k, alpha, A, lda, strideA, B, ldb, strideB, beta, C, ldc, strideC, batchCount));
+    }
+    private static native int cublasZgemmStridedBatchedNative(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        int m, 
+        int n, 
+        int k, 
+        Pointer alpha, 
+        Pointer A, 
+        int lda, 
+        long strideA, 
+        Pointer B, 
+        int ldb, 
+        long strideB, 
+        Pointer beta, 
+        Pointer C, 
+        int ldc, 
+        long strideC, 
+        int batchCount);
+
+
+    public static int cublasZgemmStridedBatched_64(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        long strideA, 
+        Pointer B, 
+        long ldb, 
+        long strideB, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc, 
+        long strideC, 
+        long batchCount)
+    {
+        return checkResult(cublasZgemmStridedBatched_64Native(handle, transa, transb, m, n, k, alpha, A, lda, strideA, B, ldb, strideB, beta, C, ldc, strideC, batchCount));
+    }
+    private static native int cublasZgemmStridedBatched_64Native(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        long strideA, 
+        Pointer B, 
+        long ldb, 
+        long strideB, 
+        Pointer beta, 
+        Pointer C, 
+        long ldc, 
+        long strideC, 
+        long batchCount);
 
 
     public static int cublasGemmBatchedEx_new(
@@ -6200,14 +12114,14 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer Aarray, 
         int Atype, 
         int lda, 
         Pointer Barray, 
         int Btype, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer Carray, 
         int Ctype, 
         int ldc, 
@@ -6224,18 +12138,65 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer Aarray, 
         int Atype, 
         int lda, 
         Pointer Barray, 
         int Btype, 
         int ldb, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer Carray, 
         int Ctype, 
         int ldc, 
         int batchCount, 
+        int computeType, 
+        int algo);
+
+
+    public static int cublasGemmBatchedEx_64_new(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer Aarray, 
+        int Atype, 
+        long lda, 
+        Pointer Barray, 
+        int Btype, 
+        long ldb, 
+        Pointer beta, 
+        Pointer Carray, 
+        int Ctype, 
+        long ldc, 
+        long batchCount, 
+        int computeType, 
+        int algo)
+    {
+        return checkResult(cublasGemmBatchedEx_64_newNative(handle, transa, transb, m, n, k, alpha, Aarray, Atype, lda, Barray, Btype, ldb, beta, Carray, Ctype, ldc, batchCount, computeType, algo));
+    }
+    private static native int cublasGemmBatchedEx_64_newNative(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
+        Pointer Aarray, 
+        int Atype, 
+        long lda, 
+        Pointer Barray, 
+        int Btype, 
+        long ldb, 
+        Pointer beta, 
+        Pointer Carray, 
+        int Ctype, 
+        long ldc, 
+        long batchCount, 
         int computeType, 
         int algo);
 
@@ -6247,16 +12208,16 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int Atype, 
         int lda, 
-        long strideA, /** purposely signed */
+        long strideA, 
         Pointer B, 
         int Btype, 
         int ldb, 
         long strideB, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int Ctype, 
         int ldc, 
@@ -6274,16 +12235,16 @@ public class JCublas2
         int m, 
         int n, 
         int k, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int Atype, 
         int lda, 
-        long strideA, /** purposely signed */
+        long strideA, 
         Pointer B, 
         int Btype, 
         int ldb, 
         long strideB, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
         int Ctype, 
         int ldc, 
@@ -6293,222 +12254,60 @@ public class JCublas2
         int algo);
 
 
-    public static int cublasSgemmStridedBatched(
+    public static int cublasGemmStridedBatchedEx_64_new(
         cublasHandle handle, 
         int transa, 
         int transb, 
-        int m, 
-        int n, 
-        int k, 
-        Pointer alpha, /** host or device pointer */
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
         Pointer A, 
-        int lda, 
-        long strideA, /** purposely signed */
+        int Atype, 
+        long lda, 
+        long strideA, 
         Pointer B, 
-        int ldb, 
+        int Btype, 
+        long ldb, 
         long strideB, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
-        int ldc, 
+        int Ctype, 
+        long ldc, 
         long strideC, 
-        int batchCount)
+        long batchCount, 
+        int computeType, 
+        int algo)
     {
-        return checkResult(cublasSgemmStridedBatchedNative(handle, transa, transb, m, n, k, alpha, A, lda, strideA, B, ldb, strideB, beta, C, ldc, strideC, batchCount));
+        return checkResult(cublasGemmStridedBatchedEx_64_newNative(handle, transa, transb, m, n, k, alpha, A, Atype, lda, strideA, B, Btype, ldb, strideB, beta, C, Ctype, ldc, strideC, batchCount, computeType, algo));
     }
-    private static native int cublasSgemmStridedBatchedNative(
+    private static native int cublasGemmStridedBatchedEx_64_newNative(
         cublasHandle handle, 
         int transa, 
         int transb, 
-        int m, 
-        int n, 
-        int k, 
-        Pointer alpha, /** host or device pointer */
+        long m, 
+        long n, 
+        long k, 
+        Pointer alpha, 
         Pointer A, 
-        int lda, 
-        long strideA, /** purposely signed */
+        int Atype, 
+        long lda, 
+        long strideA, 
         Pointer B, 
-        int ldb, 
+        int Btype, 
+        long ldb, 
         long strideB, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer C, 
-        int ldc, 
+        int Ctype, 
+        long ldc, 
         long strideC, 
-        int batchCount);
+        long batchCount, 
+        int computeType, 
+        int algo);
 
 
-    public static int cublasDgemmStridedBatched(
-        cublasHandle handle, 
-        int transa, 
-        int transb, 
-        int m, 
-        int n, 
-        int k, 
-        Pointer alpha, /** host or device pointer */
-        Pointer A, 
-        int lda, 
-        long strideA, /** purposely signed */
-        Pointer B, 
-        int ldb, 
-        long strideB, 
-        Pointer beta, /** host or device pointer */
-        Pointer C, 
-        int ldc, 
-        long strideC, 
-        int batchCount)
-    {
-        return checkResult(cublasDgemmStridedBatchedNative(handle, transa, transb, m, n, k, alpha, A, lda, strideA, B, ldb, strideB, beta, C, ldc, strideC, batchCount));
-    }
-    private static native int cublasDgemmStridedBatchedNative(
-        cublasHandle handle, 
-        int transa, 
-        int transb, 
-        int m, 
-        int n, 
-        int k, 
-        Pointer alpha, /** host or device pointer */
-        Pointer A, 
-        int lda, 
-        long strideA, /** purposely signed */
-        Pointer B, 
-        int ldb, 
-        long strideB, 
-        Pointer beta, /** host or device pointer */
-        Pointer C, 
-        int ldc, 
-        long strideC, 
-        int batchCount);
-
-
-    public static int cublasCgemmStridedBatched(
-        cublasHandle handle, 
-        int transa, 
-        int transb, 
-        int m, 
-        int n, 
-        int k, 
-        Pointer alpha, /** host or device pointer */
-        Pointer A, 
-        int lda, 
-        long strideA, /** purposely signed */
-        Pointer B, 
-        int ldb, 
-        long strideB, 
-        Pointer beta, /** host or device pointer */
-        Pointer C, 
-        int ldc, 
-        long strideC, 
-        int batchCount)
-    {
-        return checkResult(cublasCgemmStridedBatchedNative(handle, transa, transb, m, n, k, alpha, A, lda, strideA, B, ldb, strideB, beta, C, ldc, strideC, batchCount));
-    }
-    private static native int cublasCgemmStridedBatchedNative(
-        cublasHandle handle, 
-        int transa, 
-        int transb, 
-        int m, 
-        int n, 
-        int k, 
-        Pointer alpha, /** host or device pointer */
-        Pointer A, 
-        int lda, 
-        long strideA, /** purposely signed */
-        Pointer B, 
-        int ldb, 
-        long strideB, 
-        Pointer beta, /** host or device pointer */
-        Pointer C, 
-        int ldc, 
-        long strideC, 
-        int batchCount);
-
-
-    public static int cublasCgemm3mStridedBatched(
-        cublasHandle handle, 
-        int transa, 
-        int transb, 
-        int m, 
-        int n, 
-        int k, 
-        Pointer alpha, /** host or device pointer */
-        Pointer A, 
-        int lda, 
-        long strideA, /** purposely signed */
-        Pointer B, 
-        int ldb, 
-        long strideB, 
-        Pointer beta, /** host or device pointer */
-        Pointer C, 
-        int ldc, 
-        long strideC, 
-        int batchCount)
-    {
-        return checkResult(cublasCgemm3mStridedBatchedNative(handle, transa, transb, m, n, k, alpha, A, lda, strideA, B, ldb, strideB, beta, C, ldc, strideC, batchCount));
-    }
-    private static native int cublasCgemm3mStridedBatchedNative(
-        cublasHandle handle, 
-        int transa, 
-        int transb, 
-        int m, 
-        int n, 
-        int k, 
-        Pointer alpha, /** host or device pointer */
-        Pointer A, 
-        int lda, 
-        long strideA, /** purposely signed */
-        Pointer B, 
-        int ldb, 
-        long strideB, 
-        Pointer beta, /** host or device pointer */
-        Pointer C, 
-        int ldc, 
-        long strideC, 
-        int batchCount);
-
-
-    public static int cublasZgemmStridedBatched(
-        cublasHandle handle, 
-        int transa, 
-        int transb, 
-        int m, 
-        int n, 
-        int k, 
-        Pointer alpha, /** host or device pointer */
-        Pointer A, 
-        int lda, 
-        long strideA, /** purposely signed */
-        Pointer B, 
-        int ldb, 
-        long strideB, 
-        Pointer beta, /** host or device poi */
-        Pointer C, 
-        int ldc, 
-        long strideC, 
-        int batchCount)
-    {
-        return checkResult(cublasZgemmStridedBatchedNative(handle, transa, transb, m, n, k, alpha, A, lda, strideA, B, ldb, strideB, beta, C, ldc, strideC, batchCount));
-    }
-    private static native int cublasZgemmStridedBatchedNative(
-        cublasHandle handle, 
-        int transa, 
-        int transb, 
-        int m, 
-        int n, 
-        int k, 
-        Pointer alpha, /** host or device pointer */
-        Pointer A, 
-        int lda, 
-        long strideA, /** purposely signed */
-        Pointer B, 
-        int ldb, 
-        long strideB, 
-        Pointer beta, /** host or device poi */
-        Pointer C, 
-        int ldc, 
-        long strideC, 
-        int batchCount);
-
-
-    /** ---------------- CUBLAS BLAS-like extension ---------------- */
+    /** ---------------- CUBLAS BLAS-like Extension ---------------- */
     /** GEAM */
     public static int cublasSgeam(
         cublasHandle handle, 
@@ -6516,10 +12315,10 @@ public class JCublas2
         int transb, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer B, 
         int ldb, 
         Pointer C, 
@@ -6533,14 +12332,47 @@ public class JCublas2
         int transb, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer B, 
         int ldb, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasSgeam_64(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer beta, 
+        Pointer B, 
+        long ldb, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasSgeam_64Native(handle, transa, transb, m, n, alpha, A, lda, beta, B, ldb, C, ldc));
+    }
+    private static native int cublasSgeam_64Native(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer beta, 
+        Pointer B, 
+        long ldb, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasDgeam(
@@ -6549,10 +12381,10 @@ public class JCublas2
         int transb, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer B, 
         int ldb, 
         Pointer C, 
@@ -6566,14 +12398,47 @@ public class JCublas2
         int transb, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer B, 
         int ldb, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasDgeam_64(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer beta, 
+        Pointer B, 
+        long ldb, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasDgeam_64Native(handle, transa, transb, m, n, alpha, A, lda, beta, B, ldb, C, ldc));
+    }
+    private static native int cublasDgeam_64Native(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer beta, 
+        Pointer B, 
+        long ldb, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasCgeam(
@@ -6582,10 +12447,10 @@ public class JCublas2
         int transb, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer B, 
         int ldb, 
         Pointer C, 
@@ -6599,14 +12464,47 @@ public class JCublas2
         int transb, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer B, 
         int ldb, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasCgeam_64(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer beta, 
+        Pointer B, 
+        long ldb, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasCgeam_64Native(handle, transa, transb, m, n, alpha, A, lda, beta, B, ldb, C, ldc));
+    }
+    private static native int cublasCgeam_64Native(
+        cublasHandle handle, 
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer beta, 
+        Pointer B, 
+        long ldb, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasZgeam(
@@ -6615,10 +12513,10 @@ public class JCublas2
         int transb, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer B, 
         int ldb, 
         Pointer C, 
@@ -6632,317 +12530,47 @@ public class JCublas2
         int transb, 
         int m, 
         int n, 
-        Pointer alpha, /** host or device pointer */
+        Pointer alpha, 
         Pointer A, 
         int lda, 
-        Pointer beta, /** host or device pointer */
+        Pointer beta, 
         Pointer B, 
         int ldb, 
         Pointer C, 
         int ldc);
 
 
-    /** Batched LU - GETRF*/
-    public static int cublasSgetrfBatched(
+    public static int cublasZgeam_64(
         cublasHandle handle, 
-        int n, 
-        Pointer A, /**Device pointer*/
-        int lda, 
-        Pointer P, /**Device Pointer*/
-        Pointer info, /**Device Pointer*/
-        int batchSize)
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer beta, 
+        Pointer B, 
+        long ldb, 
+        Pointer C, 
+        long ldc)
     {
-        return checkResult(cublasSgetrfBatchedNative(handle, n, A, lda, P, info, batchSize));
+        return checkResult(cublasZgeam_64Native(handle, transa, transb, m, n, alpha, A, lda, beta, B, ldb, C, ldc));
     }
-    private static native int cublasSgetrfBatchedNative(
+    private static native int cublasZgeam_64Native(
         cublasHandle handle, 
-        int n, 
-        Pointer A, /**Device pointer*/
-        int lda, 
-        Pointer P, /**Device Pointer*/
-        Pointer info, /**Device Pointer*/
-        int batchSize);
-
-
-    public static int cublasDgetrfBatched(
-        cublasHandle handle, 
-        int n, 
-        Pointer A, /**Device pointer*/
-        int lda, 
-        Pointer P, /**Device Pointer*/
-        Pointer info, /**Device Pointer*/
-        int batchSize)
-    {
-        return checkResult(cublasDgetrfBatchedNative(handle, n, A, lda, P, info, batchSize));
-    }
-    private static native int cublasDgetrfBatchedNative(
-        cublasHandle handle, 
-        int n, 
-        Pointer A, /**Device pointer*/
-        int lda, 
-        Pointer P, /**Device Pointer*/
-        Pointer info, /**Device Pointer*/
-        int batchSize);
-
-
-    public static int cublasCgetrfBatched(
-        cublasHandle handle, 
-        int n, 
-        Pointer A, /**Device pointer*/
-        int lda, 
-        Pointer P, /**Device Pointer*/
-        Pointer info, /**Device Pointer*/
-        int batchSize)
-    {
-        return checkResult(cublasCgetrfBatchedNative(handle, n, A, lda, P, info, batchSize));
-    }
-    private static native int cublasCgetrfBatchedNative(
-        cublasHandle handle, 
-        int n, 
-        Pointer A, /**Device pointer*/
-        int lda, 
-        Pointer P, /**Device Pointer*/
-        Pointer info, /**Device Pointer*/
-        int batchSize);
-
-
-    public static int cublasZgetrfBatched(
-        cublasHandle handle, 
-        int n, 
-        Pointer A, /**Device pointer*/
-        int lda, 
-        Pointer P, /**Device Pointer*/
-        Pointer info, /**Device Pointer*/
-        int batchSize)
-    {
-        return checkResult(cublasZgetrfBatchedNative(handle, n, A, lda, P, info, batchSize));
-    }
-    private static native int cublasZgetrfBatchedNative(
-        cublasHandle handle, 
-        int n, 
-        Pointer A, /**Device pointer*/
-        int lda, 
-        Pointer P, /**Device Pointer*/
-        Pointer info, /**Device Pointer*/
-        int batchSize);
-
-
-    /** Batched inversion based on LU factorization from getrf */
-    public static int cublasSgetriBatched(
-        cublasHandle handle, 
-        int n, 
-        Pointer A, /**Device pointer*/
-        int lda, 
-        Pointer P, /**Device pointer*/
-        Pointer C, /**Device pointer*/
-        int ldc, 
-        Pointer info, 
-        int batchSize)
-    {
-        return checkResult(cublasSgetriBatchedNative(handle, n, A, lda, P, C, ldc, info, batchSize));
-    }
-    private static native int cublasSgetriBatchedNative(
-        cublasHandle handle, 
-        int n, 
-        Pointer A, /**Device pointer*/
-        int lda, 
-        Pointer P, /**Device pointer*/
-        Pointer C, /**Device pointer*/
-        int ldc, 
-        Pointer info, 
-        int batchSize);
-
-
-    public static int cublasDgetriBatched(
-        cublasHandle handle, 
-        int n, 
-        Pointer A, /**Device pointer*/
-        int lda, 
-        Pointer P, /**Device pointer*/
-        Pointer C, /**Device pointer*/
-        int ldc, 
-        Pointer info, 
-        int batchSize)
-    {
-        return checkResult(cublasDgetriBatchedNative(handle, n, A, lda, P, C, ldc, info, batchSize));
-    }
-    private static native int cublasDgetriBatchedNative(
-        cublasHandle handle, 
-        int n, 
-        Pointer A, /**Device pointer*/
-        int lda, 
-        Pointer P, /**Device pointer*/
-        Pointer C, /**Device pointer*/
-        int ldc, 
-        Pointer info, 
-        int batchSize);
-
-
-    public static int cublasCgetriBatched(
-        cublasHandle handle, 
-        int n, 
-        Pointer A, /**Device pointer*/
-        int lda, 
-        Pointer P, /**Device pointer*/
-        Pointer C, /**Device pointer*/
-        int ldc, 
-        Pointer info, 
-        int batchSize)
-    {
-        return checkResult(cublasCgetriBatchedNative(handle, n, A, lda, P, C, ldc, info, batchSize));
-    }
-    private static native int cublasCgetriBatchedNative(
-        cublasHandle handle, 
-        int n, 
-        Pointer A, /**Device pointer*/
-        int lda, 
-        Pointer P, /**Device pointer*/
-        Pointer C, /**Device pointer*/
-        int ldc, 
-        Pointer info, 
-        int batchSize);
-
-
-    public static int cublasZgetriBatched(
-        cublasHandle handle, 
-        int n, 
-        Pointer A, /**Device pointer*/
-        int lda, 
-        Pointer P, /**Device pointer*/
-        Pointer C, /**Device pointer*/
-        int ldc, 
-        Pointer info, 
-        int batchSize)
-    {
-        return checkResult(cublasZgetriBatchedNative(handle, n, A, lda, P, C, ldc, info, batchSize));
-    }
-    private static native int cublasZgetriBatchedNative(
-        cublasHandle handle, 
-        int n, 
-        Pointer A, /**Device pointer*/
-        int lda, 
-        Pointer P, /**Device pointer*/
-        Pointer C, /**Device pointer*/
-        int ldc, 
-        Pointer info, 
-        int batchSize);
-
-
-    /** Batched solver based on LU factorization from getrf */
-    public static int cublasSgetrsBatched(
-        cublasHandle handle, 
-        int trans, 
-        int n, 
-        int nrhs, 
-        Pointer Aarray, 
-        int lda, 
-        Pointer devIpiv, 
-        Pointer Barray, 
-        int ldb, 
-        Pointer info, 
-        int batchSize)
-    {
-        return checkResult(cublasSgetrsBatchedNative(handle, trans, n, nrhs, Aarray, lda, devIpiv, Barray, ldb, info, batchSize));
-    }
-    private static native int cublasSgetrsBatchedNative(
-        cublasHandle handle, 
-        int trans, 
-        int n, 
-        int nrhs, 
-        Pointer Aarray, 
-        int lda, 
-        Pointer devIpiv, 
-        Pointer Barray, 
-        int ldb, 
-        Pointer info, 
-        int batchSize);
-
-
-    public static int cublasDgetrsBatched(
-        cublasHandle handle, 
-        int trans, 
-        int n, 
-        int nrhs, 
-        Pointer Aarray, 
-        int lda, 
-        Pointer devIpiv, 
-        Pointer Barray, 
-        int ldb, 
-        Pointer info, 
-        int batchSize)
-    {
-        return checkResult(cublasDgetrsBatchedNative(handle, trans, n, nrhs, Aarray, lda, devIpiv, Barray, ldb, info, batchSize));
-    }
-    private static native int cublasDgetrsBatchedNative(
-        cublasHandle handle, 
-        int trans, 
-        int n, 
-        int nrhs, 
-        Pointer Aarray, 
-        int lda, 
-        Pointer devIpiv, 
-        Pointer Barray, 
-        int ldb, 
-        Pointer info, 
-        int batchSize);
-
-
-    public static int cublasCgetrsBatched(
-        cublasHandle handle, 
-        int trans, 
-        int n, 
-        int nrhs, 
-        Pointer Aarray, 
-        int lda, 
-        Pointer devIpiv, 
-        Pointer Barray, 
-        int ldb, 
-        Pointer info, 
-        int batchSize)
-    {
-        return checkResult(cublasCgetrsBatchedNative(handle, trans, n, nrhs, Aarray, lda, devIpiv, Barray, ldb, info, batchSize));
-    }
-    private static native int cublasCgetrsBatchedNative(
-        cublasHandle handle, 
-        int trans, 
-        int n, 
-        int nrhs, 
-        Pointer Aarray, 
-        int lda, 
-        Pointer devIpiv, 
-        Pointer Barray, 
-        int ldb, 
-        Pointer info, 
-        int batchSize);
-
-
-    public static int cublasZgetrsBatched(
-        cublasHandle handle, 
-        int trans, 
-        int n, 
-        int nrhs, 
-        Pointer Aarray, 
-        int lda, 
-        Pointer devIpiv, 
-        Pointer Barray, 
-        int ldb, 
-        Pointer info, 
-        int batchSize)
-    {
-        return checkResult(cublasZgetrsBatchedNative(handle, trans, n, nrhs, Aarray, lda, devIpiv, Barray, ldb, info, batchSize));
-    }
-    private static native int cublasZgetrsBatchedNative(
-        cublasHandle handle, 
-        int trans, 
-        int n, 
-        int nrhs, 
-        Pointer Aarray, 
-        int lda, 
-        Pointer devIpiv, 
-        Pointer Barray, 
-        int ldb, 
-        Pointer info, 
-        int batchSize);
+        int transa, 
+        int transb, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer beta, 
+        Pointer B, 
+        long ldb, 
+        Pointer C, 
+        long ldc);
 
 
     /** TRSM - Batched Triangular Solver */
@@ -6954,7 +12582,7 @@ public class JCublas2
         int diag, 
         int m, 
         int n, 
-        Pointer alpha, /**Host or Device Pointer*/
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
@@ -6971,12 +12599,45 @@ public class JCublas2
         int diag, 
         int m, 
         int n, 
-        Pointer alpha, /**Host or Device Pointer*/
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
         int batchCount);
+
+
+    public static int cublasStrsmBatched_64(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        long batchCount)
+    {
+        return checkResult(cublasStrsmBatched_64Native(handle, side, uplo, trans, diag, m, n, alpha, A, lda, B, ldb, batchCount));
+    }
+    private static native int cublasStrsmBatched_64Native(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        long batchCount);
 
 
     public static int cublasDtrsmBatched(
@@ -6987,7 +12648,7 @@ public class JCublas2
         int diag, 
         int m, 
         int n, 
-        Pointer alpha, /**Host or Device Pointer*/
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
@@ -7004,12 +12665,45 @@ public class JCublas2
         int diag, 
         int m, 
         int n, 
-        Pointer alpha, /**Host or Device Pointer*/
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
         int batchCount);
+
+
+    public static int cublasDtrsmBatched_64(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        long batchCount)
+    {
+        return checkResult(cublasDtrsmBatched_64Native(handle, side, uplo, trans, diag, m, n, alpha, A, lda, B, ldb, batchCount));
+    }
+    private static native int cublasDtrsmBatched_64Native(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        long batchCount);
 
 
     public static int cublasCtrsmBatched(
@@ -7020,7 +12714,7 @@ public class JCublas2
         int diag, 
         int m, 
         int n, 
-        Pointer alpha, /**Host or Device Pointer*/
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
@@ -7037,12 +12731,45 @@ public class JCublas2
         int diag, 
         int m, 
         int n, 
-        Pointer alpha, /**Host or Device Pointer*/
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
         int ldb, 
         int batchCount);
+
+
+    public static int cublasCtrsmBatched_64(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        long batchCount)
+    {
+        return checkResult(cublasCtrsmBatched_64Native(handle, side, uplo, trans, diag, m, n, alpha, A, lda, B, ldb, batchCount));
+    }
+    private static native int cublasCtrsmBatched_64Native(
+        cublasHandle handle, 
+        int side, 
+        int uplo, 
+        int trans, 
+        int diag, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        long batchCount);
 
 
     public static int cublasZtrsmBatched(
@@ -7053,7 +12780,7 @@ public class JCublas2
         int diag, 
         int m, 
         int n, 
-        Pointer alpha, /**Host or Device Pointer*/
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
@@ -7070,7 +12797,7 @@ public class JCublas2
         int diag, 
         int m, 
         int n, 
-        Pointer alpha, /**Host or Device Pointer*/
+        Pointer alpha, 
         Pointer A, 
         int lda, 
         Pointer B, 
@@ -7078,315 +12805,37 @@ public class JCublas2
         int batchCount);
 
 
-    /** Batched - MATINV*/
-    public static int cublasSmatinvBatched(
+    public static int cublasZtrsmBatched_64(
         cublasHandle handle, 
-        int n, 
-        Pointer A, /**Device pointer*/
-        int lda, 
-        Pointer Ainv, /**Device pointer*/
-        int lda_inv, 
-        Pointer info, /**Device Pointer*/
-        int batchSize)
-    {
-        return checkResult(cublasSmatinvBatchedNative(handle, n, A, lda, Ainv, lda_inv, info, batchSize));
-    }
-    private static native int cublasSmatinvBatchedNative(
-        cublasHandle handle, 
-        int n, 
-        Pointer A, /**Device pointer*/
-        int lda, 
-        Pointer Ainv, /**Device pointer*/
-        int lda_inv, 
-        Pointer info, /**Device Pointer*/
-        int batchSize);
-
-
-    public static int cublasDmatinvBatched(
-        cublasHandle handle, 
-        int n, 
-        Pointer A, /**Device pointer*/
-        int lda, 
-        Pointer Ainv, /**Device pointer*/
-        int lda_inv, 
-        Pointer info, /**Device Pointer*/
-        int batchSize)
-    {
-        return checkResult(cublasDmatinvBatchedNative(handle, n, A, lda, Ainv, lda_inv, info, batchSize));
-    }
-    private static native int cublasDmatinvBatchedNative(
-        cublasHandle handle, 
-        int n, 
-        Pointer A, /**Device pointer*/
-        int lda, 
-        Pointer Ainv, /**Device pointer*/
-        int lda_inv, 
-        Pointer info, /**Device Pointer*/
-        int batchSize);
-
-
-    public static int cublasCmatinvBatched(
-        cublasHandle handle, 
-        int n, 
-        Pointer A, /**Device pointer*/
-        int lda, 
-        Pointer Ainv, /**Device pointer*/
-        int lda_inv, 
-        Pointer info, /**Device Pointer*/
-        int batchSize)
-    {
-        return checkResult(cublasCmatinvBatchedNative(handle, n, A, lda, Ainv, lda_inv, info, batchSize));
-    }
-    private static native int cublasCmatinvBatchedNative(
-        cublasHandle handle, 
-        int n, 
-        Pointer A, /**Device pointer*/
-        int lda, 
-        Pointer Ainv, /**Device pointer*/
-        int lda_inv, 
-        Pointer info, /**Device Pointer*/
-        int batchSize);
-
-
-    public static int cublasZmatinvBatched(
-        cublasHandle handle, 
-        int n, 
-        Pointer A, /**Device pointer*/
-        int lda, 
-        Pointer Ainv, /**Device pointer*/
-        int lda_inv, 
-        Pointer info, /**Device Pointer*/
-        int batchSize)
-    {
-        return checkResult(cublasZmatinvBatchedNative(handle, n, A, lda, Ainv, lda_inv, info, batchSize));
-    }
-    private static native int cublasZmatinvBatchedNative(
-        cublasHandle handle, 
-        int n, 
-        Pointer A, /**Device pointer*/
-        int lda, 
-        Pointer Ainv, /**Device pointer*/
-        int lda_inv, 
-        Pointer info, /**Device Pointer*/
-        int batchSize);
-
-
-    /** Batch QR Factorization */
-    public static int cublasSgeqrfBatched(
-        cublasHandle handle, 
-        int m, 
-        int n, 
-        Pointer Aarray, /**Device pointer*/
-        int lda, 
-        Pointer TauArray, /**Device pointer*/
-        Pointer info, 
-        int batchSize)
-    {
-        return checkResult(cublasSgeqrfBatchedNative(handle, m, n, Aarray, lda, TauArray, info, batchSize));
-    }
-    private static native int cublasSgeqrfBatchedNative(
-        cublasHandle handle, 
-        int m, 
-        int n, 
-        Pointer Aarray, /**Device pointer*/
-        int lda, 
-        Pointer TauArray, /**Device pointer*/
-        Pointer info, 
-        int batchSize);
-
-
-    public static int cublasDgeqrfBatched(
-        cublasHandle handle, 
-        int m, 
-        int n, 
-        Pointer Aarray, /**Device pointer*/
-        int lda, 
-        Pointer TauArray, /**Device pointer*/
-        Pointer info, 
-        int batchSize)
-    {
-        return checkResult(cublasDgeqrfBatchedNative(handle, m, n, Aarray, lda, TauArray, info, batchSize));
-    }
-    private static native int cublasDgeqrfBatchedNative(
-        cublasHandle handle, 
-        int m, 
-        int n, 
-        Pointer Aarray, /**Device pointer*/
-        int lda, 
-        Pointer TauArray, /**Device pointer*/
-        Pointer info, 
-        int batchSize);
-
-
-    public static int cublasCgeqrfBatched(
-        cublasHandle handle, 
-        int m, 
-        int n, 
-        Pointer Aarray, /**Device pointer*/
-        int lda, 
-        Pointer TauArray, /**Device pointer*/
-        Pointer info, 
-        int batchSize)
-    {
-        return checkResult(cublasCgeqrfBatchedNative(handle, m, n, Aarray, lda, TauArray, info, batchSize));
-    }
-    private static native int cublasCgeqrfBatchedNative(
-        cublasHandle handle, 
-        int m, 
-        int n, 
-        Pointer Aarray, /**Device pointer*/
-        int lda, 
-        Pointer TauArray, /**Device pointer*/
-        Pointer info, 
-        int batchSize);
-
-
-    public static int cublasZgeqrfBatched(
-        cublasHandle handle, 
-        int m, 
-        int n, 
-        Pointer Aarray, /**Device pointer*/
-        int lda, 
-        Pointer TauArray, /**Device pointer*/
-        Pointer info, 
-        int batchSize)
-    {
-        return checkResult(cublasZgeqrfBatchedNative(handle, m, n, Aarray, lda, TauArray, info, batchSize));
-    }
-    private static native int cublasZgeqrfBatchedNative(
-        cublasHandle handle, 
-        int m, 
-        int n, 
-        Pointer Aarray, /**Device pointer*/
-        int lda, 
-        Pointer TauArray, /**Device pointer*/
-        Pointer info, 
-        int batchSize);
-
-
-    /** Least Square Min only m >= n and Non-transpose supported */
-    public static int cublasSgelsBatched(
-        cublasHandle handle, 
+        int side, 
+        int uplo, 
         int trans, 
-        int m, 
-        int n, 
-        int nrhs, 
-        Pointer Aarray, /**Device pointer*/
-        int lda, 
-        Pointer Carray, /**Device pointer*/
-        int ldc, 
-        Pointer info, 
-        Pointer devInfoArray, /**Device pointer*/
-        int batchSize)
+        int diag, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        long batchCount)
     {
-        return checkResult(cublasSgelsBatchedNative(handle, trans, m, n, nrhs, Aarray, lda, Carray, ldc, info, devInfoArray, batchSize));
+        return checkResult(cublasZtrsmBatched_64Native(handle, side, uplo, trans, diag, m, n, alpha, A, lda, B, ldb, batchCount));
     }
-    private static native int cublasSgelsBatchedNative(
+    private static native int cublasZtrsmBatched_64Native(
         cublasHandle handle, 
+        int side, 
+        int uplo, 
         int trans, 
-        int m, 
-        int n, 
-        int nrhs, 
-        Pointer Aarray, /**Device pointer*/
-        int lda, 
-        Pointer Carray, /**Device pointer*/
-        int ldc, 
-        Pointer info, 
-        Pointer devInfoArray, /**Device pointer*/
-        int batchSize);
-
-
-    public static int cublasDgelsBatched(
-        cublasHandle handle, 
-        int trans, 
-        int m, 
-        int n, 
-        int nrhs, 
-        Pointer Aarray, /**Device pointer*/
-        int lda, 
-        Pointer Carray, /**Device pointer*/
-        int ldc, 
-        Pointer info, 
-        Pointer devInfoArray, /**Device pointer*/
-        int batchSize)
-    {
-        return checkResult(cublasDgelsBatchedNative(handle, trans, m, n, nrhs, Aarray, lda, Carray, ldc, info, devInfoArray, batchSize));
-    }
-    private static native int cublasDgelsBatchedNative(
-        cublasHandle handle, 
-        int trans, 
-        int m, 
-        int n, 
-        int nrhs, 
-        Pointer Aarray, /**Device pointer*/
-        int lda, 
-        Pointer Carray, /**Device pointer*/
-        int ldc, 
-        Pointer info, 
-        Pointer devInfoArray, /**Device pointer*/
-        int batchSize);
-
-
-    public static int cublasCgelsBatched(
-        cublasHandle handle, 
-        int trans, 
-        int m, 
-        int n, 
-        int nrhs, 
-        Pointer Aarray, /**Device pointer*/
-        int lda, 
-        Pointer Carray, /**Device pointer*/
-        int ldc, 
-        Pointer info, 
-        Pointer devInfoArray, 
-        int batchSize)
-    {
-        return checkResult(cublasCgelsBatchedNative(handle, trans, m, n, nrhs, Aarray, lda, Carray, ldc, info, devInfoArray, batchSize));
-    }
-    private static native int cublasCgelsBatchedNative(
-        cublasHandle handle, 
-        int trans, 
-        int m, 
-        int n, 
-        int nrhs, 
-        Pointer Aarray, /**Device pointer*/
-        int lda, 
-        Pointer Carray, /**Device pointer*/
-        int ldc, 
-        Pointer info, 
-        Pointer devInfoArray, 
-        int batchSize);
-
-
-    public static int cublasZgelsBatched(
-        cublasHandle handle, 
-        int trans, 
-        int m, 
-        int n, 
-        int nrhs, 
-        Pointer Aarray, /**Device pointer*/
-        int lda, 
-        Pointer Carray, /**Device pointer*/
-        int ldc, 
-        Pointer info, 
-        Pointer devInfoArray, 
-        int batchSize)
-    {
-        return checkResult(cublasZgelsBatchedNative(handle, trans, m, n, nrhs, Aarray, lda, Carray, ldc, info, devInfoArray, batchSize));
-    }
-    private static native int cublasZgelsBatchedNative(
-        cublasHandle handle, 
-        int trans, 
-        int m, 
-        int n, 
-        int nrhs, 
-        Pointer Aarray, /**Device pointer*/
-        int lda, 
-        Pointer Carray, /**Device pointer*/
-        int ldc, 
-        Pointer info, 
-        Pointer devInfoArray, 
-        int batchSize);
+        int diag, 
+        long m, 
+        long n, 
+        Pointer alpha, 
+        Pointer A, 
+        long lda, 
+        Pointer B, 
+        long ldb, 
+        long batchCount);
 
 
     /** DGMM */
@@ -7417,6 +12866,33 @@ public class JCublas2
         int ldc);
 
 
+    public static int cublasSdgmm_64(
+        cublasHandle handle, 
+        int mode, 
+        long m, 
+        long n, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasSdgmm_64Native(handle, mode, m, n, A, lda, x, incx, C, ldc));
+    }
+    private static native int cublasSdgmm_64Native(
+        cublasHandle handle, 
+        int mode, 
+        long m, 
+        long n, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer C, 
+        long ldc);
+
+
     public static int cublasDdgmm(
         cublasHandle handle, 
         int mode, 
@@ -7442,6 +12918,33 @@ public class JCublas2
         int incx, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasDdgmm_64(
+        cublasHandle handle, 
+        int mode, 
+        long m, 
+        long n, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasDdgmm_64Native(handle, mode, m, n, A, lda, x, incx, C, ldc));
+    }
+    private static native int cublasDdgmm_64Native(
+        cublasHandle handle, 
+        int mode, 
+        long m, 
+        long n, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer C, 
+        long ldc);
 
 
     public static int cublasCdgmm(
@@ -7471,6 +12974,33 @@ public class JCublas2
         int ldc);
 
 
+    public static int cublasCdgmm_64(
+        cublasHandle handle, 
+        int mode, 
+        long m, 
+        long n, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasCdgmm_64Native(handle, mode, m, n, A, lda, x, incx, C, ldc));
+    }
+    private static native int cublasCdgmm_64Native(
+        cublasHandle handle, 
+        int mode, 
+        long m, 
+        long n, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer C, 
+        long ldc);
+
+
     public static int cublasZdgmm(
         cublasHandle handle, 
         int mode, 
@@ -7496,6 +13026,344 @@ public class JCublas2
         int incx, 
         Pointer C, 
         int ldc);
+
+
+    public static int cublasZdgmm_64(
+        cublasHandle handle, 
+        int mode, 
+        long m, 
+        long n, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer C, 
+        long ldc)
+    {
+        return checkResult(cublasZdgmm_64Native(handle, mode, m, n, A, lda, x, incx, C, ldc));
+    }
+    private static native int cublasZdgmm_64Native(
+        cublasHandle handle, 
+        int mode, 
+        long m, 
+        long n, 
+        Pointer A, 
+        long lda, 
+        Pointer x, 
+        long incx, 
+        Pointer C, 
+        long ldc);
+
+
+    /** Batched - MATINV*/
+    public static int cublasSmatinvBatched(
+        cublasHandle handle, 
+        int n, 
+        Pointer A, 
+        int lda, 
+        Pointer Ainv, 
+        int lda_inv, 
+        Pointer info, 
+        int batchSize)
+    {
+        return checkResult(cublasSmatinvBatchedNative(handle, n, A, lda, Ainv, lda_inv, info, batchSize));
+    }
+    private static native int cublasSmatinvBatchedNative(
+        cublasHandle handle, 
+        int n, 
+        Pointer A, 
+        int lda, 
+        Pointer Ainv, 
+        int lda_inv, 
+        Pointer info, 
+        int batchSize);
+
+
+    public static int cublasDmatinvBatched(
+        cublasHandle handle, 
+        int n, 
+        Pointer A, 
+        int lda, 
+        Pointer Ainv, 
+        int lda_inv, 
+        Pointer info, 
+        int batchSize)
+    {
+        return checkResult(cublasDmatinvBatchedNative(handle, n, A, lda, Ainv, lda_inv, info, batchSize));
+    }
+    private static native int cublasDmatinvBatchedNative(
+        cublasHandle handle, 
+        int n, 
+        Pointer A, 
+        int lda, 
+        Pointer Ainv, 
+        int lda_inv, 
+        Pointer info, 
+        int batchSize);
+
+
+    public static int cublasCmatinvBatched(
+        cublasHandle handle, 
+        int n, 
+        Pointer A, 
+        int lda, 
+        Pointer Ainv, 
+        int lda_inv, 
+        Pointer info, 
+        int batchSize)
+    {
+        return checkResult(cublasCmatinvBatchedNative(handle, n, A, lda, Ainv, lda_inv, info, batchSize));
+    }
+    private static native int cublasCmatinvBatchedNative(
+        cublasHandle handle, 
+        int n, 
+        Pointer A, 
+        int lda, 
+        Pointer Ainv, 
+        int lda_inv, 
+        Pointer info, 
+        int batchSize);
+
+
+    public static int cublasZmatinvBatched(
+        cublasHandle handle, 
+        int n, 
+        Pointer A, 
+        int lda, 
+        Pointer Ainv, 
+        int lda_inv, 
+        Pointer info, 
+        int batchSize)
+    {
+        return checkResult(cublasZmatinvBatchedNative(handle, n, A, lda, Ainv, lda_inv, info, batchSize));
+    }
+    private static native int cublasZmatinvBatchedNative(
+        cublasHandle handle, 
+        int n, 
+        Pointer A, 
+        int lda, 
+        Pointer Ainv, 
+        int lda_inv, 
+        Pointer info, 
+        int batchSize);
+
+
+    /** Batch QR Factorization */
+    public static int cublasSgeqrfBatched(
+        cublasHandle handle, 
+        int m, 
+        int n, 
+        Pointer Aarray, 
+        int lda, 
+        Pointer TauArray, 
+        Pointer info, 
+        int batchSize)
+    {
+        return checkResult(cublasSgeqrfBatchedNative(handle, m, n, Aarray, lda, TauArray, info, batchSize));
+    }
+    private static native int cublasSgeqrfBatchedNative(
+        cublasHandle handle, 
+        int m, 
+        int n, 
+        Pointer Aarray, 
+        int lda, 
+        Pointer TauArray, 
+        Pointer info, 
+        int batchSize);
+
+
+    public static int cublasDgeqrfBatched(
+        cublasHandle handle, 
+        int m, 
+        int n, 
+        Pointer Aarray, 
+        int lda, 
+        Pointer TauArray, 
+        Pointer info, 
+        int batchSize)
+    {
+        return checkResult(cublasDgeqrfBatchedNative(handle, m, n, Aarray, lda, TauArray, info, batchSize));
+    }
+    private static native int cublasDgeqrfBatchedNative(
+        cublasHandle handle, 
+        int m, 
+        int n, 
+        Pointer Aarray, 
+        int lda, 
+        Pointer TauArray, 
+        Pointer info, 
+        int batchSize);
+
+
+    public static int cublasCgeqrfBatched(
+        cublasHandle handle, 
+        int m, 
+        int n, 
+        Pointer Aarray, 
+        int lda, 
+        Pointer TauArray, 
+        Pointer info, 
+        int batchSize)
+    {
+        return checkResult(cublasCgeqrfBatchedNative(handle, m, n, Aarray, lda, TauArray, info, batchSize));
+    }
+    private static native int cublasCgeqrfBatchedNative(
+        cublasHandle handle, 
+        int m, 
+        int n, 
+        Pointer Aarray, 
+        int lda, 
+        Pointer TauArray, 
+        Pointer info, 
+        int batchSize);
+
+
+    public static int cublasZgeqrfBatched(
+        cublasHandle handle, 
+        int m, 
+        int n, 
+        Pointer Aarray, 
+        int lda, 
+        Pointer TauArray, 
+        Pointer info, 
+        int batchSize)
+    {
+        return checkResult(cublasZgeqrfBatchedNative(handle, m, n, Aarray, lda, TauArray, info, batchSize));
+    }
+    private static native int cublasZgeqrfBatchedNative(
+        cublasHandle handle, 
+        int m, 
+        int n, 
+        Pointer Aarray, 
+        int lda, 
+        Pointer TauArray, 
+        Pointer info, 
+        int batchSize);
+
+
+    /** Least Square Min only m >= n and Non-transpose supported */
+    public static int cublasSgelsBatched(
+        cublasHandle handle, 
+        int trans, 
+        int m, 
+        int n, 
+        int nrhs, 
+        Pointer Aarray, 
+        int lda, 
+        Pointer Carray, 
+        int ldc, 
+        Pointer info, 
+        Pointer devInfoArray, 
+        int batchSize)
+    {
+        return checkResult(cublasSgelsBatchedNative(handle, trans, m, n, nrhs, Aarray, lda, Carray, ldc, info, devInfoArray, batchSize));
+    }
+    private static native int cublasSgelsBatchedNative(
+        cublasHandle handle, 
+        int trans, 
+        int m, 
+        int n, 
+        int nrhs, 
+        Pointer Aarray, 
+        int lda, 
+        Pointer Carray, 
+        int ldc, 
+        Pointer info, 
+        Pointer devInfoArray, 
+        int batchSize);
+
+
+    public static int cublasDgelsBatched(
+        cublasHandle handle, 
+        int trans, 
+        int m, 
+        int n, 
+        int nrhs, 
+        Pointer Aarray, 
+        int lda, 
+        Pointer Carray, 
+        int ldc, 
+        Pointer info, 
+        Pointer devInfoArray, 
+        int batchSize)
+    {
+        return checkResult(cublasDgelsBatchedNative(handle, trans, m, n, nrhs, Aarray, lda, Carray, ldc, info, devInfoArray, batchSize));
+    }
+    private static native int cublasDgelsBatchedNative(
+        cublasHandle handle, 
+        int trans, 
+        int m, 
+        int n, 
+        int nrhs, 
+        Pointer Aarray, 
+        int lda, 
+        Pointer Carray, 
+        int ldc, 
+        Pointer info, 
+        Pointer devInfoArray, 
+        int batchSize);
+
+
+    public static int cublasCgelsBatched(
+        cublasHandle handle, 
+        int trans, 
+        int m, 
+        int n, 
+        int nrhs, 
+        Pointer Aarray, 
+        int lda, 
+        Pointer Carray, 
+        int ldc, 
+        Pointer info, 
+        Pointer devInfoArray, 
+        int batchSize)
+    {
+        return checkResult(cublasCgelsBatchedNative(handle, trans, m, n, nrhs, Aarray, lda, Carray, ldc, info, devInfoArray, batchSize));
+    }
+    private static native int cublasCgelsBatchedNative(
+        cublasHandle handle, 
+        int trans, 
+        int m, 
+        int n, 
+        int nrhs, 
+        Pointer Aarray, 
+        int lda, 
+        Pointer Carray, 
+        int ldc, 
+        Pointer info, 
+        Pointer devInfoArray, 
+        int batchSize);
+
+
+    public static int cublasZgelsBatched(
+        cublasHandle handle, 
+        int trans, 
+        int m, 
+        int n, 
+        int nrhs, 
+        Pointer Aarray, 
+        int lda, 
+        Pointer Carray, 
+        int ldc, 
+        Pointer info, 
+        Pointer devInfoArray, 
+        int batchSize)
+    {
+        return checkResult(cublasZgelsBatchedNative(handle, trans, m, n, nrhs, Aarray, lda, Carray, ldc, info, devInfoArray, batchSize));
+    }
+    private static native int cublasZgelsBatchedNative(
+        cublasHandle handle, 
+        int trans, 
+        int m, 
+        int n, 
+        int nrhs, 
+        Pointer Aarray, 
+        int lda, 
+        Pointer Carray, 
+        int ldc, 
+        Pointer info, 
+        Pointer devInfoArray, 
+        int batchSize);
 
 
     /** TPTTR : Triangular Pack format to Triangular format */
@@ -7651,6 +13519,321 @@ public class JCublas2
         int lda, 
         Pointer AP);
 
+
+    /** Batched LU - GETRF*/
+    public static int cublasSgetrfBatched(
+        cublasHandle handle, 
+        int n, 
+        Pointer A, 
+        int lda, 
+        Pointer P, 
+        Pointer info, 
+        int batchSize)
+    {
+        return checkResult(cublasSgetrfBatchedNative(handle, n, A, lda, P, info, batchSize));
+    }
+    private static native int cublasSgetrfBatchedNative(
+        cublasHandle handle, 
+        int n, 
+        Pointer A, 
+        int lda, 
+        Pointer P, 
+        Pointer info, 
+        int batchSize);
+
+
+    public static int cublasDgetrfBatched(
+        cublasHandle handle, 
+        int n, 
+        Pointer A, 
+        int lda, 
+        Pointer P, 
+        Pointer info, 
+        int batchSize)
+    {
+        return checkResult(cublasDgetrfBatchedNative(handle, n, A, lda, P, info, batchSize));
+    }
+    private static native int cublasDgetrfBatchedNative(
+        cublasHandle handle, 
+        int n, 
+        Pointer A, 
+        int lda, 
+        Pointer P, 
+        Pointer info, 
+        int batchSize);
+
+
+    public static int cublasCgetrfBatched(
+        cublasHandle handle, 
+        int n, 
+        Pointer A, 
+        int lda, 
+        Pointer P, 
+        Pointer info, 
+        int batchSize)
+    {
+        return checkResult(cublasCgetrfBatchedNative(handle, n, A, lda, P, info, batchSize));
+    }
+    private static native int cublasCgetrfBatchedNative(
+        cublasHandle handle, 
+        int n, 
+        Pointer A, 
+        int lda, 
+        Pointer P, 
+        Pointer info, 
+        int batchSize);
+
+
+    public static int cublasZgetrfBatched(
+        cublasHandle handle, 
+        int n, 
+        Pointer A, 
+        int lda, 
+        Pointer P, 
+        Pointer info, 
+        int batchSize)
+    {
+        return checkResult(cublasZgetrfBatchedNative(handle, n, A, lda, P, info, batchSize));
+    }
+    private static native int cublasZgetrfBatchedNative(
+        cublasHandle handle, 
+        int n, 
+        Pointer A, 
+        int lda, 
+        Pointer P, 
+        Pointer info, 
+        int batchSize);
+
+
+    /** Batched inversion based on LU factorization from getrf */
+    public static int cublasSgetriBatched(
+        cublasHandle handle, 
+        int n, 
+        Pointer A, 
+        int lda, 
+        Pointer P, 
+        Pointer C, 
+        int ldc, 
+        Pointer info, 
+        int batchSize)
+    {
+        return checkResult(cublasSgetriBatchedNative(handle, n, A, lda, P, C, ldc, info, batchSize));
+    }
+    private static native int cublasSgetriBatchedNative(
+        cublasHandle handle, 
+        int n, 
+        Pointer A, 
+        int lda, 
+        Pointer P, 
+        Pointer C, 
+        int ldc, 
+        Pointer info, 
+        int batchSize);
+
+
+    public static int cublasDgetriBatched(
+        cublasHandle handle, 
+        int n, 
+        Pointer A, 
+        int lda, 
+        Pointer P, 
+        Pointer C, 
+        int ldc, 
+        Pointer info, 
+        int batchSize)
+    {
+        return checkResult(cublasDgetriBatchedNative(handle, n, A, lda, P, C, ldc, info, batchSize));
+    }
+    private static native int cublasDgetriBatchedNative(
+        cublasHandle handle, 
+        int n, 
+        Pointer A, 
+        int lda, 
+        Pointer P, 
+        Pointer C, 
+        int ldc, 
+        Pointer info, 
+        int batchSize);
+
+
+    public static int cublasCgetriBatched(
+        cublasHandle handle, 
+        int n, 
+        Pointer A, 
+        int lda, 
+        Pointer P, 
+        Pointer C, 
+        int ldc, 
+        Pointer info, 
+        int batchSize)
+    {
+        return checkResult(cublasCgetriBatchedNative(handle, n, A, lda, P, C, ldc, info, batchSize));
+    }
+    private static native int cublasCgetriBatchedNative(
+        cublasHandle handle, 
+        int n, 
+        Pointer A, 
+        int lda, 
+        Pointer P, 
+        Pointer C, 
+        int ldc, 
+        Pointer info, 
+        int batchSize);
+
+
+    public static int cublasZgetriBatched(
+        cublasHandle handle, 
+        int n, 
+        Pointer A, 
+        int lda, 
+        Pointer P, 
+        Pointer C, 
+        int ldc, 
+        Pointer info, 
+        int batchSize)
+    {
+        return checkResult(cublasZgetriBatchedNative(handle, n, A, lda, P, C, ldc, info, batchSize));
+    }
+    private static native int cublasZgetriBatchedNative(
+        cublasHandle handle, 
+        int n, 
+        Pointer A, 
+        int lda, 
+        Pointer P, 
+        Pointer C, 
+        int ldc, 
+        Pointer info, 
+        int batchSize);
+
+
+    /** Batched solver based on LU factorization from getrf */
+    public static int cublasSgetrsBatched(
+        cublasHandle handle, 
+        int trans, 
+        int n, 
+        int nrhs, 
+        Pointer Aarray, 
+        int lda, 
+        Pointer devIpiv, 
+        Pointer Barray, 
+        int ldb, 
+        Pointer info, 
+        int batchSize)
+    {
+        return checkResult(cublasSgetrsBatchedNative(handle, trans, n, nrhs, Aarray, lda, devIpiv, Barray, ldb, info, batchSize));
+    }
+    private static native int cublasSgetrsBatchedNative(
+        cublasHandle handle, 
+        int trans, 
+        int n, 
+        int nrhs, 
+        Pointer Aarray, 
+        int lda, 
+        Pointer devIpiv, 
+        Pointer Barray, 
+        int ldb, 
+        Pointer info, 
+        int batchSize);
+
+
+    public static int cublasDgetrsBatched(
+        cublasHandle handle, 
+        int trans, 
+        int n, 
+        int nrhs, 
+        Pointer Aarray, 
+        int lda, 
+        Pointer devIpiv, 
+        Pointer Barray, 
+        int ldb, 
+        Pointer info, 
+        int batchSize)
+    {
+        return checkResult(cublasDgetrsBatchedNative(handle, trans, n, nrhs, Aarray, lda, devIpiv, Barray, ldb, info, batchSize));
+    }
+    private static native int cublasDgetrsBatchedNative(
+        cublasHandle handle, 
+        int trans, 
+        int n, 
+        int nrhs, 
+        Pointer Aarray, 
+        int lda, 
+        Pointer devIpiv, 
+        Pointer Barray, 
+        int ldb, 
+        Pointer info, 
+        int batchSize);
+
+
+    public static int cublasCgetrsBatched(
+        cublasHandle handle, 
+        int trans, 
+        int n, 
+        int nrhs, 
+        Pointer Aarray, 
+        int lda, 
+        Pointer devIpiv, 
+        Pointer Barray, 
+        int ldb, 
+        Pointer info, 
+        int batchSize)
+    {
+        return checkResult(cublasCgetrsBatchedNative(handle, trans, n, nrhs, Aarray, lda, devIpiv, Barray, ldb, info, batchSize));
+    }
+    private static native int cublasCgetrsBatchedNative(
+        cublasHandle handle, 
+        int trans, 
+        int n, 
+        int nrhs, 
+        Pointer Aarray, 
+        int lda, 
+        Pointer devIpiv, 
+        Pointer Barray, 
+        int ldb, 
+        Pointer info, 
+        int batchSize);
+
+
+    public static int cublasZgetrsBatched(
+        cublasHandle handle, 
+        int trans, 
+        int n, 
+        int nrhs, 
+        Pointer Aarray, 
+        int lda, 
+        Pointer devIpiv, 
+        Pointer Barray, 
+        int ldb, 
+        Pointer info, 
+        int batchSize)
+    {
+        return checkResult(cublasZgetrsBatchedNative(handle, trans, n, nrhs, Aarray, lda, devIpiv, Barray, ldb, info, batchSize));
+    }
+    private static native int cublasZgetrsBatchedNative(
+        cublasHandle handle, 
+        int trans, 
+        int n, 
+        int nrhs, 
+        Pointer Aarray, 
+        int lda, 
+        Pointer devIpiv, 
+        Pointer Barray, 
+        int ldb, 
+        Pointer info, 
+        int batchSize);
+
+
+    public static int cublasMigrateComputeType_new(
+        cublasHandle handle, 
+        int dataType, 
+        int[] computeType)
+    {
+        return checkResult(cublasMigrateComputeType_newNative(handle, dataType, computeType));
+    }
+    private static native int cublasMigrateComputeType_newNative(
+        cublasHandle handle, 
+        int dataType, 
+        int[] computeType);
 
 }
 
